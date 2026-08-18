@@ -1,30 +1,144 @@
-# ⚡ DAGR: Exhaustive Master Execution Plan & Dependency DAG
+# ⚡ DAGR: Master Deterministic Architectural Specification & Implementation Blueprint
 
 > **Project:** **DAGR** (`dagr`)  
 > **Repository:** [`github.com/mjzd7/dagr`](https://github.com/mjzd7/dagr)  
 > **Lead Architect:** Mohit Dagar  
 > **Harness Mode:** `/hyperplan` + `/ultrawork`  
 > **Governance:** [Ponytail Minimal Architecture (Full)](./.ponytail.md)  
-> **Status:** Execution-Ready Master Plan with Task Dependency Graph 🔒  
+> **Status:** All Architectural Decisions & MCP+A2A Protocol Finalized & Locked 🔒  
+> **Last Audited:** 2026-08-18  
 
 ---
 
 ## 📑 Table of Contents
-1. [Execution Dependency Topology (Sequential vs. Parallel Matrix)](#1-execution-dependency-topology)
-2. [Master Phase 1 Execution Roadmap & Checkable ToDo Breakdown](#2-master-phase-1-execution-roadmap)
-   - *Milestone 1: Cargo Workspace & Foundation Core (`crates/dagr-core`) [SEQUENTIAL]*
-   - *Milestone 2: Symbolic Slicer Engine (`crates/dagr-slicer`) [PARALLEL TRACK A]*
-   - *Milestone 3: Architecture Guardrails & Sanitizer (`crates/dagr-guard`) [PARALLEL TRACK B]*
-   - *Milestone 4: Cross-Platform CoW Sandbox (`crates/dagr-sandbox`) [PARALLEL TRACK C]*
-   - *Milestone 5: MCP JSON-RPC 2.0 Server (`crates/dagr-mcp`) [SEQUENTIAL INTEGRATION]*
-   - *Milestone 6: Visual CLI & Terminal UI (`crates/dagr-cli`) [SEQUENTIAL INTEGRATION]*
-   - *Milestone 7: Golden Benchmark & End-to-End Verification [FINAL VERIFICATION]*
-3. [Parallel Execution Strategy for Subagents](#3-parallel-execution-strategy-for-subagents)
-4. [Verification Harness & SLA Gateways](#4-verification-harness--sla-gateways)
+1. [Executive Summary & Core Philosophy](#1-executive-summary--core-philosophy)
+2. [Dual Protocol Specification: MCP (Host-to-Tool) + A2A (Peer-to-Peer)](#2-dual-protocol-specification-mcp--a2a)
+3. [The 7 Finalized Deterministic Architectural Decisions](#3-the-7-finalized-deterministic-architectural-decisions)
+4. [Terminal Visual Design System & Aesthetics](#4-terminal-visual-design-system--aesthetics)
+5. [Exhaustive 16-Point Edge-Case Register](#5-exhaustive-16-point-edge-case-register)
+6. [Master Phase 1 Execution Roadmap & Checkable ToDo Breakdown](#6-master-phase-1-execution-roadmap)
+7. [Parallel Execution Strategy for Subagents](#7-parallel-execution-strategy-for-subagents)
+8. [Verification Harness & SLA Gateways](#8-verification-harness--sla-gateways)
 
 ---
 
-## 1. Execution Dependency Topology
+## 1. Executive Summary & Core Philosophy
+
+**DAGR** is an ultra-fast, local-first safety hypervisor, symbolic AST slicing engine, and multi-agent coordination bus built in native Rust. Its primary mission is to eliminate:
+1. **Context Explosion (95% Token Bloat):** Passing giant files or noisy vector dumps to LLMs, inflating token bills and degrading model reasoning.
+2. **Architectural Drift & Unbounded Blast Radius:** Autonomous AI agents generating duplicate utilities, violating clean layer boundaries, and executing destructive file mutations.
+3. **Multi-Agent Collision & State Fragmentation:** Multiple autonomous agents clashing over the same working tree without coordinated state locks or verified handoffs.
+
+---
+
+## 2. Dual Protocol Specification: MCP + A2A
+
+DAGR natively supports both the **Model Context Protocol (MCP)** for IDE integrations and the **Agent-to-Agent Protocol (A2A)** for autonomous multi-agent swarm coordination:
+
+```
+                              MCP vs. A2A PROTOCOL TOPOLOGY
+                              
+    ┌──────────────────────────────────────────────┐    ┌──────────────────────────────────────────────┐
+    │        MCP (MODEL CONTEXT PROTOCOL)          │    │         A2A (AGENT-TO-AGENT PROTOCOL)        │
+    │            "Host-to-Tool Interface"          │    │          "Peer Swarm Coordination"           │
+    ├──────────────────────────────────────────────┤    ├──────────────────────────────────────────────┤
+    │ • Client-Server (IDE ➔ DAGR)                 │    │ • Peer-to-Peer / Bus (Agent ➔ Agent)         │
+    │ • Request/Response (JSON-RPC 2.0)            │    │ • State envelope sharing & delegation        │
+    │ • Used by: Cursor, Claude Desktop, Windsurf  │    │ • Used by: Multi-agent swarms (Plan/Code/Test)│
+    └──────────────────────────────────────────────┘    └──────────────────────────────────────────────┘
+```
+
+```mermaid
+graph LR
+    subgraph Agent_Swarm ["🤖 Multi-Agent Swarm (A2A Network)"]
+        Planner["Planning Agent<br/>(Architect)"]
+        Coder["Coding Agent<br/>(Builder)"]
+        Tester["Verification Agent<br/>(Tester)"]
+    end
+
+    subgraph DAGR_Bus ["⚡ DAGR Hypervisor (MCP + A2A)"]
+        A2A_Hub["A2A State & Event Hub<br/>(Transaction Locking & Handoff)"]
+        AST["Symbolic Slicer"]
+        CoW["CoW Sandbox"]
+    end
+
+    Planner -->|1. A2A Request: Blast Radius| A2A_Hub
+    A2A_Hub --> AST
+    Planner -->|2. A2A Delegate: Build Task| Coder
+    Coder -->|3. A2A Stage Mutation| A2A_Hub
+    A2A_Hub --> CoW
+    Coder -->|4. A2A Request Verification| Tester
+    Tester -->|5. A2A Run Tests in Shadow| A2A_Hub
+```
+
+### The 6 Core Tools Exposed across MCP & A2A:
+
+#### 🔌 Standard MCP Tools (Host-to-Tool):
+1. `dagr_get_context_slice`: Prunes code down to exact ~35 lines + hoisted type contracts.
+2. `dagr_verify_architecture`: In-memory layer boundary and SOLID checker (<0.1ms).
+3. `dagr_execute_sandboxed`: Safe tool execution in Copy-on-Write shadow sandbox.
+
+#### 🤝 A2A Swarm Tools (Peer-to-Peer):
+4. `dagr_a2a_handshake`: Registers agent session ID, role, and file locks (prevents concurrent write conflicts).
+5. `dagr_a2a_transfer_context`: Passes compressed AST slices directly between peer agents without re-parsing.
+6. `dagr_a2a_verify_peer_patch`: Reviewer agent runs automated tests on another agent's staged shadow transaction (`tx_id`) before committing.
+
+---
+
+## 3. The 7 Finalized Deterministic Architectural Decisions
+
+1. **Tree-sitter Grammar Ingestion:** Static native C compilation for TS, JS, Python, Go, Rust with `cargo-zigbuild` CI + fallback to Indentation/Regex.
+2. **Symbolic Slicing Algorithm:** Backwards Data-Flow Slicing with Contract Hoisting (>= 90% token reduction).
+3. **CoW Shadow Sandbox:** OS-Native block cloning (`clonefile(2)` on macOS, `reflink` on Linux, hardlink staging) with sub-10ms atomic rollback.
+4. **Local Storage & Cache:** Embedded SQLite with Write-Ahead Logging (`PRAGMA journal_mode = WAL;`) + 32-byte Blake3 content hash indexing.
+5. **Protocol Gateway:** Stdio + SSE JSON-RPC 2.0 with global stdout isolation (logs to stderr).
+6. **Architectural Guardrails:** 3-Pillar Hybrid Engine (Auto-Detection, Presets, `.dagr/rules.yaml`, Prompt Sanitizer).
+7. **CLI & Terminal Aesthetics:** Clap v4 subcommands with colored Unicode scoreboards, progress bars, and TTY auto-detection.
+
+---
+
+## 4. Terminal Visual Design System & Aesthetics
+
+```
+$ dagr context src/billing/charge.ts:processPayment
+
+⚡ DAGR Symbolic AST Slicer v0.1.0
+┌────────────────────────────────────────────────────────────────────────┐
+│ Target Symbol:   src/billing/charge.ts:processPayment                  │
+│ Language:        TypeScript (Tree-sitter native AST)                  │
+│ Sliced Context:  34 lines (down from 1,180 lines in file)              │
+│ Token Footprint: 342 tokens (down from 11,840 tokens)                  │
+│ Token Reduction: [████████████████████████████░░] 🟢 97.1% COMPRESSED   │
+│ Latency:         ⚡ 1.8ms (Blake3 SQLite Index HIT)                     │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 5. Exhaustive 16-Point Edge-Case Register
+
+| ID | Edge Case | Severity | Concrete Mitigation |
+| :--- | :--- | :---: | :--- |
+| **E01** | Mid-edit Syntax Errors (missing brackets) | 🔴 High | Tree-sitter error recovery + Lexical Indentation Fallback (`syntax_degraded: true`). |
+| **E02** | Circular AST Dependencies (`A -> B -> A`) | 🔴 High | `HashSet<u64>` visited register + iterative BFS queue + 3-hop depth limit. |
+| **E03** | Indirect Prompt Injection in Comments | 🔴 High | Zero-trust regex sanitizer stripping `<|im_start|>`, `SYSTEM:`, `[INST]` delimiters. |
+| **E04** | Path Traversal (`../../etc/passwd`) | 🔴 High | Path canonicalization (`std::fs::canonicalize`) enforcing workspace root prefix. |
+| **E05** | Process Crash during Shadow Mutation | 🟡 Med | Write-ahead journal (`.dagr/journal.db`) auto-rolling back orphan locks on boot. |
+| **E06** | Cross-Platform CoW Compatibility | 🔴 High | Dynamic selector: `clonefile` on Darwin, `reflink`/hardlinks on Linux/Windows. |
+| **E07** | Dynamic Metaprogramming (`eval`, `getattr`) | 🟡 Med | Capture lexical enclosing boundary box + attach `unresolved_dynamic_call` warning. |
+| **E08** | Massive Monorepos (10M+ LOC) | 🟡 Med | Lazy on-demand AST parsing + LRU mmap cache + git-diff scoped indexing. |
+| **E09** | Git Pre-commit Latency Breaches (>100ms) | 🟡 Med | Blake3 hash caching skipping unchanged files (<35ms total hook run). |
+| **E10** | MCP Stdio Stream Corruption | 🔴 High | Strict `tracing-subscriber` routing all logs to `stderr`; `stdout` reserved for JSON-RPC. |
+| **E11** | BPE Token Count Distortion in Code | 🟢 Low | Native `tiktoken-rs` (`cl100k_base` / `o200k_base`) for exact audited metrics. |
+| **E12** | Cross-Language Boundaries (TS -> Rust API) | 🟡 Med | OpenAPI/Protobuf contract registry mapping HTTP routes to server handler ASTs. |
+| **E13** | Concurrent Multi-Agent Invocations | 🟡 Med | A2A state locking + UUID-keyed shadow namespaces (`.dagr/shadow/<tx_id>`). |
+| **E14** | Binary & Non-UTF8 Files (.png, .wasm) | 🟢 Low | MIME sniffing + UTF-8 validation gate rejecting non-text files instantly. |
+| **E15** | Layer Boundary Violations | 🔴 High | In-memory AST import linter (`dagr guard`) evaluating `.dagr/rules.yaml`. |
+| **E16** | Downstream LLM Outages & Drops | 🟡 Med | Circuit Breaker state machine (Closed -> Open -> Half-Open) with exponential backoff. |
+
+---
+
+## 6. Master Phase 1 Execution Roadmap
 
 ```mermaid
 graph TD
@@ -40,7 +154,7 @@ graph TD
         M4["Milestone 4: CoW Sandbox<br/><code>crates/dagr-sandbox</code><br/>(APFS clonefile, reflink,<br/>10ms Rollback Engine)"]:::par
     end
 
-    M5["Milestone 5: Model Context Protocol<br/><code>crates/dagr-mcp</code><br/>(Stdio JSON-RPC Server & Tool Dispatcher)"]:::seq
+    M5["Milestone 5: MCP & A2A Swarm Bus<br/><code>crates/dagr-mcp</code><br/>(Stdio JSON-RPC Server & A2A Tools)"]:::seq
     M6["Milestone 6: Unified Visual CLI<br/><code>crates/dagr-cli</code><br/>(Clap v4, Terminal UI Box-Drawing, TTY)"]:::seq
     M7["Milestone 7: Golden Benchmarks<br/><code>tests/fixtures/</code><br/>(>=90% Token Reduction & End-to-End Verification)"]:::fin
 
@@ -56,178 +170,49 @@ graph TD
     M6 --> M7
 ```
 
-### Execution Flow Rules:
-1. **Sequential Gate 1 (Foundation):** `Milestone 1 (dagr-core)` MUST be completed first because all other crates inherit its domain models, error types, SQLite storage, and `tiktoken-rs` tokenizer.
-2. **Parallel Cluster (Milestones 2, 3, 4):** Once `dagr-core` compiles, **Milestone 2 (Slicer)**, **Milestone 3 (Guard)**, and **Milestone 4 (Sandbox)** have zero dependencies on each other and can be executed **100% concurrently**.
-3. **Sequential Gate 2 (Integration):** `Milestone 5 (dagr-mcp)` integrates the Slicer, Guard, and Sandbox into the Model Context Protocol server.
-4. **Sequential Gate 3 (User Interface):** `Milestone 6 (dagr-cli)` wraps the entire system into the beautiful terminal application.
-5. **Final Gate (Validation):** `Milestone 7` validates the golden test fixtures and token compression benchmarks.
+### 📍 Milestone 1: Cargo Workspace & Foundation Core (`crates/dagr-core`) [SEQUENTIAL]
+- [ ] Task 1.1: Root `DAGR/Cargo.toml` workspace setup.
+- [ ] Task 1.2: Typed `DagrError` using `thiserror`.
+- [ ] Task 1.3: `Language`, `SymbolKind`, `CodeGraphNode`, `MinimalContextSlice` types.
+- [ ] Task 1.4: `tiktoken-rs` exact BPE token counter.
+- [ ] Task 1.5: Embedded SQLite store with WAL mode and Blake3 hash caching.
+
+### 📍 Milestone 2: Symbolic Slicer Engine (`crates/dagr-slicer`) [PARALLEL TRACK A]
+- [ ] Task 2.1: Native Tree-sitter parsers (TS, JS, Python, Go, Rust) with error recovery.
+- [ ] Task 2.2: AST identifier and symbol extractors.
+- [ ] Task 2.3: Type contract & interface hoister.
+- [ ] Task 2.4: Backwards data-flow slicer assembling sparse lines.
+
+### 📍 Milestone 3: Architecture Guardrails & Sanitizer (`crates/dagr-guard`) [PARALLEL TRACK B]
+- [ ] Task 3.1: `.dagr/rules.yaml` parser with built-in presets (`clean-architecture`, `nextjs`, `fastapi`).
+- [ ] Task 3.2: Glob-based import boundary matcher (<0.1ms per file).
+- [ ] Task 3.3: Zero-trust indirect prompt injection sanitizer.
+- [ ] Task 3.4: Invariant auto-detection engine (`dagr rules suggest`).
+
+### 📍 Milestone 4: Cross-Platform CoW Sandbox (`crates/dagr-sandbox`) [PARALLEL TRACK C]
+- [ ] Task 4.1: Cross-platform CoW engine (`clonefile` on macOS, `reflink`/hardlink on Linux/Windows).
+- [ ] Task 4.2: Shadow transaction manager (`begin`, `stage_write`, `verify`, `commit`, `rollback`).
+- [ ] Task 4.3: Crash-safe write-ahead transaction journal (`.dagr/journal.db`).
+
+### 📍 Milestone 5: MCP & A2A Swarm Bus (`crates/dagr-mcp`) [SEQUENTIAL INTEGRATION]
+- [ ] Task 5.1: JSON-RPC 2.0 protocol schemas (`initialize`, `tools/list`, `tools/call`).
+- [ ] Task 5.2: Stdio event loop with `tracing-subscriber` log isolation to `stderr`.
+- [ ] Task 5.3: MCP tool handlers (`dagr_get_context_slice`, `dagr_verify_architecture`, `dagr_execute_sandboxed`).
+- [ ] Task 5.4: A2A swarm tool handlers (`dagr_a2a_handshake`, `dagr_a2a_transfer_context`, `dagr_a2a_verify_peer_patch`).
+
+### 📍 Milestone 6: Unified Visual CLI & Terminal UI (`crates/dagr-cli`) [SEQUENTIAL INTEGRATION]
+- [ ] Task 6.1: Clap v4 command parser (`context`, `guard`, `run`, `mcp`, `init`, `graph`).
+- [ ] Task 6.2: Terminal UI box-drawing, colored token scoreboards, and TTY auto-detection.
+- [ ] Task 6.3: Subcommand dispatchers and Git hook installer.
+
+### 📍 Milestone 7: Golden Benchmark Suite & End-to-End Verification [FINAL GATE]
+- [ ] Task 7.1: Real-world TypeScript, Python, and Go test fixtures.
+- [ ] Task 7.2: Assert `>= 90%` token compression, `< 35ms` pre-commit latency, and 100% clean rollback.
+- [ ] Task 7.3: Commit and tag v0.1.0 release on GitHub.
 
 ---
 
-## 2. Master Phase 1 Execution Roadmap & Checkable ToDo Breakdown
-
----
-
-### 📍 Milestone 1: Cargo Workspace & Foundation Core (`crates/dagr-core`)
-* **Mode:** 🔒 **SEQUENTIAL (Must finish first)**
-* **Objective:** Establish workspace root and fundamental domain types, storage, and utilities.
-
-- [ ] **Task 1.1: Initialize Root `DAGR/Cargo.toml` Workspace**
-  - Configure workspace resolver "2" with members: `crates/dagr-core`, `crates/dagr-slicer`, `crates/dagr-guard`, `crates/dagr-sandbox`, `crates/dagr-mcp`, `crates/dagr-cli`.
-  - Pin workspace shared dependencies (`serde`, `tokio`, `thiserror`, `rusqlite`, `tiktoken-rs`, `blake3`, `uuid`, `glob`).
-- [ ] **Task 1.2: Implement `crates/dagr-core/src/error.rs`**
-  - Define `DagrError` using `thiserror` (`ParserError`, `StorageError`, `SandboxError`, `ConfigError`, `IoError`, `SerializationError`).
-  - Define type alias `Result<T> = std::result::Result<T, DagrError>`.
-- [ ] **Task 1.3: Implement `crates/dagr-core/src/types.rs`**
-  - Implement `Language` enum (`TypeScript`, `JavaScript`, `Python`, `Go`, `Rust`, `Unknown`).
-  - Implement `SymbolKind` enum (`Function`, `Method`, `Class`, `Struct`, `Interface`, `TypeAlias`, `Enum`, `Variable`, `Module`).
-  - Implement `SymbolSpan` (`file_path`, `start_line`, `end_line`, `start_col`, `end_col`).
-  - Implement `CodeGraphNode` (canonical URI, symbol name, kind, language, span, docstring, blake3 hash).
-  - Implement `MinimalContextSlice` (`target_symbol`, `language`, `sparse_code_lines`, `type_contracts`, `estimated_tokens`, `original_file_tokens`, `compression_ratio`, `syntax_degraded`).
-- [ ] **Task 1.4: Implement `crates/dagr-core/src/token.rs`**
-  - Embed `tiktoken-rs` with `cl100k_base` and `o200k_base` tokenizers.
-  - Implement `count_tokens(text: &str) -> usize` and `compute_compression_ratio(original: usize, sliced: usize) -> f32`.
-- [ ] **Task 1.5: Implement `crates/dagr-core/src/storage.rs`**
-  - Implement `LocalIndexStore` with embedded SQLite at `.dagr/index.db`.
-  - Enable `PRAGMA journal_mode = WAL;` and in-memory temporary tables.
-  - Implement `file_cache` table and `is_file_cached(path, hash) -> Result<bool>`.
-  - Implement `symbol_index` table with fast compound lookup `(file_path, symbol_name)`.
-- [ ] **Task 1.6: Milestone 1 Unit Tests**
-  - Unit tests for token counting, error conversions, and SQLite CRUD caching in `crates/dagr-core/tests/`.
-
----
-
-### 📍 Milestone 2: Tree-sitter Slicer Engine (`crates/dagr-slicer`)
-* **Mode:** ⚡ **PARALLEL TRACK A (Can run concurrently with M3 & M4)**
-* **Objective:** Parse ASTs across TS, Python, Go, and Rust; compute backwards data-flow slices.
-
-- [ ] **Task 2.1: Implement `crates/dagr-slicer/src/parser.rs`**
-  - Integrate native C grammars (`tree-sitter-typescript`, `tree-sitter-python`, `tree-sitter-go`, `tree-sitter-rust`, `tree-sitter-javascript`).
-  - Implement `AstParser::parse(source: &str, old_tree: Option<&Tree>) -> Result<Tree>`.
-  - Implement syntax error recovery: extract nearest valid enclosing parent node when `node.has_error()` is true.
-  - Implement Lexical Indentation Fallback on complete parse failure with `syntax_degraded: true`.
-- [ ] **Task 2.2: Implement `crates/dagr-slicer/src/extractor.rs`**
-  - Build AST query walkers for each language extracting symbol definitions, function arguments, variable declarations, and import statements.
-- [ ] **Task 2.3: Implement `crates/dagr-slicer/src/contracts.rs`**
-  - Implement type-contract hoister: extracts interface signatures and type aliases while discarding implementation bodies.
-- [ ] **Task 2.4: Implement `crates/dagr-slicer/src/slicer.rs`**
-  - Implement `SymbolicSlicer::slice(source, lang, target_symbol)`:
-    1. Locate target symbol AST node.
-    2. Traverse internal identifier data-flow backwards using `HashSet<SymbolHash>` to prevent circular loops.
-    3. Collect hoisted external type contracts.
-    4. Assemble sparse ordered lines with line numbers.
-    5. Calculate token savings via `dagr_core::token`.
-- [ ] **Task 2.5: Milestone 2 Unit Tests**
-  - Unit tests for TypeScript, Python, and Go slicing fixtures asserting `>= 90%` token reduction.
-
----
-
-### 📍 Milestone 3: Architecture Guardrails & Sanitizer (`crates/dagr-guard`)
-* **Mode:** ⚡ **PARALLEL TRACK B (Can run concurrently with M2 & M4)**
-* **Objective:** Evaluate `.dagr/rules.yaml` layer boundaries and sanitize prompt injections.
-
-- [ ] **Task 3.1: Implement `crates/dagr-guard/src/rules.rs`**
-  - Define `RuleConfig`, `BoundaryRule`, and `Preset` structs with `serde`.
-  - Implement `.dagr/rules.yaml` parser with default safe fallbacks.
-  - Implement built-in presets: `clean-architecture`, `nextjs-app`, `fastapi-layered`.
-- [ ] **Task 3.2: Implement `crates/dagr-guard/src/checker.rs`**
-  - Implement glob-based import boundary matcher (`glob::Pattern`).
-  - Implement `check_file_imports(file_path: &str, imports: &[String]) -> Vec<RuleViolation>`.
-  - Optimize execution to complete in `<0.1ms` per file.
-- [ ] **Task 3.3: Implement `crates/dagr-guard/src/sanitizer.rs`**
-  - Implement `ZeroTrustSanitizer::sanitize(text: &str) -> String`.
-  - Strip LLM prompt boundary delimiters (`<|im_start|>`, `<|im_end|>`, `SYSTEM:`, `[INST]`, `SYSTEM PROMPT:`).
-- [ ] **Task 3.4: Implement `crates/dagr-guard/src/infer.rs`**
-  - Implement smart invariant inference engine (`dagr rules suggest` / `dagr init` auto-detection).
-- [ ] **Task 3.5: Milestone 3 Unit Tests**
-  - Unit tests for rule violation detection, glob matching, and prompt sanitization.
-
----
-
-### 📍 Milestone 4: Cross-Platform CoW Sandbox (`crates/dagr-sandbox`)
-* **Mode:** ⚡ **PARALLEL TRACK C (Can run concurrently with M2 & M3)**
-* **Objective:** Fast Copy-on-Write shadow filesystem staging with 10ms rollback.
-
-- [ ] **Task 4.1: Implement `crates/dagr-sandbox/src/engine.rs`**
-  - Implement OS-specific CoW engines:
-    - `#[cfg(target_os = "macos")]`: `clonefile(2)` via Darwin syscalls.
-    - `#[cfg(target_os = "linux")]`: `ioctl(FICLONE)` reflink / hard-link shadow tree.
-    - `#[cfg(target_os = "windows")]`: ReFS duplicate extents / hard-link shadow staging.
-- [ ] **Task 4.2: Implement `crates/dagr-sandbox/src/tx.rs`**
-  - Implement `begin_transaction(root) -> Result<SandboxTx>`.
-  - Implement `stage_write(tx, relative_path, content) -> Result<()>`.
-  - Implement `verify(tx, command) -> Result<ExecutionResult>`.
-  - Implement `commit(tx) -> Result<()>` (atomic swap back to workspace).
-  - Implement `rollback(tx) -> Result<()>` (sub-10ms directory purge).
-- [ ] **Task 4.3: Implement `crates/dagr-sandbox/src/journal.rs`**
-  - Implement write-ahead transaction journal (`.dagr/journal.db`) to auto-clean orphaned locks on startup.
-- [ ] **Task 4.4: Milestone 4 Unit Tests**
-  - Unit tests for shadow creation, dry-run test execution, and rollback with 0 modified bytes remaining on disk.
-
----
-
-### 📍 Milestone 5: Model Context Protocol (MCP) Server (`crates/dagr-mcp`)
-* **Mode:** 🔒 **SEQUENTIAL (Requires M1, M2, M3, M4)**
-* **Objective:** Stdio & SSE JSON-RPC 2.0 gateway for Cursor, Claude Desktop, and Windsurf.
-
-- [ ] **Task 5.1: Implement `crates/dagr-mcp/src/protocol.rs`**
-  - Implement JSON-RPC 2.0 request/response/error schemas.
-  - Implement standard MCP message handlers: `initialize`, `tools/list`, `tools/call`.
-- [ ] **Task 5.2: Implement `crates/dagr-mcp/src/server.rs`**
-  - Implement Stdio event loop reading from `stdin` and writing formatted JSON-RPC to `stdout`.
-  - Implement `tracing-subscriber` log isolation routing all internal logs to `stderr` or `~/.dagr/logs/daemon.log`.
-- [ ] **Task 5.3: Implement Core MCP Tool Handlers**
-  - `dagr_get_context_slice`: Dispatches to `dagr_slicer::SymbolicSlicer`.
-  - `dagr_verify_architecture`: Dispatches to `dagr_guard::ArchitectureGuard`.
-  - `dagr_execute_sandboxed`: Dispatches to `dagr_sandbox::CowSandbox`.
-- [ ] **Task 5.4: Milestone 5 Integration Tests**
-  - Automated JSON-RPC stdio mock tests validating tool call request/response cycles.
-
----
-
-### 📍 Milestone 6: Unified Visual CLI & Terminal UI (`crates/dagr-cli`)
-* **Mode:** 🔒 **SEQUENTIAL (Requires M5)**
-* **Objective:** Modern, visually stunning CLI with Clap v4 and TTY auto-detection.
-
-- [ ] **Task 6.1: Implement `crates/dagr-cli/src/main.rs`**
-  - Define Clap v4 CLI parser with subcommands: `context`, `guard`, `run`, `mcp`, `init`.
-  - Implement global `--json` and `--workspace` flags.
-- [ ] **Task 6.2: Implement `crates/dagr-cli/src/ui.rs`**
-  - Implement rich terminal formatting using Unicode box-drawing (`┌─`, `├─`, `└─`) and colors (`owo-colors` / `colored`).
-  - Implement visual **Token Compression Scoreboard** showing before/after tokens, percentage saved, and latency.
-  - Implement visual **Architectural Violation Card** highlighting forbidden imports and suggested fixes.
-  - Implement **TTY Auto-Detection**: When piped (`| ollama`, `| pbcopy`), output raw code; when interactive, render full UI.
-- [ ] **Task 6.3: Implement Command Handlers**
-  - `dagr context <path>:<symbol>`
-  - `dagr guard [--suggest]`
-  - `dagr run "<command>" [--sandbox]`
-  - `dagr mcp start [--port]`
-  - `dagr init [--preset] [--install-hooks]`
-- [ ] **Task 6.4: Milestone 6 CLI Tests**
-  - CLI execution tests verifying command flags, pipe outputs, and exit codes.
-
----
-
-### 📍 Milestone 7: Golden Benchmark Suite & End-to-End Verification
-* **Mode:** 🏁 **FINAL GATE**
-* **Objective:** Verify real-world performance, token compression, and safety.
-
-- [ ] **Task 7.1: Build Golden Test Fixtures (`tests/fixtures/`)**
-  - Complex TypeScript/React component tree fixture (1,200 lines).
-  - Python FastAPI + SQLAlchemy service fixture (800 lines).
-  - Go HTTP handler + interface fixture (600 lines).
-- [ ] **Task 7.2: Automated Benchmark Assertions**
-  - Assert `dagr context` achieves `>= 90%` token compression across all fixtures.
-  - Assert `dagr guard` executes in `< 35ms` on 50 staged files.
-  - Assert `dagr run --sandbox` leaves 0 modified bytes on working tree upon simulated test failure.
-- [ ] **Task 7.3: Commit, Tag, and Push v0.1.0 to GitHub**
-
----
-
-## 3. Parallel Execution Strategy for Subagents
-
-When using autonomous subagents (`invoke_subagent`), execution should follow this exact parallel strategy:
+## 7. Parallel Execution Strategy for Subagents
 
 ```text
 [Step 1]: Lead Agent implements Milestone 1 (`crates/dagr-core`) -> Compiles & Tests.
@@ -242,7 +227,7 @@ When using autonomous subagents (`invoke_subagent`), execution should follow thi
 
 ---
 
-## 4. Verification Harness & SLA Gateways
+## 8. Verification Harness & SLA Gateways
 
 | Metric | Target SLA | Verification Method |
 | :--- | :---: | :--- |

@@ -5,14 +5,15 @@
 [![GitHub License](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Rust 2021](https://img.shields.io/badge/Rust-2021_Edition-orange.svg)](https://www.rust-lang.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-JSON--RPC_2.0-blue.svg)](https://modelcontextprotocol.io/)
+[![A2A Swarm Protocol](https://img.shields.io/badge/A2A-Swarm_Bus-9cf.svg)](#-dual-protocol-gateway-mcp--a2a)
 [![Architecture](https://img.shields.io/badge/Architecture-Ponytail_Minimal-success.svg)](./.ponytail.md)
 [![Lead Architect](https://img.shields.io/badge/Creator-Mohit_Dagar-purple.svg)](https://github.com/mjzd7)
 
-**The DAG-Native Symbolic AST Slicing Hypervisor & Safety Sandbox for AI Coding Agents.**
+**The DAG-Native Symbolic AST Slicing Hypervisor, Safety Sandbox & A2A Swarm Bus for AI Coding Agents.**
 
-*Sub-5ms context pruning, 95% token compression, and zero-trust Copy-on-Write (CoW) shadow sandboxing for Cursor, Claude Desktop, Ollama, and Neovim.*
+*Sub-5ms context pruning, 95% token compression, zero-trust Copy-on-Write (CoW) sandboxing, and peer-to-peer Agent-to-Agent (A2A) coordination.*
 
-[Executive Summary](#-executive-summary) • [Visual Architecture](#-visual-architecture--mechanics) • [Audited Metrics](#-transparent-metrics--mathematical-formulas) • [Terminal Visualizer](#-terminal-ui--token-gauges) • [Quickstart & MCP](#-quickstart--ide-setup) • [Nomenclature](#-nomenclature--etymology)
+[Executive Summary](#-executive-summary) • [Dual Protocol (MCP + A2A)](#-dual-protocol-gateway-mcp--a2a) • [Visual Architecture](#-visual-architecture--mechanics) • [Audited Metrics](#-transparent-metrics--mathematical-formulas) • [Terminal UI](#-terminal-ui--token-gauges) • [Quickstart](#-quickstart--ide-setup) • [Nomenclature](#-nomenclature--etymology)
 
 </div>
 
@@ -20,15 +21,57 @@
 
 ## 📌 Executive Summary (Crisp Overview)
 
-* **What it is:** A single, ultra-fast native Rust binary (`dagr`) acting as a local-first safety hypervisor between AI coding agents and your codebase.
-* **The Core Problem it Solves:** 
+* **What it is:** A single, ultra-fast native Rust binary (`dagr`) acting as a local-first safety hypervisor and multi-agent coordination bus between AI coding agents and your codebase.
+* **The Core Problems it Solves:** 
   * ❌ **Context Explosion (95% Token Bloat):** Passing entire 1,000+ line files or noisy vector dumps to LLMs inflates API costs and triggers "lost-in-the-middle" hallucinations.
   * ❌ **Unbounded Blast Radius:** Autonomous agents generating duplicate utilities, violating clean layer boundaries (e.g. UI importing DB clients), and writing half-broken diffs to disk.
+  * ❌ **Multi-Agent Collisions:** Multiple autonomous agents clashing and overwriting each other's changes without synchronized state locking.
 * **The Solution:** 
   * ✂️ **Symbolic AST Slicing:** Extracts only the exact ~35 lines of target code + upstream type contracts, reducing token payloads by **>= 90%**.
   * 🛡️ **Copy-on-Write (CoW) Sandboxing:** Executes all agent writes and tests inside an OS-native shadow snapshot (`clonefile(2)` on macOS, `reflink` on Linux) with instant **<10ms atomic rollback** on failure.
-  * 🔌 **Model Context Protocol (MCP) Gateway:** Seamless JSON-RPC 2.0 stdio integration with Cursor, Claude Desktop, Windsurf, and local LLMs (Ollama, Qwen 2.5 Coder).
+  * 🤝 **Dual Protocol (MCP + A2A):** Host-to-tool JSON-RPC 2.0 integration for IDEs (Cursor, Claude Desktop) and peer-to-peer Agent-to-Agent (A2A) state arbitration for multi-agent swarms.
   * ⚡ **Zero Cloud Dependencies:** 100% standalone native binary with embedded SQLite and Blake3 caching. No Docker or external daemon required.
+
+---
+
+## 🤝 Dual Protocol Gateway: MCP + A2A
+
+DAGR provides native support for both **Host-to-Tool** workflows (IDE) and **Peer-to-Peer** swarms (multi-agent pipelines):
+
+```mermaid
+graph LR
+    subgraph Agent_Swarm ["🤖 Multi-Agent Swarm (A2A Network)"]
+        Planner["Planning Agent<br/>(Architect)"]
+        Coder["Coding Agent<br/>(Builder)"]
+        Tester["Verification Agent<br/>(Tester)"]
+    end
+
+    subgraph DAGR_Bus ["⚡ DAGR Hypervisor (MCP + A2A)"]
+        A2A_Hub["A2A State & Event Hub<br/>(Transaction Locking & Handoff)"]
+        AST["Symbolic Slicer"]
+        CoW["CoW Sandbox"]
+    end
+
+    Planner -->|1. A2A Request: Blast Radius| A2A_Hub
+    A2A_Hub --> AST
+    Planner -->|2. A2A Delegate: Build Task| Coder
+    Coder -->|3. A2A Stage Mutation| A2A_Hub
+    A2A_Hub --> CoW
+    Coder -->|4. A2A Request Verification| Tester
+    Tester -->|5. A2A Run Tests in Shadow| A2A_Hub
+```
+
+### The 6 Core Tools Exposed across MCP & A2A:
+
+#### 🔌 Standard MCP Tools (Host-to-Tool for Cursor & Claude):
+1. `dagr_get_context_slice`: Prunes code down to exact ~35 lines + hoisted type contracts.
+2. `dagr_verify_architecture`: In-memory layer boundary and SOLID checker (<0.1ms).
+3. `dagr_execute_sandboxed`: Safe tool execution in Copy-on-Write shadow sandbox.
+
+#### 🤝 A2A Swarm Tools (Peer-to-Peer for Autonomous Swarms):
+4. `dagr_a2a_handshake`: Registers agent session ID, role, and file locks (prevents concurrent write conflicts).
+5. `dagr_a2a_transfer_context`: Passes compressed AST slices directly between peer agents without re-parsing.
+6. `dagr_a2a_verify_peer_patch`: Reviewer agent runs automated tests on another agent's staged shadow transaction (`tx_id`) before committing.
 
 ---
 
@@ -80,45 +123,6 @@ stateDiagram-v2
     Evaluation --> InstantRollback: ❌ Tests Failed / Layer Boundary Broken
     InstantRollback --> CleanWorkspace: Discard .dagr/shadow snapshot (<10ms)
     CleanWorkspace --> WorkspaceTree: 0 dirty bytes modified on disk!
-```
-
----
-
-### 3. Real-Time MCP Tool Call Sequence
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant IDE as IDE / AI Agent (Cursor / Claude)
-    participant MCP as dagr MCP Gateway
-    participant Slicer as Tree-sitter Slicer Engine
-    participant Guard as In-Memory Architecture Guard
-    participant CoW as CoW Shadow Sandbox
-    participant Disk as Real Working Tree
-
-    IDE->>MCP: 1. Tool Call: dagr_get_context_slice(file, symbol)
-    MCP->>Slicer: Parse AST & Traverse Backwards Data-Flow
-    Slicer-->>MCP: Return ~35 lines + Hoisted Type Contracts (95% Token Savings)
-    MCP-->>IDE: Send Minimal Context Slice to LLM
-
-    IDE->>MCP: 2. Tool Call: dagr_execute_sandboxed(command, staged_patch)
-    MCP->>Guard: Validate imports against .dagr/rules.yaml (<0.1ms)
-    alt Layer Boundary Violation (e.g. UI imports DB)
-        Guard-->>MCP: Reject Mutation with Diagnostic Trace
-        MCP-->>IDE: Return Error (LLM Self-Corrects)
-    else Valid Architecture
-        Guard->>CoW: Stage mutation in OS-level shadow snapshot (<2ms)
-        CoW->>CoW: Execute verification tests inside shadow root
-        alt Tests Pass (100% Green)
-            CoW->>Disk: Atomic swap to real working tree
-            CoW-->>MCP: Mutation Success Payload
-            MCP-->>IDE: Return Success
-        else Tests Fail
-            CoW->>CoW: Instant Rollback (<10ms) — Real tree untouched (0 bytes modified)
-            CoW-->>MCP: Return Test Failure Log
-            MCP-->>IDE: Feed error back to LLM for repair
-        end
-    end
 ```
 
 ---
