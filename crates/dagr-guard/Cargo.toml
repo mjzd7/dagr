@@ -1,0 +1,15 @@
+[package]
+name = "dagr-guard"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "In-memory architectural boundary linter and zero-trust prompt injection sanitizer for DAGR"
+
+[dependencies]
+dagr-core = { workspace = true }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+glob = { workspace = true }
+thiserror = { workspace = true }

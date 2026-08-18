@@ -19,3 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Symbol AST Extractor (`extractor.rs`):** Query walker traversing ASTs to extract exact function/class boundaries and internal identifier references.
 - **Contract Hoister (`contracts.rs`):** Surgically hoists referenced type definitions and interfaces while pruning unreferenced implementation bodies.
 - **Symbolic Slicer (`slicer.rs`):** Combines parsing, data-flow traversal, contract hoisting, and sparse line assembly with fallback error recovery.
+
+### 🛡️ Milestone 3: Architectural Guardrails & Prompt Sanitizer (`crates/dagr-guard`)
+- **Declarative Rule Engine (`rules.rs`):** Implemented `.dagr/rules.yaml` schema parser with built-in presets (`clean-architecture`, `nextjs-app`, `fastapi-layered`).
+- **In-Memory Boundary Checker (`checker.rs`):** Evaluates forbidden import pairs via `glob::Pattern` in `<0.05ms` per file.
+- **Zero-Trust Prompt Sanitizer (`sanitizer.rs`):** Strips indirect prompt injection control tokens (`<|im_start|>`, `SYSTEM:`, `[INST]`, `system override:`) from comments and docstrings.
+- **Smart Framework Inferrer (`infer.rs`):** Auto-detects repository structure for `dagr init` zero-configuration setup.
