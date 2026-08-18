@@ -3,11 +3,11 @@ pub mod updater;
 
 use clap::{Parser, Subcommand, ValueEnum};
 use colored::*;
-use dagr_core::{DagrError, Language, MinimalContextSlice, Result};
+use dagr_core::{DagrError, Language, LocalIndexStore, MinimalContextSlice, Result};
 use dagr_guard::ArchitectureGuard;
 use dagr_mcp::McpServer;
 use dagr_sandbox::CowSandbox;
-use dagr_slicer::{SlicerConfig, SymbolicSlicer};
+use dagr_slicer::{AstExtractor, AstParser, SlicerConfig, SymbolicSlicer};
 use serde_json::json;
 use std::path::{Path, PathBuf};
 
@@ -253,25 +253,111 @@ pub fn execute_cli(cli: Cli) -> Result<()> {
     result
 }
 
+/// Resolves symbol and file target using direct syntax (file:symbol), SQLite index, or workspace AST match
+pub fn resolve_target_symbol(workspace_root: &Path, target: &str) -> Result<(PathBuf, String)> {
+    if target.contains(':') {
+        let parts: Vec<&str> = target.split(':').collect();
+        if parts.len() == 2 {
+            let file_path = PathBuf::from(parts[0]);
+            let symbol_name = parts[1].to_string();
+            let candidate_path = if file_path.is_absolute() {
+                file_path
+            } else {
+                workspace_root.join(&file_path)
+            };
+            if candidate_path.exists() {
+                return Ok((candidate_path, symbol_name));
+            }
+        }
+    }
+
+    // 1. Try SQLite LocalIndexStore if initialized
+    let index_db_path = workspace_root.join(".dagr").join("index.db");
+    if index_db_path.exists() {
+        if let Ok(store) = LocalIndexStore::open(workspace_root) {
+            if let Ok(matches) = store.search_symbols(target, 5) {
+                if let Some(first) = matches.into_iter().next() {
+                    let path = first.span.file_path;
+                    let candidate_path = if path.is_absolute() {
+                        path
+                    } else {
+                        workspace_root.join(&path)
+                    };
+                    if candidate_path.exists() {
+                        return Ok((candidate_path, first.symbol_name));
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. Fuzzy / Generic AST symbol resolution across workspace
+    let query = target.trim().to_lowercase();
+    let supported_exts = ["ts", "tsx", "js", "jsx", "py", "rs", "go"];
+    let mut candidates: Vec<(PathBuf, String, usize)> = Vec::new();
+
+    let pattern = format!("{}/**/*.*", workspace_root.display());
+    if let Ok(walker) = glob::glob(&pattern) {
+        for entry in walker.flatten() {
+            if entry.is_file() {
+                let ext = entry.extension().and_then(|s| s.to_str()).unwrap_or("");
+                if supported_exts.contains(&ext) {
+                    let path_str = entry.to_string_lossy();
+                    if path_str.contains("/target/")
+                        || path_str.contains("/node_modules/")
+                        || path_str.contains("/.git/")
+                    {
+                        continue;
+                    }
+
+                    if let Ok(content) = std::fs::read_to_string(&entry) {
+                        let language = Language::from_extension(ext);
+                        if language != Language::Unknown {
+                            if let Ok(mut parser) = AstParser::new(language) {
+                                if let Ok(tree) = parser.parse(&content, None) {
+                                    let symbols = AstExtractor::extract_all_symbols(
+                                        tree.root_node(),
+                                        &content,
+                                        language,
+                                    );
+                                    for sym in symbols {
+                                        let sym_name_lower = sym.name.to_lowercase();
+                                        if sym_name_lower == query {
+                                            candidates.push((entry.clone(), sym.name, 100));
+                                        } else if sym_name_lower.contains(&query) {
+                                            candidates.push((entry.clone(), sym.name, 80));
+                                        } else if query.contains(&sym_name_lower) {
+                                            candidates.push((entry.clone(), sym.name, 60));
+                                        } else if path_str.to_lowercase().contains(&query) {
+                                            candidates.push((entry.clone(), sym.name, 40));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    candidates.sort_by_key(|b| std::cmp::Reverse(b.2));
+
+    if let Some((path, sym, _)) = candidates.into_iter().next() {
+        Ok((path, sym))
+    } else {
+        Err(DagrError::InvalidInput(format!(
+            "Could not resolve symbol from query '{}'. Please specify 'path/to/file.ext:symbolName' or run 'dagr init'.",
+            target
+        )))
+    }
+}
+
 pub fn handle_context(target: &str, depth: usize, format: OutputFormat) -> Result<()> {
-    let parts: Vec<&str> = target.split(':').collect();
-    if parts.len() != 2 {
-        return Err(DagrError::InvalidInput(
-            "Invalid target format. Expected 'path/to/file.ext:symbolName' (e.g. src/auth.ts:login)".into(),
-        ));
-    }
+    let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let (file_path, symbol_name) = resolve_target_symbol(&current_dir, target)?;
 
-    let file_path = Path::new(parts[0]);
-    let symbol_name = parts[1];
-
-    if !file_path.exists() {
-        return Err(DagrError::Io(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            format!("File not found: {:?}", file_path),
-        )));
-    }
-
-    let source_code = std::fs::read_to_string(file_path)?;
+    let source_code = std::fs::read_to_string(&file_path)?;
     let ext = file_path.extension().and_then(|s| s.to_str()).unwrap_or("");
     let language = Language::from_extension(ext);
 
@@ -281,7 +367,7 @@ pub fn handle_context(target: &str, depth: usize, format: OutputFormat) -> Resul
         include_comments: false,
     });
 
-    let slice = slicer.slice(file_path, &source_code, language, symbol_name)?;
+    let slice = slicer.slice(&file_path, &source_code, language, &symbol_name)?;
 
     match format {
         OutputFormat::Json => {
@@ -742,4 +828,30 @@ mod tests {
 
         assert_eq!(cli.command, Commands::Update { force: true });
     }
+
+    #[test]
+    fn test_resolve_target_symbol_exact_and_fuzzy() -> Result<()> {
+        let temp_dir = tempfile::tempdir().map_err(DagrError::Io)?;
+        let src_file = temp_dir.path().join("service.py");
+        std::fs::write(
+            &src_file,
+            "def calculate_monthly_discounts():\n    return 42\n",
+        )
+        .map_err(DagrError::Io)?;
+
+        // 1. Exact path:symbol resolution
+        let (resolved_path, sym) =
+            resolve_target_symbol(temp_dir.path(), "service.py:calculate_monthly_discounts")?;
+        assert_eq!(resolved_path, src_file);
+        assert_eq!(sym, "calculate_monthly_discounts");
+
+        // 2. Fuzzy / partial generic resolution
+        let (fuzzy_path, fuzzy_sym) =
+            resolve_target_symbol(temp_dir.path(), "calculate_monthly")?;
+        assert_eq!(fuzzy_path, src_file);
+        assert_eq!(fuzzy_sym, "calculate_monthly_discounts");
+
+        Ok(())
+    }
 }
+

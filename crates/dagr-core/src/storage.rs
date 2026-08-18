@@ -175,6 +175,38 @@ impl LocalIndexStore {
             Err(e) => Err(DagrError::Storage(e.to_string())),
         }
     }
+
+    /// Searches for symbols matching a fuzzy or partial query across all indexed files (<0.2ms)
+    pub fn search_symbols(&self, query: &str, limit: usize) -> Result<Vec<CodeGraphNode>> {
+        let pattern = format!("%{}%", query.trim().to_lowercase());
+        let mut stmt = self.conn.prepare(
+            "SELECT serialized_payload FROM symbol_index 
+             WHERE LOWER(symbol_name) LIKE ?1 OR LOWER(file_path) LIKE ?1 OR LOWER(serialized_payload) LIKE ?1 
+             ORDER BY 
+               CASE 
+                 WHEN LOWER(symbol_name) = LOWER(?2) THEN 1
+                 WHEN LOWER(symbol_name) LIKE ?2 || '%' THEN 2
+                 WHEN LOWER(symbol_name) LIKE ?1 THEN 3
+                 ELSE 4 
+               END
+             LIMIT ?3",
+        )?;
+
+        let rows = stmt.query_map(params![pattern, query.trim(), limit as i64], |row| {
+            let payload: String = row.get(0)?;
+            Ok(payload)
+        })?;
+
+        let mut results = Vec::new();
+        for row in rows {
+            let payload = row?;
+            if let Ok(node) = serde_json::from_str::<CodeGraphNode>(&payload) {
+                results.push(node);
+            }
+        }
+
+        Ok(results)
+    }
 }
 
 #[cfg(test)]
@@ -215,6 +247,15 @@ mod tests {
 
         let missing = store.lookup_symbol(file_path, "nonExistent")?;
         assert_eq!(missing, None);
+
+        // Test fuzzy and partial keyword searching
+        let found = store.search_symbols("verify", 10)?;
+        assert_eq!(found.len(), 1);
+        assert_eq!(found[0].symbol_name, "verifyToken");
+
+        let found_by_doc = store.search_symbols("JWT", 10)?;
+        assert_eq!(found_by_doc.len(), 1);
+        assert_eq!(found_by_doc[0].symbol_name, "verifyToken");
 
         Ok(())
     }

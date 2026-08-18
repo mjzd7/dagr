@@ -21,6 +21,7 @@ dagr-slicer = { workspace = true }
 dagr-guard = { workspace = true }
 dagr-sandbox = { workspace = true }
 dagr-mcp = { workspace = true }
+glob = { workspace = true }
 clap = { workspace = true }
 colored = { workspace = true }
 serde_json = { workspace = true }

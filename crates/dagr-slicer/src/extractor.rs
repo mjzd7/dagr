@@ -46,6 +46,36 @@ impl AstExtractor {
         None
     }
 
+    /// Extracts all symbol definitions found in the AST root
+    pub fn extract_all_symbols<'a>(
+        root_node: Node<'a>,
+        source: &'a str,
+        _language: Language,
+    ) -> Vec<SymbolDef<'a>> {
+        let mut symbols = Vec::new();
+        let mut stack = vec![root_node];
+
+        while let Some(node) = stack.pop() {
+            if Self::is_definition_node(node) {
+                if let Some(name) = Self::get_node_name(node, source) {
+                    symbols.push(SymbolDef {
+                        name: name.to_string(),
+                        node,
+                        start_line: node.start_position().row + 1,
+                        end_line: node.end_position().row + 1,
+                    });
+                }
+            }
+
+            let mut cursor = node.walk();
+            for child in node.children(&mut cursor) {
+                stack.push(child);
+            }
+        }
+
+        symbols
+    }
+
     /// Recursively collects all identifier names referenced inside a target AST node
     pub fn collect_referenced_identifiers<'a>(node: Node<'a>, source: &'a str) -> HashSet<String> {
         let mut identifiers = HashSet::new();

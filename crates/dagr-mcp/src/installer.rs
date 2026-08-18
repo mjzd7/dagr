@@ -420,11 +420,19 @@ impl McpInstaller {
             }
             "openinterpreter" => {
                 paths.push(home.join(".open-interpreter").join("mcp.json"));
-                paths.push(home.join(".config").join("open-interpreter").join("mcp.json"));
+                paths.push(
+                    home.join(".config")
+                        .join("open-interpreter")
+                        .join("mcp.json"),
+                );
             }
             "antigravity" => {
                 paths.push(home.join(".gemini").join("config").join("mcp.json"));
-                paths.push(home.join(".gemini").join("antigravity-cli").join("mcp.json"));
+                paths.push(
+                    home.join(".gemini")
+                        .join("antigravity-cli")
+                        .join("mcp.json"),
+                );
             }
             "amazonq" => {
                 paths.push(home.join(".aws").join("q").join("mcp.json"));
@@ -436,7 +444,12 @@ impl McpInstaller {
             }
             "goose" => {
                 paths.push(home.join(".config").join("goose").join("mcp.json"));
-                paths.push(home.join(".local").join("share").join("goose").join("mcp.json"));
+                paths.push(
+                    home.join(".local")
+                        .join("share")
+                        .join("goose")
+                        .join("mcp.json"),
+                );
             }
             "cody" => {
                 paths.push(home.join(".sourcegraph").join("cody-mcp.json"));
@@ -532,14 +545,12 @@ impl McpInstaller {
 
     /// Automatically installs or updates the MCP server configuration for a client
     pub fn install(client: &str, custom_bin_path: Option<&str>) -> Result<Vec<PathBuf>> {
-        let binary_cmd = custom_bin_path
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                std::env::current_exe()
-                    .ok()
-                    .and_then(|p| p.to_str().map(|s| s.to_string()))
-                    .unwrap_or_else(|| "dagr".to_string())
-            });
+        let binary_cmd = custom_bin_path.map(|s| s.to_string()).unwrap_or_else(|| {
+            std::env::current_exe()
+                .ok()
+                .and_then(|p| p.to_str().map(|s| s.to_string()))
+                .unwrap_or_else(|| "dagr".to_string())
+        });
 
         let target_paths = Self::get_client_config_paths(client);
         let mut updated_paths = Vec::new();
@@ -604,10 +615,7 @@ mod tests {
         McpInstaller::inject_dagr_config(&mut json, "/usr/local/bin/dagr")?;
 
         assert_eq!(json["mcpServers"]["fetch"]["command"], "uvx");
-        assert_eq!(
-            json["mcpServers"]["dagr"]["command"],
-            "/usr/local/bin/dagr"
-        );
+        assert_eq!(json["mcpServers"]["dagr"]["command"], "/usr/local/bin/dagr");
         Ok(())
     }
 
