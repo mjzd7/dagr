@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL with Logical Replication (CDC & Transactional Outbox)
+  postgres:
+    image: postgres:16-alpine
+    container_name: dagr-postgres
+    environment:
+      POSTGRES_USER: dagr_admin
+      POSTGRES_PASSWORD: dagr_password
+      POSTGRES_DB: dagr_cold_plane
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_replication_slots=5"
+      - "-c"
+      - "max_wal_senders=5"
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dagr_admin -d dagr_cold_plane"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Redpanda (Ultra-fast C++ Kafka-compatible Event Bus)
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.2
+    container_name: dagr-redpanda
+    command:
+      - redpanda
+      - start
+      - --smp
+      - '1'
+      - --memory
+      - '512M'
+      - --overprovisioned
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+    ports:
+      - "9092:9092"
+      - "9644:9644"
+    volumes:
+      - redpandadata:/var/lib/redpanda/data
+
+  # 3. Redpanda Console (Real-time Event Stream Visualizer)
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:v2.5.2
+    container_name: dagr-redpanda-console
+    environment:
+      KAFKA_BROKERS: redpanda:29092
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redpanda
+
+  # 4. Memgraph MAGE (In-Memory 3D Graph Database with APOC Traversal)
+  memgraph:
+    image: memgraph/memgraph-mage:latest
+    container_name: dagr-memgraph
+    ports:
+      - "7687:7687"   # Bolt Protocol
+      - "7444:7444"   # Logs Stream
+    environment:
+      MEMGRAPH: "--log-level=WARNING --query-execution-timeout-sec=10"
+    volumes:
+      - memgraphdata:/var/lib/memgraph
+
+  # 5. Memgraph Lab (Interactive 3D Dependency Graph Web Visualizer)
+  memgraph-lab:
+    image: memgraph/lab:latest
+    container_name: dagr-memgraph-lab
+    ports:
+      - "3000:3000"
+    environment:
+      QUICK_CONNECT_MG_HOST: memgraph
+      QUICK_CONNECT_MG_PORT: 7687
+    depends_on:
+      - memgraph
+
+volumes:
+  pgdata:
+  redpandadata:
+  memgraphdata:

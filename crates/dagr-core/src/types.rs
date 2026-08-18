@@ -48,7 +48,7 @@ pub struct SymbolSpan {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CodeGraphNode {
-    pub id: String,                    // Canonical URI: "repo://src/billing/charge.ts#processPayment"
+    pub id: String, // Canonical URI: "repo://src/billing/charge.ts#processPayment"
     pub symbol_name: String,
     pub kind: SymbolKind,
     pub language: Language,

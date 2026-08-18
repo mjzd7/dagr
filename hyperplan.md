@@ -171,58 +171,93 @@ graph TD
 ```
 
 ### 📍 Milestone 1: Cargo Workspace & Foundation Core (`crates/dagr-core`) [SEQUENTIAL]
-- [ ] Task 1.1: Root `DAGR/Cargo.toml` workspace setup.
-- [ ] Task 1.2: Typed `DagrError` using `thiserror`.
-- [ ] Task 1.3: `Language`, `SymbolKind`, `CodeGraphNode`, `MinimalContextSlice` types.
-- [ ] Task 1.4: `tiktoken-rs` exact BPE token counter.
-- [ ] Task 1.5: Embedded SQLite store with WAL mode and Blake3 hash caching.
+- [x] Task 1.1: Root `DAGR/Cargo.toml` workspace setup.
+- [x] Task 1.2: Typed `DagrError` using `thiserror`.
+- [x] Task 1.3: `Language`, `SymbolKind`, `CodeGraphNode`, `MinimalContextSlice` types.
+- [x] Task 1.4: `tiktoken-rs` exact BPE token counter with `OnceLock` caching.
+- [x] Task 1.5: Embedded SQLite store with WAL mode and Blake3 hash caching.
 
 ### 📍 Milestone 2: Symbolic Slicer Engine (`crates/dagr-slicer`) [PARALLEL TRACK A]
-- [ ] Task 2.1: Native Tree-sitter parsers (TS, JS, Python, Go, Rust) with error recovery.
-- [ ] Task 2.2: AST identifier and symbol extractors.
-- [ ] Task 2.3: Type contract & interface hoister.
-- [ ] Task 2.4: Backwards data-flow slicer assembling sparse lines.
+- [x] Task 2.1: Native Tree-sitter parsers (TS, JS, Python, Go, Rust) with error recovery.
+- [x] Task 2.2: AST identifier and symbol extractors.
+- [x] Task 2.3: Type contract & interface hoister.
+- [x] Task 2.4: Backwards data-flow slicer assembling sparse lines.
 
 ### 📍 Milestone 3: Architecture Guardrails & Sanitizer (`crates/dagr-guard`) [PARALLEL TRACK B]
-- [ ] Task 3.1: `.dagr/rules.yaml` parser with built-in presets (`clean-architecture`, `nextjs`, `fastapi`).
-- [ ] Task 3.2: Glob-based import boundary matcher (<0.1ms per file).
-- [ ] Task 3.3: Zero-trust indirect prompt injection sanitizer.
-- [ ] Task 3.4: Invariant auto-detection engine (`dagr rules suggest`).
+- [x] Task 3.1: `.dagr/rules.yaml` parser with built-in presets (`clean-architecture`, `nextjs`, `fastapi`).
+- [x] Task 3.2: Glob-based import boundary matcher (<0.1ms per file).
+- [x] Task 3.3: Zero-trust indirect prompt injection sanitizer.
+- [x] Task 3.4: Invariant auto-detection engine (`dagr rules suggest`).
 
 ### 📍 Milestone 4: Cross-Platform CoW Sandbox (`crates/dagr-sandbox`) [PARALLEL TRACK C]
-- [ ] Task 4.1: Cross-platform CoW engine (`clonefile` on macOS, `reflink`/hardlink on Linux/Windows).
-- [ ] Task 4.2: Shadow transaction manager (`begin`, `stage_write`, `verify`, `commit`, `rollback`).
-- [ ] Task 4.3: Crash-safe write-ahead transaction journal (`.dagr/journal.db`).
+- [x] Task 4.1: Cross-platform CoW engine (`clonefile` on macOS, `reflink`/hardlink on Linux/Windows).
+- [x] Task 4.2: Shadow transaction manager (`begin`, `stage_write`, `verify`, `commit`, `rollback`).
+- [x] Task 4.3: Crash-safe write-ahead transaction journal (`.dagr/journal.db`).
 
 ### 📍 Milestone 5: MCP & A2A Swarm Bus (`crates/dagr-mcp`) [SEQUENTIAL INTEGRATION]
-- [ ] Task 5.1: JSON-RPC 2.0 protocol schemas (`initialize`, `tools/list`, `tools/call`).
-- [ ] Task 5.2: Stdio event loop with `tracing-subscriber` log isolation to `stderr`.
-- [ ] Task 5.3: MCP tool handlers (`dagr_get_context_slice`, `dagr_verify_architecture`, `dagr_execute_sandboxed`).
-- [ ] Task 5.4: A2A swarm tool handlers (`dagr_a2a_handshake`, `dagr_a2a_transfer_context`, `dagr_a2a_verify_peer_patch`).
+- [x] Task 5.1: JSON-RPC 2.0 protocol schemas (`initialize`, `tools/list`, `tools/call`).
+- [x] Task 5.2: Stdio event loop with `tracing-subscriber` log isolation to `stderr`.
+- [x] Task 5.3: MCP tool handlers (`dagr_get_context_slice`, `dagr_verify_architecture`, `dagr_execute_sandboxed`).
+- [x] Task 5.4: A2A swarm tool handlers (`dagr_a2a_handshake`, `dagr_a2a_transfer_context`, `dagr_a2a_verify_peer_patch`).
 
 ### 📍 Milestone 6: Unified Visual CLI & Terminal UI (`crates/dagr-cli`) [SEQUENTIAL INTEGRATION]
-- [ ] Task 6.1: Clap v4 command parser (`context`, `guard`, `run`, `mcp`, `init`, `graph`).
-- [ ] Task 6.2: Terminal UI box-drawing, colored token scoreboards, and TTY auto-detection.
-- [ ] Task 6.3: Subcommand dispatchers and Git hook installer.
+- [x] Task 6.1: Clap v4 command parser (`context`, `guard`, `run`, `mcp`, `init`).
+- [x] Task 6.2: Terminal UI box-drawing, colored token scoreboards, and TTY auto-detection.
+- [x] Task 6.3: Subcommand dispatchers and formatters (`pretty`, `json`, `plain`, `markdown`).
 
 ### 📍 Milestone 7: Golden Benchmark Suite & End-to-End Verification [FINAL GATE]
-- [ ] Task 7.1: Real-world TypeScript, Python, and Go test fixtures.
-- [ ] Task 7.2: Assert `>= 90%` token compression, `< 35ms` pre-commit latency, and 100% clean rollback.
-- [ ] Task 7.3: Commit and tag v0.1.0 release on GitHub.
+- [x] Task 7.1: Real-world TypeScript, Python, and Go test fixtures in `tests/fixtures/`.
+- [x] Task 7.2: Assert `>= 90%` token compression, `< 5ms` warm slicing latency, and 100% clean rollback.
+- [x] Task 7.3: Full workspace test suite (17/17 tests green, 0 clippy warnings).
 
 ---
 
-## 7. Parallel Execution Strategy for Subagents
+## 7. Parallel Execution Strategy for Subagents (Matt Pocock Skills Lifecycle)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Lead as Orchestrator Agent (Sisyphus / Ultrawork)
+    participant SubA as Subagent A (Slicer: TDD + Ponytail)
+    participant SubB as Subagent B (Guard: Deep Module)
+    participant SubC as Subagent C (Sandbox: CoW Engine)
+    participant Reviewer as Reviewer Subagent (Code-Review)
+
+    Lead->>Lead: Step 1: /hyperplan + domain-modeling (CONTEXT.md + ADRs)
+    Lead->>Lead: Step 2: to-tickets (Decompose into atomic tracer bullets)
+    
+    par Parallel TDD Implementation Track
+        Lead->>SubA: Task 2.x (crates/dagr-slicer) -> Execute /tdd (Red-Green-Refactor)
+        Lead->>SubB: Task 3.x (crates/dagr-guard) -> Execute /codebase-design + /tdd
+        Lead->>SubC: Task 4.x (crates/dagr-sandbox) -> Execute /tdd in CoW
+    end
+
+    alt Test Failure or Regression Detected
+        SubA->>SubA: Invoke /diagnosing-bugs (Reproduce -> Locate -> Explain -> Verify)
+    end
+
+    SubA-->>Lead: Milestone 2 Complete (Tests Green)
+    SubB-->>Lead: Milestone 3 Complete (Tests Green)
+    SubC-->>Lead: Milestone 4 Complete (Tests Green)
+
+    Lead->>Reviewer: Step 5: Invoke /code-review (Dual Axis: Standards + Spec)
+    Reviewer->>Reviewer: Check Standards (Rust idioms) & Spec (Milestone criteria)
+    Reviewer->>Reviewer: Invoke /ponytail-review (Strip over-engineering)
+    Reviewer-->>Lead: 2-Axis Approval & Sign-Off
+
+    Lead->>Lead: Step 6: Setup pre-commit verification & Final Commit
+```
 
 ```text
-[Step 1]: Lead Agent implements Milestone 1 (`crates/dagr-core`) -> Compiles & Tests.
-[Step 2]: Lead Agent spawns 3 Concurrent Subagents:
-          ├── Subagent A (Role: "Slicer Specialist")   -> Implements Milestone 2 (`crates/dagr-slicer`)
-          ├── Subagent B (Role: "Security & Guard")   -> Implements Milestone 3 (`crates/dagr-guard`)
-          └── Subagent C (Role: "CoW Sandbox Lead")    -> Implements Milestone 4 (`crates/dagr-sandbox`)
-[Step 3]: Subagents report back. Lead Agent validates all 3 crates compile concurrently.
-[Step 4]: Lead Agent implements Milestone 5 (`crates/dagr-mcp`) & Milestone 6 (`crates/dagr-cli`).
-[Step 5]: Run Milestone 7 Benchmark Suite -> Verify 100% Green -> Push to GitHub.
+[Step 1 - Alignment & Modeling]: Orchestrator executes `domain-modeling` (CONTEXT.md & ADRs) + `codebase-design`.
+[Step 2 - Ticket Breakdown]:    Orchestrator executes `to-tickets` -> Creates atomic tracer bullets with explicit dependencies.
+[Step 3 - Autonomous Swarm]:   Orchestrator spawns 3 Concurrent Subagents under `ultrawork` + `tdd`:
+          ├── Subagent A (Role: "Slicer Specialist") -> `implement` + `tdd` + `ponytail` (`crates/dagr-slicer`)
+          ├── Subagent B (Role: "Security & Guard")   -> `implement` + `tdd` + `codebase-design` (`crates/dagr-guard`)
+          └── Subagent C (Role: "CoW Sandbox Lead")  -> `implement` + `tdd` (`crates/dagr-sandbox`)
+[Step 4 - Root-Cause Loop]:     If any test or compile fails, subagents invoke `diagnosing-bugs` (no random patching).
+[Step 5 - Dual-Axis Review]:    Reviewer subagent runs `code-review` (Standards vs Spec) + `ponytail-review`.
+[Step 6 - Milestone Gate]:      Run Milestone 7 Golden Benchmarks -> Green -> Commit.
 ```
 
 ---
@@ -236,3 +271,4 @@ graph TD
 | **Pre-commit Guard Latency** | **< 35ms** | `dagr guard` execution across 50 staged files |
 | **Rollback Execution Time** | **< 10ms** | Time to purge `.dagr/shadow/<tx_id>` snapshot |
 | **Working Tree Cleanliness** | **100% (0 residual bytes)** | `git status --porcelain` assertion after failed sandbox runs |
+| **Code Review Signoff** | **100% Clean** | `code-review` (Standards & Spec) + `ponytail-review` (Zero dead bloat) |

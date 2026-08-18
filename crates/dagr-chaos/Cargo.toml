@@ -1,0 +1,23 @@
+[package]
+name = "dagr-chaos"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Ephemeral Chaos Injection Sandbox & Multi-Agent Proof-of-Correctness Swarm for DAGR"
+
+[dependencies]
+dagr-core = { workspace = true }
+dagr-guard = { workspace = true }
+dagr-sandbox = { workspace = true }
+dagr-slicer = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+blake3 = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.8"

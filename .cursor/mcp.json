@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "dagr": {
+      "args": [
+        "mcp",
+        "start"
+      ],
+      "command": "dagr"
+    }
+  }
+}

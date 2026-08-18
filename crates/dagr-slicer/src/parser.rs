@@ -16,7 +16,9 @@ impl AstParser {
             Language::Go => tree_sitter_go::LANGUAGE.into(),
             Language::Rust => tree_sitter_rust::LANGUAGE.into(),
             Language::Unknown => {
-                return Err(DagrError::UnsupportedLanguage("Unknown or unsupported language extension".into()));
+                return Err(DagrError::UnsupportedLanguage(
+                    "Unknown or unsupported language extension".into(),
+                ));
             }
         };
 
@@ -29,9 +31,9 @@ impl AstParser {
 
     /// Parses source code into a Tree-sitter syntax tree
     pub fn parse(&mut self, source_code: &str, old_tree: Option<&Tree>) -> Result<Tree> {
-        self.parser
-            .parse(source_code, old_tree)
-            .ok_or_else(|| DagrError::ParseFailure("Tree-sitter parser failed to produce AST".into()))
+        self.parser.parse(source_code, old_tree).ok_or_else(|| {
+            DagrError::ParseFailure("Tree-sitter parser failed to produce AST".into())
+        })
     }
 }
 

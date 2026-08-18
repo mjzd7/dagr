@@ -1,0 +1,25 @@
+# ====================================================================
+# ⚡ DAGR Hypervisor: Autonomous AI Agent Operational Protocol
+# ====================================================================
+
+You are an AI coding assistant operating in a DAGR-enabled repository.
+You must adhere to the following mandatory invariants to minimize token cost and preserve architectural purity:
+
+## 1. MANDATORY CONTEXT PROTOCOL (Save 95% Tokens)
+- **DO NOT read entire files** when investigating, modifying, or creating functions.
+- ALWAYS invoke the MCP tool `dagr_get_context_slice` or run `dagr context <FILE>:<SYMBOL> --format json`.
+- This provides the surgical implementation slice + hoisted type contracts in <2ms without context bloat.
+
+## 2. ARCHITECTURAL BOUNDARY VERIFICATION
+- ALWAYS verify that your code changes respect layer boundaries by calling `dagr_verify_architecture` or running `dagr guard`.
+- Never introduce imports that violate `.dagr/rules.yaml` (e.g. UI importing DB/ORM).
+
+## 3. SAFE SANDBOX EXECUTION
+- When running tests or experimental mutations, execute them via `dagr_execute_sandboxed` or `dagr run "<CMD>"`.
+- If tests fail, the shadow workspace will automatically rollback leaving 0 residual bytes.
+
+## Quick CLI Reference:
+- `dagr context <FILE>:<SYMBOL>` : Slices AST & hoists types
+- `dagr guard`                   : Checks layer boundaries (<0.1ms)
+- `dagr run "<CMD>"`             : Sandboxed execution with rollback
+- `dagr init`                    : Auto-infers framework rules

@@ -248,26 +248,255 @@ $$\text{Token Savings \%} = \left( 1 - \frac{\text{Tokens}_{\text{sliced}}}{\tex
 
 ---
 
-## 🚀 Quickstart & IDE Setup
+## 🚀 Installation & Skills Guide (30-Second Setup)
 
-### 1. Build & Install
+You can install DAGR as a unified local CLI/MCP server, or install its portable **Agent Skills** individually into your AI assistants.
+
+---
+
+### ⚡ 1. One-Line Multi-OS Installers (Automated Binary + MCP + Skills)
+
+Choose your operating system to install the pre-compiled binary and auto-configure all IDEs:
+
+<details open>
+<summary><strong>🍎 macOS & 🐧 Linux (One-Line Script)</strong></summary>
+
 ```bash
-# Clone the repository
-git clone https://github.com/mjzd7/dagr.git
-cd dagr
+curl -fsSL https://raw.githubusercontent.com/mjzd7/dagr/main/scripts/install.sh | bash
+```
+*Auto-detects Apple Silicon (`arm64`), Intel Mac (`x86_64`), or Linux, downloads the binary, and runs MCP/skills setup.*
 
-# Build with Cargo
-cargo build --release
+</details>
 
-# Optional: Add to PATH
-cp target/release/dagr /usr/local/bin/
+<details>
+<summary><strong>🪟 Windows (PowerShell)</strong></summary>
+
+```powershell
+irm https://raw.githubusercontent.com/mjzd7/dagr/main/scripts/install.ps1 | iex
 ```
 
-### 2. In-IDE Configuration (Cursor / Claude Desktop / Windsurf)
+</details>
 
-Add DAGR to your IDE's Model Context Protocol (MCP) configuration:
+<details>
+<summary><strong>📦 NPM / NPX (Node.js Global / 1-Off Run)</strong></summary>
 
-#### Cursor (`~/.cursor/mcp.json`)
+```bash
+# Global install via npm:
+npm install -g @mjzd7/dagr
+
+# Or run instantly with npx (zero local install):
+npx @mjzd7/dagr init
+npx @mjzd7/dagr mcp install --client all
+npx @mjzd7/dagr skills install --target all
+```
+
+</details>
+
+<details>
+<summary><strong>🍺 Homebrew (macOS / Linux)</strong></summary>
+
+```bash
+# Install via GitHub tap:
+brew install mjzd7/dagr/dagr
+# or: brew tap mjzd7/dagr && brew install dagr
+
+dagr mcp install --client all
+dagr skills install --target all
+```
+
+</details>
+
+<details>
+<summary><strong>🦀 Cargo (From Source)</strong></summary>
+
+```bash
+cargo install --path crates/dagr-cli --force
+dagr mcp install --client all
+dagr skills install --target all
+```
+
+</details>
+
+---
+
+### 🔄 2. Seamless Auto-Update (`dagr update`)
+
+Whenever new improvements or bug fixes are pushed to GitHub, users can update their binary, MCP configs, and skills with a single command:
+
+```bash
+$ dagr update
+```
+* **What it does:** Pulls the latest release binary from `github.com/mjzd7/dagr`, replaces the executable in-place, and automatically refreshes MCP server definitions and `SKILL.md` packages across all 30+ IDEs.
+
+---
+
+### 🔌 3. 30+ Supported AI Coding Agents & IDEs (1-Click Auto-Config)
+
+DAGR supports automated 1-click MCP configuration injection across **30+ top AI coding assistants and development environments**:
+
+```bash
+# Auto-configure all detected agents and IDEs on your machine:
+dagr mcp install --client all
+
+# Or target any specific client:
+dagr mcp install --client <CLIENT_ID>
+
+# List all supported clients:
+dagr mcp list-clients
+```
+
+| Client ID | Agent / IDE Name | Category | Primary Configuration Location |
+| :--- | :--- | :--- | :--- |
+| `cursor` | **Cursor IDE** | AI IDE | `~/.cursor/mcp.json` |
+| `claude` | **Claude Desktop** | Desktop App | `claude_desktop_config.json` |
+| `claudecode` | **Claude Code CLI** | CLI Agent | `~/.claude/mcp.json` |
+| `windsurf` | **Windsurf (Codeium)** | AI IDE | `~/.codeium/windsurf/mcp_config.json` |
+| `vscode` | **VS Code / Copilot** | IDE | `.vscode/mcp.json` |
+| `roocode` | **Roo Code (Roo Cline)** | VS Code Extension | globalStorage `cline_mcp_settings.json` |
+| `cline` | **Cline** | VS Code Extension | `saoudrizwan.claude-dev/cline_mcp_settings.json` |
+| `continue` | **Continue.dev** | Extension / IDE | `~/.continue/config.json` |
+| `zed` | **Zed Editor** | Fast Rust Editor | `~/.config/zed/settings.json` |
+| `aider` | **Aider AI** | CLI Pair Programmer | `~/.aider/mcp.json` |
+| `openinterpreter` | **Open Interpreter** | CLI Agent | `~/.open-interpreter/mcp.json` |
+| `antigravity` | **Google Antigravity / Gemini CLI** | Agentic IDE | `~/.gemini/config/mcp.json` |
+| `amazonq` | **Amazon Q Developer** | Enterprise Agent | `~/.aws/q/mcp.json` |
+| `jetbrains` | **JetBrains (IntelliJ, PyCharm)** | IDE Suite | `~/.config/JetBrains/mcp.json` |
+| `goose` | **Goose (Block / Square)** | Open-Source Agent | `~/.config/goose/mcp.json` |
+| `cody` | **Sourcegraph Cody** | Enterprise Assistant | `~/.sourcegraph/cody-mcp.json` |
+| `neovim` | **Neovim (avante.nvim / mcphub)** | Terminal Editor | `~/.config/nvim/mcp.json` |
+| `emacs` | **Emacs (gptel / mcp.el)** | Extensible Editor | `~/.emacs.d/mcp.json` |
+| `devin` | **Cognition Devin** | Autonomous Agent | `.devin/mcp.json` |
+| `opencode` | **OpenCode (Sisyphus)** | Multi-Agent Harness | `~/.opencode/mcp.json` |
+| `melty` | **Melty** | Open-Source AI IDE | `~/.melty/mcp.json` |
+| `pearai` | **PearAI** | AI Code Editor | `~/.pearai/mcp.json` |
+| `trae` | **Trae AI (ByteDance)** | Adaptive IDE | `~/.trae/mcp.json` |
+| `boltdiy` | **Bolt.diy** | In-Browser Web Agent | `.bolt/mcp.json` |
+| `dify` | **Dify.ai** | LLM Ops Runtime | `~/.dify/mcp.json` |
+| `langchain` | **LangChain / LangGraph** | Agent Framework | `~/.langchain/mcp.json` |
+| `crewai` | **CrewAI** | Multi-Agent Swarm | `.crewai/mcp.json` |
+| `autogen` | **Microsoft AutoGen** | Multi-Agent Framework | `.autogen/mcp.json` |
+| `librechat` | **LibreChat / Ollama** | Self-Hosted Chat | `~/.librechat/mcp.json` |
+| `superagent` | **Superagent.sh** | Production Agent | `~/.superagent/mcp.json` |
+| `workspace` | **Local Git Workspace** | Workspace Root | `.cursor/mcp.json`, `.vscode/mcp.json` |
+
+---
+
+### 📦 3. Individual Skill Installation & Usage
+
+If you prefer to pick and choose individual skills for your AI agent workflow:
+
+<details>
+<summary><strong>✂️ Skill 1: <code>dagr-slicer</code> (Surgical AST & Token Pruning)</strong></summary>
+
+**Purpose:** Slices out the exact function body and hoists upstream type contracts, slashing token consumption by **$>95\%$** in $<2\text{ms}$.
+
+#### Installation:
+```bash
+# Install into Antigravity / Gemini CLI:
+mkdir -p ~/.gemini/config/skills/dagr-slicer
+cp .agents/skills/dagr-slicer/SKILL.md ~/.gemini/config/skills/dagr-slicer/
+
+# Install into Cursor:
+mkdir -p .cursor/skills/dagr-slicer
+cp .agents/skills/dagr-slicer/SKILL.md .cursor/skills/dagr-slicer/
+```
+
+#### How to Invoke:
+- **Natural Language:** *"Slice context for function `processPayment`"*, *"Extract minimal AST for `UserToken`"*
+- **CLI Command:** `dagr context <FILE>:<SYMBOL> --format json`
+- **MCP Tool:** `dagr_get_context_slice(file_path="...", symbol_name="...")`
+
+</details>
+
+<details>
+<summary><strong>🛡️ Skill 2: <code>dagr-guard</code> (In-Memory Architecture Boundary Linter)</strong></summary>
+
+**Purpose:** Evaluates code changes against clean layer boundaries (e.g. UI cannot import DB/ORM) in **$<0.1\text{ms}$** and sanitizes prompt injections.
+
+#### Installation:
+```bash
+# Install into Antigravity / Gemini CLI:
+mkdir -p ~/.gemini/config/skills/dagr-guard
+cp .agents/skills/dagr-guard/SKILL.md ~/.gemini/config/skills/dagr-guard/
+
+# Install into Cursor:
+mkdir -p .cursor/skills/dagr-guard
+cp .agents/skills/dagr-guard/SKILL.md .cursor/skills/dagr-guard/
+```
+
+#### How to Invoke:
+- **Natural Language:** *"Verify architecture boundaries"*, *"Check layer imports"*, *"Lint with dagr guard"*
+- **CLI Command:** `dagr guard --format json`
+- **MCP Tool:** `dagr_verify_architecture(source_file="...", proposed_imports=[...])`
+
+</details>
+
+<details>
+<summary><strong>🔒 Skill 3: <code>dagr-sandbox</code> (Copy-on-Write Shadow Workspace Runner)</strong></summary>
+
+**Purpose:** Executes tests and refactors inside an isolated OS-native shadow snapshot with instant **$<10\text{ms}$ atomic rollback** on failure.
+
+#### Installation:
+```bash
+# Install into Antigravity / Gemini CLI:
+mkdir -p ~/.gemini/config/skills/dagr-sandbox
+cp .agents/skills/dagr-sandbox/SKILL.md ~/.gemini/config/skills/dagr-sandbox/
+
+# Install into Cursor:
+mkdir -p .cursor/skills/dagr-sandbox
+cp .agents/skills/dagr-sandbox/SKILL.md .cursor/skills/dagr-sandbox/
+```
+
+#### How to Invoke:
+- **Natural Language:** *"Run test in shadow sandbox"*, *"Safe trial with atomic rollback"*, *"Sandboxed test"*
+- **CLI Command:** `dagr run "<TEST_COMMAND>" [--commit-on-success]`
+- **MCP Tool:** `dagr_execute_sandboxed(command="...")`
+
+</details>
+
+<details>
+<summary><strong>💥 Skill 4: <code>dagr-chaos</code> (Ephemeral Fault Injection & Proofs)</strong></summary>
+
+**Purpose:** Injects synthetic latency, CPU throttling, and lock contention during PR verification, and generates cryptographically signed Blake3 audit badges (`proof_<hash>`).
+
+#### Installation:
+```bash
+# Install into Antigravity / Gemini CLI:
+mkdir -p ~/.gemini/config/skills/dagr-chaos
+cp .agents/skills/dagr-chaos/SKILL.md ~/.gemini/config/skills/dagr-chaos/
+```
+
+#### How to Invoke:
+- **Natural Language:** *"Inject chaos faults"*, *"Stress-test PR"*, *"Generate cryptographic proof of correctness"*
+- **CLI Command:** `cargo test -p dagr-chaos`
+
+</details>
+
+---
+
+### 🤖 3. How Agents Automatically Discover & Trigger These Skills
+
+You do not need to memorize commands. DAGR employs **Semantic Router Descriptions** in each `SKILL.md` frontmatter:
+
+```yaml
+---
+name: dagr-slicer
+description: Surgical AST context slicing and contract hoisting hypervisor. Use whenever inspecting, analyzing, or preparing to modify a function, method, or class, to avoid loading full files and slash token consumption by >95%. Also use when user mentions token reduction, context slicing, or AST extraction.
+---
+```
+
+When an agent (Cursor, Claude 3.5 Sonnet, Copilot, Antigravity) receives a prompt to edit or review a function:
+1. The model's reasoning loop matches your task against the `description` keyword hooks.
+2. It reads `SKILL.md` into its working memory.
+3. It calls `dagr context` or `dagr_get_context_slice` directly—retrieving only the exact 25-line AST slice and hoisted type contracts.
+
+---
+
+### 🛠️ 4. In-IDE Configuration Manual Fallback (MCP)
+
+If you prefer to configure IDEs manually instead of using `dagr mcp install`:
+
+#### Cursor (`~/.cursor/mcp.json` or `.cursor/mcp.json`)
 ```json
 {
   "mcpServers": {
@@ -284,7 +513,7 @@ Add DAGR to your IDE's Model Context Protocol (MCP) configuration:
 {
   "mcpServers": {
     "dagr": {
-      "command": "/usr/local/bin/dagr",
+      "command": "dagr",
       "args": ["mcp", "start"]
     }
   }

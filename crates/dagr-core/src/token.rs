@@ -1,13 +1,15 @@
-use tiktoken_rs::cl100k_base;
+use std::sync::OnceLock;
+use tiktoken_rs::{cl100k_base, CoreBPE};
+
+static BPE: OnceLock<Option<CoreBPE>> = OnceLock::new();
 
 /// Calculates the exact BPE token count of a given text string using OpenAI/Anthropic standard cl100k_base.
 pub fn count_tokens(text: &str) -> usize {
-    match cl100k_base() {
-        Ok(bpe) => bpe.encode_with_special_tokens(text).len(),
-        Err(_) => {
-            // Fallback estimation if tokenizer model fails to initialize
-            (text.len() as f64 / 3.8).ceil() as usize
-        }
+    let bpe = BPE.get_or_init(|| cl100k_base().ok());
+    if let Some(bpe) = bpe {
+        bpe.encode_with_special_tokens(text).len()
+    } else {
+        (text.len() as f64 / 3.8).ceil() as usize
     }
 }
 

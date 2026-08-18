@@ -7,7 +7,12 @@ pub struct BoundaryRule {
     pub name: String,
     pub from: String,
     pub cannot_import: Vec<String>,
+    #[serde(default = "default_boundary_message")]
     pub message: String,
+}
+
+fn default_boundary_message() -> String {
+    "Architectural layer boundary violation detected".into()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -19,8 +24,25 @@ pub struct LimitsConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SecurityConfig {
+    #[serde(default = "default_true")]
     pub sanitize_prompt_injections: bool,
+    #[serde(default = "default_control_tokens")]
     pub strip_control_tokens: Vec<String>,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_control_tokens() -> Vec<String> {
+    vec![
+        "<|im_start|>".into(),
+        "<|im_end|>".into(),
+        "SYSTEM:".into(),
+        "SYSTEM PROMPT:".into(),
+        "[INST]".into(),
+        "[/INST]".into(),
+    ]
 }
 
 impl Default for SecurityConfig {
@@ -121,6 +143,28 @@ impl RuleConfig {
                     from: "src/app/**/page.tsx".into(),
                     cannot_import: vec!["@/server/secrets".into()],
                     message: "Client pages must not import server secrets.".into(),
+                },
+            ],
+            "fastapi" | "python" => vec![
+                BoundaryRule {
+                    name: "Domain Isolation".into(),
+                    from: "app/domain/**".into(),
+                    cannot_import: vec!["sqlalchemy".into(), "app/infra/**".into(), "fastapi".into()],
+                    message: "Domain models must not import SQLAlchemy or framework controllers.".into(),
+                },
+                BoundaryRule {
+                    name: "Route-to-DB Boundary".into(),
+                    from: "app/routers/**".into(),
+                    cannot_import: vec!["sqlalchemy.orm.Session".into()],
+                    message: "Routers must depend on service dependencies, not direct DB sessions.".into(),
+                },
+            ],
+            "rust" | "rust-monorepo" => vec![
+                BoundaryRule {
+                    name: "Core Independence".into(),
+                    from: "crates/*-core/**".into(),
+                    cannot_import: vec!["tokio".into(), "hyper".into(), "axum".into()],
+                    message: "Core crates must not depend on heavy async/network runtimes.".into(),
                 },
             ],
             _ => vec![

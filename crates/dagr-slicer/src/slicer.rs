@@ -47,7 +47,13 @@ impl SymbolicSlicer {
             Ok(p) => p,
             Err(_) => {
                 // Fallback to lexical search for unknown languages
-                return self.fallback_lexical_slice(file_path, source_code, language, target_symbol, original_file_tokens);
+                return self.fallback_lexical_slice(
+                    file_path,
+                    source_code,
+                    language,
+                    target_symbol,
+                    original_file_tokens,
+                );
             }
         };
 
@@ -55,25 +61,33 @@ impl SymbolicSlicer {
         let tree = match parser.parse(source_code, None) {
             Ok(t) => t,
             Err(_) => {
-                return self.fallback_lexical_slice(file_path, source_code, language, target_symbol, original_file_tokens);
+                return self.fallback_lexical_slice(
+                    file_path,
+                    source_code,
+                    language,
+                    target_symbol,
+                    original_file_tokens,
+                );
             }
         };
 
         let root_node = tree.root_node();
 
         // 3. Locate target symbol in AST
-        let symbol_def = match AstExtractor::find_symbol(root_node, source_code, language, target_symbol) {
-            Some(s) => s,
-            None => {
-                return Err(DagrError::SymbolNotFound {
-                    symbol: target_symbol.to_string(),
-                    file: file_path.display().to_string(),
-                });
-            }
-        };
+        let symbol_def =
+            match AstExtractor::find_symbol(root_node, source_code, language, target_symbol) {
+                Some(s) => s,
+                None => {
+                    return Err(DagrError::SymbolNotFound {
+                        symbol: target_symbol.to_string(),
+                        file: file_path.display().to_string(),
+                    });
+                }
+            };
 
         // 4. Collect identifiers inside target symbol body
-        let identifiers = AstExtractor::collect_referenced_identifiers(symbol_def.node, source_code);
+        let identifiers =
+            AstExtractor::collect_referenced_identifiers(symbol_def.node, source_code);
 
         // 5. Hoist relevant type contracts & interfaces
         let hoisted_contracts = ContractHoister::extract_hoisted_contracts(
@@ -146,8 +160,8 @@ impl SymbolicSlicer {
         if let Some(target_idx) = found_line {
             let start = target_idx.saturating_sub(2);
             let end = (target_idx + 25).min(lines.len());
-            for idx in start..end {
-                sparse_lines.push((idx + 1, lines[idx].to_string()));
+            for (idx, line) in lines.iter().enumerate().take(end).skip(start) {
+                sparse_lines.push((idx + 1, (*line).to_string()));
             }
         } else {
             return Err(DagrError::SymbolNotFound {
@@ -226,11 +240,23 @@ function refundTransaction() { return false; }
         assert_eq!(slice.language, Language::TypeScript);
         assert!(!slice.sparse_code_lines.is_empty());
         // Verify contract hoisting
-        assert!(slice.type_contracts.iter().any(|c| c.contains("PaymentPayload")));
-        assert!(slice.type_contracts.iter().any(|c| c.contains("PaymentResult")));
+        assert!(slice
+            .type_contracts
+            .iter()
+            .any(|c| c.contains("PaymentPayload")));
+        assert!(slice
+            .type_contracts
+            .iter()
+            .any(|c| c.contains("PaymentResult")));
         // Verify unrelated functions are pruned
-        assert!(!slice.sparse_code_lines.iter().any(|(_, l)| l.contains("helperA")));
-        assert!(!slice.sparse_code_lines.iter().any(|(_, l)| l.contains("refundTransaction")));
+        assert!(!slice
+            .sparse_code_lines
+            .iter()
+            .any(|(_, l)| l.contains("helperA")));
+        assert!(!slice
+            .sparse_code_lines
+            .iter()
+            .any(|(_, l)| l.contains("refundTransaction")));
         // Verify compression
         assert!(slice.compression_ratio > 0.3);
 
@@ -262,8 +288,14 @@ def unrelated_database_sync():
         )?;
 
         assert_eq!(slice.target_symbol, "apply_discount");
-        assert!(slice.type_contracts.iter().any(|c| c.contains("DiscountConfig")));
-        assert!(!slice.sparse_code_lines.iter().any(|(_, l)| l.contains("unrelated_analytics")));
+        assert!(slice
+            .type_contracts
+            .iter()
+            .any(|c| c.contains("DiscountConfig")));
+        assert!(!slice
+            .sparse_code_lines
+            .iter()
+            .any(|(_, l)| l.contains("unrelated_analytics")));
         Ok(())
     }
 }

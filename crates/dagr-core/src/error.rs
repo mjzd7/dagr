@@ -32,6 +32,9 @@ pub enum DagrError {
     #[error("Serialization Error: {0}")]
     Serialization(String),
 
+    #[error("Invalid Input: {0}")]
+    InvalidInput(String),
+
     #[error("Tokenizer Error: {0}")]
     Tokenizer(String),
 }

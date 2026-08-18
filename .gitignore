@@ -2,11 +2,28 @@
 /target
 Cargo.lock
 
-# DAGR Runtime
+# DAGR Runtime & Shadow Overlays
 .dagr/
 .dagr/shadow/
 .dagr/journal.db
+.dagr/index.db
+.dagr/update_cache.json
 
-# OS Artifacts
+# Node / NPM / Dashboard
+node_modules/
+dashboard/node_modules/
+dashboard/.next/
+packages/dagr/bin/dagr-native*
+*.tgz
+package-lock.json
+
+# Python Artifacts
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS Artifacts & Logs
 .DS_Store
 Thumbs.db
+*.log
+scratch/

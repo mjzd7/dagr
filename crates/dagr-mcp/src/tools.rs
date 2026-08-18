@@ -125,14 +125,20 @@ impl ToolRegistry {
     }
 
     fn handle_get_context_slice(&self, args: &Value) -> Result<Value> {
-        let file_path = args["file_path"].as_str().ok_or_else(|| DagrError::Config("file_path is required".into()))?;
-        let symbol_name = args["symbol_name"].as_str().ok_or_else(|| DagrError::Config("symbol_name is required".into()))?;
+        let file_path = args["file_path"]
+            .as_str()
+            .ok_or_else(|| DagrError::Config("file_path is required".into()))?;
+        let symbol_name = args["symbol_name"]
+            .as_str()
+            .ok_or_else(|| DagrError::Config("symbol_name is required".into()))?;
 
         let full_path = self.workspace_root.join(file_path);
-        let content = std::fs::read_to_string(&full_path)
-            .map_err(|e| DagrError::Io(e))?;
+        let content = std::fs::read_to_string(&full_path).map_err(DagrError::Io)?;
 
-        let ext = Path::new(file_path).extension().and_then(|s| s.to_str()).unwrap_or("");
+        let ext = Path::new(file_path)
+            .extension()
+            .and_then(|s| s.to_str())
+            .unwrap_or("");
         let lang = Language::from_extension(ext);
 
         let slicer = SymbolicSlicer::new(SlicerConfig::default());
@@ -154,7 +160,11 @@ impl ToolRegistry {
         let source_file = args["source_file"].as_str().unwrap_or("");
         let imports: Vec<String> = args["proposed_imports"]
             .as_array()
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
             .unwrap_or_default();
 
         let guard = ArchitectureGuard::load(&self.workspace_root)?;
@@ -168,7 +178,9 @@ impl ToolRegistry {
     }
 
     fn handle_execute_sandboxed(&self, args: &Value) -> Result<Value> {
-        let command = args["command"].as_str().unwrap_or("echo 'no command provided'");
+        let command = args["command"]
+            .as_str()
+            .unwrap_or("echo 'no command provided'");
         let tx = CowSandbox::begin(&self.workspace_root)?;
 
         let result = CowSandbox::verify(&tx, command)?;
@@ -193,7 +205,11 @@ impl ToolRegistry {
         let role = args["role"].as_str().unwrap_or("worker");
         let files: Vec<String> = args["files_to_lock"]
             .as_array()
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
             .unwrap_or_default();
 
         let mut locks = self.active_agent_locks.lock().unwrap();
@@ -232,9 +248,16 @@ impl ToolRegistry {
         let tx_id = Uuid::parse_str(tx_id_str)
             .map_err(|e| DagrError::Config(format!("Invalid tx_id: {}", e)))?;
 
-        let shadow_root = self.workspace_root.join(".dagr").join("shadow").join(tx_id.to_string());
+        let shadow_root = self
+            .workspace_root
+            .join(".dagr")
+            .join("shadow")
+            .join(tx_id.to_string());
         if !shadow_root.exists() {
-            return Err(DagrError::Sandbox(format!("Shadow transaction {} not found", tx_id)));
+            return Err(DagrError::Sandbox(format!(
+                "Shadow transaction {} not found",
+                tx_id
+            )));
         }
 
         let temp_tx = dagr_sandbox::SandboxTx {

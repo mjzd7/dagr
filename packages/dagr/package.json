@@ -1,0 +1,38 @@
+{
+  "name": "@mjzd7/dagr",
+  "version": "0.1.0",
+  "description": "The DAG-Native Symbolic AST Slicing Hypervisor & Safety Sandbox for AI Coding Agents",
+  "main": "bin/dagr.js",
+  "bin": {
+    "dagr": "./bin/dagr.js"
+  },
+  "scripts": {
+    "postinstall": "node ./scripts/install-binary.js",
+    "test": "node ./bin/dagr.js --help"
+  },
+  "keywords": [
+    "dagr",
+    "ast-slicing",
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "cursor",
+    "copilot",
+    "claude-code",
+    "token-reduction",
+    "hypervisor"
+  ],
+  "author": "Mohit Dagar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mjzd7/dagr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mjzd7/dagr/issues"
+  },
+  "homepage": "https://github.com/mjzd7/dagr#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

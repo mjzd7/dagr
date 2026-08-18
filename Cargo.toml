@@ -7,12 +7,14 @@ members = [
     "crates/dagr-sandbox",
     "crates/dagr-mcp",
     "crates/dagr-cli",
+    "crates/dagr-cloud",
+    "crates/dagr-chaos",
 ]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["Mohit Dagar <mohit@dagr.dev>"]
+authors = ["Mohit Dagar"]
 license = "MIT"
 repository = "https://github.com/mjzd7/dagr"
 readme = "README.md"

@@ -22,7 +22,11 @@ impl CloneEngine {
 
             // clonefile(src, dst, flags) - flags = 0 for default CoW block clone
             extern "C" {
-                fn clonefile(src: *const libc::c_char, dst: *const libc::c_char, flags: u32) -> libc::c_int;
+                fn clonefile(
+                    src: *const libc::c_char,
+                    dst: *const libc::c_char,
+                    flags: u32,
+                ) -> libc::c_int;
             }
 
             let ret = unsafe { clonefile(src_c.as_ptr(), dst_c.as_ptr(), 0) };
@@ -32,7 +36,8 @@ impl CloneEngine {
             // If clonefile fails (e.g. cross-volume), fall back to standard copy
         }
 
-        std::fs::copy(src, dst).map_err(|e| DagrError::Sandbox(format!("File copy failed: {}", e)))?;
+        std::fs::copy(src, dst)
+            .map_err(|e| DagrError::Sandbox(format!("File copy failed: {}", e)))?;
         Ok(())
     }
 }

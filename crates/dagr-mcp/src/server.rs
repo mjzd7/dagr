@@ -22,7 +22,7 @@ impl McpServer {
         let mut stdout = io::stdout();
 
         for line_result in stdin.lock().lines() {
-            let line = line_result.map_err(|e| DagrError::Io(e))?;
+            let line = line_result.map_err(DagrError::Io)?;
             let trimmed = line.trim();
             if trimmed.is_empty() {
                 continue;
@@ -33,15 +33,16 @@ impl McpServer {
                     let response = self.handle_request(request);
                     if let Some(resp) = response {
                         let serialized = serde_json::to_string(&resp)?;
-                        writeln!(stdout, "{}", serialized).map_err(|e| DagrError::Io(e))?;
-                        stdout.flush().map_err(|e| DagrError::Io(e))?;
+                        writeln!(stdout, "{}", serialized).map_err(DagrError::Io)?;
+                        stdout.flush().map_err(DagrError::Io)?;
                     }
                 }
                 Err(e) => {
-                    let error_resp = JsonRpcResponse::error(None, -32700, format!("Parse error: {}", e));
+                    let error_resp =
+                        JsonRpcResponse::error(None, -32700, format!("Parse error: {}", e));
                     let serialized = serde_json::to_string(&error_resp)?;
-                    writeln!(stdout, "{}", serialized).map_err(|e| DagrError::Io(e))?;
-                    stdout.flush().map_err(|e| DagrError::Io(e))?;
+                    writeln!(stdout, "{}", serialized).map_err(DagrError::Io)?;
+                    stdout.flush().map_err(DagrError::Io)?;
                 }
             }
         }
@@ -108,7 +109,11 @@ impl McpServer {
                 }
             }
 
-            _ => Some(JsonRpcResponse::error(id, -32601, format!("Method not found: {}", req.method))),
+            _ => Some(JsonRpcResponse::error(
+                id,
+                -32601,
+                format!("Method not found: {}", req.method),
+            )),
         }
     }
 }
@@ -130,7 +135,10 @@ mod tests {
         };
         let init_resp = server.handle_request(init_req).unwrap();
         assert!(init_resp.result.is_some());
-        assert_eq!(init_resp.result.unwrap()["serverInfo"]["name"], "dagr-hypervisor");
+        assert_eq!(
+            init_resp.result.unwrap()["serverInfo"]["name"],
+            "dagr-hypervisor"
+        );
 
         // 2. Test tools/list
         let tools_req = JsonRpcRequest {
@@ -141,8 +149,15 @@ mod tests {
         };
         let tools_resp = server.handle_request(tools_req).unwrap();
         assert!(tools_resp.result.is_some());
-        let tools_array = tools_resp.result.unwrap()["tools"].as_array().unwrap().clone();
-        assert!(tools_array.iter().any(|t| t["name"] == "dagr_get_context_slice"));
-        assert!(tools_array.iter().any(|t| t["name"] == "dagr_a2a_handshake"));
+        let tools_array = tools_resp.result.unwrap()["tools"]
+            .as_array()
+            .unwrap()
+            .clone();
+        assert!(tools_array
+            .iter()
+            .any(|t| t["name"] == "dagr_get_context_slice"));
+        assert!(tools_array
+            .iter()
+            .any(|t| t["name"] == "dagr_a2a_handshake"));
     }
 }

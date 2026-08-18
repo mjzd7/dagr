@@ -501,6 +501,59 @@ RETURN nodes, relationships;
 
 ---
 
+## 🛠️ Autonomous Agent Engineering Lifecycle (Matt Pocock Skills Integration)
+
+To eliminate "vibe coding", hallucinated architectures, software entropy, and unverified regressions, DAGR embeds and mandates the **Matt Pocock Engineering Skills Suite** as the autonomous execution protocol across all engineering agents:
+
+```mermaid
+graph TD
+    subgraph S1 ["Stage 1: Alignment & Domain Modeling"]
+        GM["/grill-with-docs<br/>(Stress-test intent & edge cases)"]
+        DM["domain-modeling<br/>(CONTEXT.md & ADRs)"]
+        PT["prototype<br/>(Throwaway HTML/logic spike)"]
+    end
+
+    subgraph S2 ["Stage 2: Architecture & Anti-Bloat"]
+        CD["codebase-design<br/>(Deep Modules, Ousterhout Seams)"]
+        HP["hyperplan<br/>(Adversarial 5-Perspective Blueprint)"]
+        PN["ponytail<br/>(Radical anti-bloat, stdlib first)"]
+    end
+
+    subgraph S3 ["Stage 3: Work Breakdown & Tracer Bullets"]
+        TS["to-spec & to-tickets<br/>(Atomic tasks with blocking edges)"]
+        WF["wayfinder<br/>(Multi-session milestone graph)"]
+    end
+
+    subgraph S4 ["Stage 4: Autonomous TDD & Execution"]
+        IMP["implement + tdd<br/>(Red-Green-Refactor Loops)"]
+        BUG["diagnosing-bugs<br/>(4-step gated root cause isolation)"]
+        UW["ultrawork + sisyphus<br/>(Relentless execution harness)"]
+    end
+
+    subgraph S5 ["Stage 5: Dual-Axis Review & Pre-Commit"]
+        CR["code-review<br/>(Parallel Standards + Spec Subagents)"]
+        PR["ponytail-review<br/>(Complexity & bloat audit)"]
+        PC["setup-pre-commit<br/>(Git hooks + type-check + guard)"]
+    end
+
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+```
+
+### 1. The 5-Stage Autonomous Development Lifecycle
+
+| Stage | Trigger / Skill | Autonomous Agent Responsibility | Enforced Quality Gate |
+| :--- | :--- | :--- | :--- |
+| **1. Alignment & Ubiquitous Language** | `/grill-with-docs`<br/>`domain-modeling`<br/>`prototype` | • Agent interviews user/spec relentlessly to resolve ambiguity.<br/>• Updates `CONTEXT.md` (domain glossary) and creates ADRs.<br/>• Builds throwaway prototypes to validate state/interface models. | No code written without defined domain terms and resolved design tree. |
+| **2. Deep Module Architecture** | `codebase-design`<br/>`hyperplan`<br/>`ponytail` | • Designs deep interfaces hiding internal complexity (Ousterhout).<br/>• Runs adversarial multi-perspective hyperplan (Security, Perf, Reliability).<br/>• Rejects bloat/unneeded dependencies (YAGNI standard library first). | Interface is narrow, implementation is deep, zero leaky abstractions. |
+| **3. Work Decomposition** | `to-spec`<br/>`to-tickets`<br/>`wayfinder` | • Converts specs into tracer-bullet tickets declaring blocking edges.<br/>• Sequences parallel vs sequential subagent milestones. | Every task is atomic, testable, and has clear acceptance criteria. |
+| **4. Autonomous TDD & Healing** | `implement`<br/>`tdd`<br/>`diagnosing-bugs`<br/>`ultrawork` | • **Red Phase**: Write failing integration/unit test first.<br/>• **Green Phase**: Implement minimal code to pass.<br/>• **Refactor**: Clean up while green.<br/>• **Diagnosis Loop**: Reproduce -> Locate -> Explain -> Verify before fixing bugs. | 100% test pass rate in CoW sandbox; zero unchecked mutations. |
+| **5. Dual-Axis Review & Verification** | `code-review`<br/>`ponytail-review`<br/>`setup-pre-commit` | • Subagent A audits **Standards Axis** (Rust idioms, clean architecture).<br/>• Subagent B audits **Spec Axis** (faithfulness to ticket, no drift).<br/>• `ponytail-review` strips speculative dead code and over-engineering. | Clean 2-axis signoff + pre-commit hooks + `dagr guard` passing. |
+
+---
+
 ## 🧪 Verification & Validation Strategy
 
 1. **Local CLI Verification:** Run `dagr context src/billing.ts:charge --for "add tax"` and assert the output token count is <500 tokens (compared to 12,000 tokens for the full file tree).
