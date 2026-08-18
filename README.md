@@ -347,37 +347,37 @@ dagr mcp list-clients
 
 | Brand Logo | Client ID | Agent / IDE Name | Category | Primary Configuration Location |
 | :---: | :--- | :--- | :--- | :--- |
-| <img src="https://api.iconify.design/vscode-icons:file-type-cursor.svg" width="22" height="22" alt="Cursor" /> | `cursor` | **Cursor IDE** | AI IDE | `~/.cursor/mcp.json` |
-| <img src="https://cdn.simpleicons.org/anthropic/D97757" width="22" height="22" alt="Claude" /> | `claude` | **Claude Desktop** | Desktop App | `claude_desktop_config.json` |
-| <img src="https://cdn.simpleicons.org/anthropic/D97757" width="22" height="22" alt="Claude Code" /> | `claudecode` | **Claude Code CLI** | CLI Agent | `~/.claude/mcp.json` |
-| <img src="https://cdn.simpleicons.org/codeium/09B6A2" width="22" height="22" alt="Windsurf" /> | `windsurf` | **Windsurf (Codeium)** | AI IDE | `~/.codeium/windsurf/mcp_config.json` |
-| <img src="https://cdn.simpleicons.org/visualstudiocode/007ACC" width="22" height="22" alt="VS Code" /> | `vscode` | **VS Code / Copilot** | IDE | `.vscode/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:kangaroo.svg" width="22" height="22" alt="Roo Code" /> | `roocode` | **Roo Code (Roo Cline)** | VS Code Extension | globalStorage `cline_mcp_settings.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:robot.svg" width="22" height="22" alt="Cline" /> | `cline` | **Cline** | VS Code Extension | `saoudrizwan.claude-dev/cline_mcp_settings.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:rocket.svg" width="22" height="22" alt="Continue" /> | `continue` | **Continue.dev** | Extension / IDE | `~/.continue/config.json` |
-| <img src="https://cdn.simpleicons.org/zedindustries/000000" width="22" height="22" alt="Zed" /> | `zed` | **Zed Editor** | Fast Rust Editor | `~/.config/zed/settings.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:handshake.svg" width="22" height="22" alt="Aider" /> | `aider` | **Aider AI** | CLI Pair Programmer | `~/.aider/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:globe-with-meridians.svg" width="22" height="22" alt="Open Interpreter" /> | `openinterpreter` | **Open Interpreter** | CLI Agent | `~/.open-interpreter/mcp.json` |
-| <img src="https://cdn.simpleicons.org/googlegemini/8E75B2" width="22" height="22" alt="Google Antigravity" /> | `antigravity` | **Google Antigravity / Gemini CLI** | Agentic IDE | `~/.gemini/config/mcp.json` |
-| <img src="https://cdn.simpleicons.org/amazonaws/FF9900" width="22" height="22" alt="Amazon Q" /> | `amazonq` | **Amazon Q Developer** | Enterprise Agent | `~/.aws/q/mcp.json` |
-| <img src="https://cdn.simpleicons.org/jetbrains/000000" width="22" height="22" alt="JetBrains" /> | `jetbrains` | **JetBrains (IntelliJ, PyCharm)** | IDE Suite | `~/.config/JetBrains/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:goose.svg" width="22" height="22" alt="Goose" /> | `goose` | **Goose (Block / Square)** | Open-Source Agent | `~/.config/goose/mcp.json` |
-| <img src="https://cdn.simpleicons.org/sourcegraph/FF5543" width="22" height="22" alt="Cody" /> | `cody` | **Sourcegraph Cody** | Enterprise Assistant | `~/.sourcegraph/cody-mcp.json` |
-| <img src="https://cdn.simpleicons.org/neovim/57A143" width="22" height="22" alt="Neovim" /> | `neovim` | **Neovim (avante.nvim / mcphub)** | Terminal Editor | `~/.config/nvim/mcp.json` |
-| <img src="https://cdn.simpleicons.org/gnuemacs/7F5AB6" width="22" height="22" alt="Emacs" /> | `emacs` | **Emacs (gptel / mcp.el)** | Extensible Editor | `~/.emacs.d/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:man-technologist.svg" width="22" height="22" alt="Devin" /> | `devin` | **Cognition Devin** | Autonomous Agent | `.devin/mcp.json` |
-| <img src="https://cdn.simpleicons.org/opencode/000000" width="22" height="22" alt="OpenCode" /> | `opencode` | **OpenCode (Sisyphus)** | Multi-Agent Harness | `~/.opencode/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:honey-pot.svg" width="22" height="22" alt="Melty" /> | `melty` | **Melty** | Open-Source AI IDE | `~/.melty/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:pear.svg" width="22" height="22" alt="PearAI" /> | `pearai` | **PearAI** | AI Code Editor | `~/.pearai/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:martial-arts-uniform.svg" width="22" height="22" alt="Trae" /> | `trae` | **Trae AI (ByteDance)** | Adaptive IDE | `~/.trae/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:high-voltage.svg" width="22" height="22" alt="Bolt" /> | `boltdiy` | **Bolt.diy** | In-Browser Web Agent | `.bolt/mcp.json` |
-| <img src="https://cdn.simpleicons.org/dify/155EEF" width="22" height="22" alt="Dify" /> | `dify` | **Dify.ai** | LLM Ops Runtime | `~/.dify/mcp.json` |
-| <img src="https://cdn.simpleicons.org/langchain/1C3C3C" width="22" height="22" alt="LangChain" /> | `langchain` | **LangChain / LangGraph** | Agent Framework | `~/.langchain/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:busts-in-silhouette.svg" width="22" height="22" alt="CrewAI" /> | `crewai` | **CrewAI** | Multi-Agent Swarm | `.crewai/mcp.json` |
-| <img src="https://cdn.simpleicons.org/microsoft/00A4EF" width="22" height="22" alt="AutoGen" /> | `autogen` | **Microsoft AutoGen** | Multi-Agent Framework | `.autogen/mcp.json` |
-| <img src="https://cdn.simpleicons.org/ollama/000000" width="22" height="22" alt="LibreChat" /> | `librechat` | **LibreChat / Ollama** | Self-Hosted Chat | `~/.librechat/mcp.json` |
-| <img src="https://api.iconify.design/fluent-emoji-flat:crystal-ball.svg" width="22" height="22" alt="Superagent" /> | `superagent` | **Superagent.sh** | Production Agent | `~/.superagent/mcp.json` |
-| <img src="https://cdn.simpleicons.org/git/F05032" width="22" height="22" alt="Workspace" /> | `workspace` | **Local Git Workspace** | Workspace Root | `.cursor/mcp.json`, `.vscode/mcp.json` |
+| <img src="assets/icons/cursor.svg" width="22" height="22" alt="Cursor" /> | `cursor` | **Cursor IDE** | AI IDE | `~/.cursor/mcp.json` |
+| <img src="assets/icons/claude.svg" width="22" height="22" alt="Claude" /> | `claude` | **Claude Desktop** | Desktop App | `claude_desktop_config.json` |
+| <img src="assets/icons/claudecode.svg" width="22" height="22" alt="Claude Code" /> | `claudecode` | **Claude Code CLI** | CLI Agent | `~/.claude/mcp.json` |
+| <img src="assets/icons/windsurf.svg" width="22" height="22" alt="Windsurf" /> | `windsurf` | **Windsurf (Codeium)** | AI IDE | `~/.codeium/windsurf/mcp_config.json` |
+| <img src="assets/icons/vscode.svg" width="22" height="22" alt="VS Code" /> | `vscode` | **VS Code / Copilot** | IDE | `.vscode/mcp.json` |
+| <img src="assets/icons/roocode.svg" width="22" height="22" alt="Roo Code" /> | `roocode` | **Roo Code (Roo Cline)** | VS Code Extension | globalStorage `cline_mcp_settings.json` |
+| <img src="assets/icons/cline.svg" width="22" height="22" alt="Cline" /> | `cline` | **Cline** | VS Code Extension | `saoudrizwan.claude-dev/cline_mcp_settings.json` |
+| <img src="assets/icons/continue.svg" width="22" height="22" alt="Continue" /> | `continue` | **Continue.dev** | Extension / IDE | `~/.continue/config.json` |
+| <img src="assets/icons/zed.svg" width="22" height="22" alt="Zed" /> | `zed` | **Zed Editor** | Fast Rust Editor | `~/.config/zed/settings.json` |
+| <img src="assets/icons/aider.svg" width="22" height="22" alt="Aider" /> | `aider` | **Aider AI** | CLI Pair Programmer | `~/.aider/mcp.json` |
+| <img src="assets/icons/openinterpreter.svg" width="22" height="22" alt="Open Interpreter" /> | `openinterpreter` | **Open Interpreter** | CLI Agent | `~/.open-interpreter/mcp.json` |
+| <img src="assets/icons/antigravity.svg" width="22" height="22" alt="Google Antigravity" /> | `antigravity` | **Google Antigravity / Gemini CLI** | Agentic IDE | `~/.gemini/config/mcp.json` |
+| <img src="assets/icons/amazonq.svg" width="22" height="22" alt="Amazon Q" /> | `amazonq` | **Amazon Q Developer** | Enterprise Agent | `~/.aws/q/mcp.json` |
+| <img src="assets/icons/jetbrains.svg" width="22" height="22" alt="JetBrains" /> | `jetbrains` | **JetBrains (IntelliJ, PyCharm)** | IDE Suite | `~/.config/JetBrains/mcp.json` |
+| <img src="assets/icons/goose.svg" width="22" height="22" alt="Goose" /> | `goose` | **Goose (Block / Square)** | Open-Source Agent | `~/.config/goose/mcp.json` |
+| <img src="assets/icons/cody.svg" width="22" height="22" alt="Cody" /> | `cody` | **Sourcegraph Cody** | Enterprise Assistant | `~/.sourcegraph/cody-mcp.json` |
+| <img src="assets/icons/neovim.svg" width="22" height="22" alt="Neovim" /> | `neovim` | **Neovim (avante.nvim / mcphub)** | Terminal Editor | `~/.config/nvim/mcp.json` |
+| <img src="assets/icons/emacs.svg" width="22" height="22" alt="Emacs" /> | `emacs` | **Emacs (gptel / mcp.el)** | Extensible Editor | `~/.emacs.d/mcp.json` |
+| <img src="assets/icons/devin.svg" width="22" height="22" alt="Devin" /> | `devin` | **Cognition Devin** | Autonomous Agent | `.devin/mcp.json` |
+| <img src="assets/icons/opencode.svg" width="22" height="22" alt="OpenCode" /> | `opencode` | **OpenCode (Sisyphus)** | Multi-Agent Harness | `~/.opencode/mcp.json` |
+| <img src="assets/icons/melty.svg" width="22" height="22" alt="Melty" /> | `melty` | **Melty** | Open-Source AI IDE | `~/.melty/mcp.json` |
+| <img src="assets/icons/pearai.svg" width="22" height="22" alt="PearAI" /> | `pearai` | **PearAI** | AI Code Editor | `~/.pearai/mcp.json` |
+| <img src="assets/icons/trae.svg" width="22" height="22" alt="Trae" /> | `trae` | **Trae AI (ByteDance)** | Adaptive IDE | `~/.trae/mcp.json` |
+| <img src="assets/icons/boltdiy.svg" width="22" height="22" alt="Bolt" /> | `boltdiy` | **Bolt.diy** | In-Browser Web Agent | `.bolt/mcp.json` |
+| <img src="assets/icons/dify.svg" width="22" height="22" alt="Dify" /> | `dify` | **Dify.ai** | LLM Ops Runtime | `~/.dify/mcp.json` |
+| <img src="assets/icons/langchain.svg" width="22" height="22" alt="LangChain" /> | `langchain` | **LangChain / LangGraph** | Agent Framework | `~/.langchain/mcp.json` |
+| <img src="assets/icons/crewai.svg" width="22" height="22" alt="CrewAI" /> | `crewai` | **CrewAI** | Multi-Agent Swarm | `.crewai/mcp.json` |
+| <img src="assets/icons/autogen.svg" width="22" height="22" alt="AutoGen" /> | `autogen` | **Microsoft AutoGen** | Multi-Agent Framework | `.autogen/mcp.json` |
+| <img src="assets/icons/librechat.svg" width="22" height="22" alt="LibreChat" /> | `librechat` | **LibreChat / Ollama** | Self-Hosted Chat | `~/.librechat/mcp.json` |
+| <img src="assets/icons/superagent.svg" width="22" height="22" alt="Superagent" /> | `superagent` | **Superagent.sh** | Production Agent | `~/.superagent/mcp.json` |
+| <img src="assets/icons/workspace.svg" width="22" height="22" alt="Workspace" /> | `workspace` | **Local Git Workspace** | Workspace Root | `.cursor/mcp.json`, `.vscode/mcp.json` |
 
 ---
 
