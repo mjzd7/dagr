@@ -16,6 +16,8 @@ dashboard/.next/
 packages/dagr/bin/dagr-native*
 *.tgz
 package-lock.json
+test-results/
+playwright-report/
 
 # Python Artifacts
 __pycache__/
