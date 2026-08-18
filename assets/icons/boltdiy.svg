@@ -1,4 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <rect width="24" height="24" rx="5" fill="#EAB308"/>
-  <path d="M13 3L6 13h5l-1 8 8-11h-5l1-7z" fill="#FFFFFF"/>
+  <style>
+    .bg { fill: #FEFCE8; stroke: #FEF08A; }
+    .bolt { fill: #CA8A04; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #422006; stroke: #713F12; }
+      .bolt { fill: #FACC15; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M13 3.5L6 13h5l-1 7.5 8-11h-5l1-6z" class="bolt"/>
 </svg>
