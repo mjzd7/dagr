@@ -1,0 +1,17 @@
+[package]
+name = "dagr-sandbox"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Cross-platform Copy-on-Write (CoW) shadow filesystem sandbox and rollback engine for DAGR"
+
+[dependencies]
+dagr-core = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = "3.10"
