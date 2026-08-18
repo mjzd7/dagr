@@ -12,7 +12,7 @@
 
 *Sub-5ms context pruning, 95% token compression, and zero-trust Copy-on-Write (CoW) shadow sandboxing for Cursor, Claude Desktop, Ollama, and Neovim.*
 
-[Executive Summary](#-executive-summary) • [How It Works](#-how-dagr-works-under-the-hood) • [Audited Metrics](#-transparent-metrics--mathematical-formulas) • [Visual Slicing](#-before-vs-after-dagr-slicing) • [Quickstart & MCP](#-quickstart--ide-setup) • [Nomenclature](#-nomenclature--etymology)
+[Executive Summary](#-executive-summary) • [Visual Architecture](#-visual-architecture--mechanics) • [Audited Metrics](#-transparent-metrics--mathematical-formulas) • [Terminal Visualizer](#-terminal-ui--token-gauges) • [Quickstart & MCP](#-quickstart--ide-setup) • [Nomenclature](#-nomenclature--etymology)
 
 </div>
 
@@ -32,7 +32,59 @@
 
 ---
 
-## 🔍 How DAGR Works (Under the Hood)
+## 🎨 Visual Architecture & Mechanics
+
+### 1. The AST Pruning & Slicing Tree
+*How DAGR traverses the codebase Directed Acyclic Graph (DAG) and prunes 97% of irrelevant noise:*
+
+```mermaid
+graph TD
+    Root["📁 src/billing/charge.ts (1,180 lines | 11,840 tokens)"] --> Target["⚡ processPayment() [TARGET SYMBOL]"]
+    
+    Target --> V1["⚙️ validatePayload() (L12-L24)<br/><b>[KEPT: Active Data-Flow]</b>"]
+    Target --> V2["⚙️ calculateTax() (L28-L35)<br/><b>[KEPT: Active Data-Flow]</b>"]
+    Target --> T1["📦 PaymentPayload Interface<br/><b>[KEPT: Hoisted Contract]</b>"]
+    
+    Root -.->|PRUNED 97%| P1["sendRefund() (L120-L240)<br/><i>[DISCARDED: Unrelated Helper]</i>"]
+    Root -.->|PRUNED 97%| P2["webhookHandler() (L300-L500)<br/><i>[DISCARDED: Unrelated Logic]</i>"]
+    Root -.->|PRUNED 97%| P3["generatePdfReport() (L600-L900)<br/><i>[DISCARDED: Unrelated Formatter]</i>"]
+
+    style Target fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff;
+    style V1 fill:#81C784,stroke:#388E3C,stroke-width:1px,color:#000;
+    style V2 fill:#81C784,stroke:#388E3C,stroke-width:1px,color:#000;
+    style T1 fill:#64B5F6,stroke:#1976D2,stroke-width:1px,color:#000;
+    style P1 fill:#EEEEEE,stroke:#BDBDBD,stroke-dasharray: 5 5,color:#9E9E9E;
+    style P2 fill:#EEEEEE,stroke:#BDBDBD,stroke-dasharray: 5 5,color:#9E9E9E;
+    style P3 fill:#EEEEEE,stroke:#BDBDBD,stroke-dasharray: 5 5,color:#9E9E9E;
+```
+
+---
+
+### 2. Copy-on-Write (CoW) Shadow Sandbox Lifecycle
+*Zero-trust mutation execution with sub-10ms atomic rollback:*
+
+```mermaid
+stateDiagram-v2
+    [*] --> WorkspaceTree: Clean Working Directory
+    WorkspaceTree --> APFS_Clone: AI Agent calls `dagr run` or mutation tool
+    
+    state Shadow_Sandbox {
+        APFS_Clone --> StageDiff: Sub-1ms OS Block Clone (.dagr/shadow/tx_123)
+        StageDiff --> ExecuteTests: Stage code patch & evaluate AST rules
+        ExecuteTests --> Evaluation: Execute local test suite / linter
+    }
+    
+    Evaluation --> AtomicCommit: ✅ All Tests & Guardrails Pass
+    AtomicCommit --> WorkspaceTree: Atomic directory swap into workspace (<1ms)
+    
+    Evaluation --> InstantRollback: ❌ Tests Failed / Layer Boundary Broken
+    InstantRollback --> CleanWorkspace: Discard .dagr/shadow snapshot (<10ms)
+    CleanWorkspace --> WorkspaceTree: 0 dirty bytes modified on disk!
+```
+
+---
+
+### 3. Real-Time MCP Tool Call Sequence
 
 ```mermaid
 sequenceDiagram
@@ -69,24 +121,65 @@ sequenceDiagram
     end
 ```
 
-### 1. Resilient Multi-Language AST Ingestion (Tree-sitter)
-* Native C Tree-sitter grammars (TypeScript, JavaScript, Python, Go, Rust) compiled directly into the binary.
-* **Error Recovery:** When code is mid-edit (missing brackets, syntax errors), DAGR extracts the enclosing valid AST parent rather than crashing. Fallback to Lexical Indentation Bounding with `syntax_degraded: true`.
+---
 
-### 2. Backwards Data-Flow Slicing with Contract Hoisting
-* Locates the target function in the AST Directed Acyclic Graph (DAG).
-* Traverses backwards along internal variable bindings and call expressions using an iterative work-queue with cycle detection (`HashSet<SymbolHash>`).
-* **Contract Hoisting:** For external dependencies, DAGR hoists only their interface signatures and type aliases, discarding their implementation bodies.
+## 📟 Terminal UI & Token Gauges
 
-### 3. Cross-Platform Copy-on-Write (CoW) Shadow Sandboxing
-* **macOS (Darwin):** Uses kernel-level `clonefile(2)` (APFS block-level cloning, sub-1ms).
-* **Linux:** Uses `ioctl(FICLONE)` reflink (Btrfs/XFS) or hard-link shadow trees.
-* **Windows:** Uses ReFS block cloning or hard-link staging.
-* Guaranteed **<10ms atomic rollback** leaving 0 dirty bytes on the user's filesystem.
+DAGR features a polished, visually rich terminal interface with Unicode box-drawing, live token compression gauges, and TTY auto-detection (outputs raw minimal code when piped to tools like `ollama` or `pbcopy`).
 
-### 4. In-Memory Architectural Linter (`dagr guard`)
-* Evaluates declarative rules from `.dagr/rules.yaml` in **<0.1ms per file** using glob pattern matching (`glob::Pattern`).
-* Built-in **Zero-Trust Comment Sanitizer** strips indirect prompt injection tokens (`<|im_start|>`, `SYSTEM:`, `[INST]`).
+### 1. `dagr context` Visual Output:
+```
+$ dagr context src/billing/charge.ts:processPayment
+
+⚡ DAGR Symbolic AST Slicer v0.1.0
+┌────────────────────────────────────────────────────────────────────────┐
+│ Target Symbol:   src/billing/charge.ts:processPayment                  │
+│ Language:        TypeScript (Tree-sitter native AST)                  │
+│ Sliced Context:  34 lines (down from 1,180 lines in file)              │
+│ Token Footprint: 342 tokens (down from 11,840 tokens)                  │
+│ Token Reduction: [████████████████████████████░░] 🟢 97.1% COMPRESSED   │
+│ Latency:         ⚡ 1.8ms (Blake3 SQLite Index HIT)                     │
+└────────────────────────────────────────────────────────────────────────┘
+
+// ── Hoisted Type Contracts (2) ──────────────────────────────────────────
+interface PaymentPayload { userId: string; amountCents: number; currency: string; }
+type PaymentResult = { success: boolean; transactionId: string; };
+
+// ── Extracted Symbolic Implementation (L45-L52) ─────────────────────────
+45: export async function processPayment(payload: PaymentPayload): Promise<PaymentResult> {
+46:     const validated = validatePaymentPayload(payload);
+47:     const taxAmount = calculateTax(validated.amountCents);
+48:     return await stripeClient.charges.create({ ...validated, tax: taxAmount });
+49: }
+```
+
+### 2. `dagr graph` Dependency Blast Radius Visualizer:
+```
+$ dagr graph src/billing/charge.ts:processPayment
+
+src/billing/charge.ts:processPayment
+├── 📦 (hoisted) import { StripeClient } from "@/lib/stripe"
+├── ⚙️ (called)  validatePaymentPayload() [L12-L24]
+│   └── 📦 (hoisted) type ValidationRule
+├── ⚙️ (called)  calculateTax() [L28-L35]
+└── ✂️ (pruned)  850 lines of unreferenced helpers (97.1% token savings)
+```
+
+### 3. `dagr guard` In-Memory Architectural Check:
+```
+$ dagr guard
+
+🛡️ DAGR Architecture Guard (<22ms)
+Checking 48 staged files against .dagr/rules.yaml...
+
+❌ Violation Detected [UI-to-DB Isolation]:
+   ├─ File:    src/components/CheckoutButton.tsx (Line 4)
+   ├─ Import:  import { db } from "@/db/client";
+   ├─ Rule:    UI components must not import database clients directly.
+   └─ Fix:     Route database requests through @/services/billing.
+
+1 architectural violation found. Working tree protected.
+```
 
 ---
 
@@ -116,42 +209,6 @@ $$\text{Token Savings \%} = \left( 1 - \frac{\text{Tokens}_{\text{sliced}}}{\tex
 
 ---
 
-## ✂️ Before vs. After DAGR Slicing
-
-### ❌ Before DAGR: Full File Dump (1,180 lines, 11,840 tokens)
-```typescript
-// src/billing/charge.ts (Entire 1,180-line monolithic billing module)
-import { db } from "@/db/client";
-import { stripeClient } from "@/lib/stripe";
-import { sendEmailReceipt, generatePdfInvoice, notifySlack } from "@/services/notifications";
-// ... 800 lines of unrelated refunds, webhook handlers, logging utilities, and helpers ...
-
-export async function processPayment(payload: PaymentPayload): Promise<PaymentResult> {
-    const validated = validatePaymentPayload(payload);
-    const taxAmount = calculateTax(validated.amountCents);
-    return await stripeClient.charges.create({ ...validated, tax: taxAmount });
-}
-// ... 350 lines of subscription rebilling logic and tax calculation tables ...
-```
-
-### ✅ After DAGR: Sliced Context (34 lines, 342 tokens — 97.1% Reduction)
-```typescript
-⚡ DAGR Slicer: src/billing/charge.ts:processPayment (34 lines | 342 tokens | 97.1% saved)
-
-// --- Hoisted Type Contracts ---
-interface PaymentPayload { userId: string; amountCents: number; currency: string; }
-type PaymentResult = { success: boolean; transactionId: string; };
-
-// --- Extracted Symbolic Implementation (L45-L52) ---
-45: export async function processPayment(payload: PaymentPayload): Promise<PaymentResult> {
-46:     const validated = validatePaymentPayload(payload);
-47:     const taxAmount = calculateTax(validated.amountCents);
-48:     return await stripeClient.charges.create({ ...validated, tax: taxAmount });
-49: }
-```
-
----
-
 ## 🚀 Quickstart & IDE Setup
 
 ### 1. Build & Install
@@ -167,25 +224,7 @@ cargo build --release
 cp target/release/dagr /usr/local/bin/
 ```
 
-### 2. Basic CLI Commands
-```bash
-# 1. Extract minimal backwards AST slice & type contracts
-dagr context src/billing/charge.ts:processPayment
-
-# 2. Run architectural boundary linter (<35ms Git pre-commit check)
-dagr guard
-
-# 3. Execute tool/test inside Copy-on-Write shadow sandbox with auto-rollback
-dagr run "npm test" --sandbox
-
-# 4. Start Model Context Protocol (MCP) server for IDEs
-dagr mcp start
-
-# 5. Initialize DAGR in current repo (auto-generates rules.yaml + git hooks)
-dagr init --preset nextjs
-```
-
-### 3. In-IDE Configuration (Cursor / Claude Desktop / Windsurf)
+### 2. In-IDE Configuration (Cursor / Claude Desktop / Windsurf)
 
 Add DAGR to your IDE's Model Context Protocol (MCP) configuration:
 
