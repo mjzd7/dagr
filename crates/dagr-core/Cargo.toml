@@ -1,0 +1,17 @@
+[package]
+name = "dagr-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Core domain models, error types, SQLite index store, and token calculators for DAGR"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+blake3 = { workspace = true }
+rusqlite = { workspace = true }
+tiktoken-rs = { workspace = true }
+uuid = { workspace = true }

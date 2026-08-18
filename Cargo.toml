@@ -1,0 +1,50 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/dagr-core",
+    "crates/dagr-slicer",
+    "crates/dagr-guard",
+    "crates/dagr-sandbox",
+    "crates/dagr-mcp",
+    "crates/dagr-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Mohit Dagar <mohit@dagr.dev>"]
+license = "MIT"
+repository = "https://github.com/mjzd7/dagr"
+readme = "README.md"
+description = "The DAG-Native Symbolic AST Slicing Hypervisor, Safety Sandbox & A2A Swarm Bus for AI Coding Agents"
+
+[workspace.dependencies]
+# Serialization & Data
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# Asynchronous Runtime & Utilities
+tokio = { version = "1.38", features = ["full"] }
+async-trait = "0.1"
+thiserror = "1.0"
+uuid = { version = "1.8", features = ["v4", "serde"] }
+glob = "0.3"
+blake3 = "1.5"
+
+# Terminal CLI & Aesthetics
+clap = { version = "4.5", features = ["derive"] }
+colored = "2.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Database & Tokenizer
+rusqlite = { version = "0.31", features = ["bundled"] }
+tiktoken-rs = "0.5"
+
+# Internal Workspace Crates
+dagr-core = { path = "crates/dagr-core" }
+dagr-slicer = { path = "crates/dagr-slicer" }
+dagr-guard = { path = "crates/dagr-guard" }
+dagr-sandbox = { path = "crates/dagr-sandbox" }
+dagr-mcp = { path = "crates/dagr-mcp" }
