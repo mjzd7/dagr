@@ -30,3 +30,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Block-Level Cloning Engine (`engine.rs`):** Uses Darwin kernel `clonefile(2)` on macOS (sub-1ms) and cross-platform file fallback on Linux/Windows.
 - **Shadow Transaction Lifecycle (`tx.rs`):** Implemented `begin`, `stage_file`, `verify`, `commit`, and `rollback` in `<10ms` leaving 0 dirty bytes on working tree upon failure.
 - **Crash-Safe Transaction Journal (`journal.rs`):** Auto-cleans orphaned transaction shadow directories upon startup.
+
+### 🔌 Milestone 5: Model Context Protocol (MCP) & A2A Swarm Bus (`crates/dagr-mcp`)
+- **JSON-RPC 2.0 Engine (`protocol.rs`):** Standard request/response and error serialization for `initialize`, `tools/list`, `tools/call`.
+- **Stdio Hypervisor Gateway (`server.rs`):** Strict stdout isolation for Cursor/Claude Desktop JSON-RPC streaming, routing all logs to stderr.
+- **6-Tool Protocol Suite (`tools.rs`):**
+  - `dagr_get_context_slice` (AST backwards data-flow & contract hoister).
+  - `dagr_verify_architecture` (In-memory layer boundary checker).
+  - `dagr_execute_sandboxed` (Zero-trust CoW test runner).
+  - `dagr_a2a_handshake` (Agent registration & optimistic write locks).
+  - `dagr_a2a_transfer_context` (Peer-to-peer AST slice transfer).
+  - `dagr_a2a_verify_peer_patch` (Cross-agent shadow patch verification).
