@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FFFBEB; stroke: #FDE68A; }
+    .q-body { stroke: #D97706; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #381A05; stroke: #682E06; }
+      .q-body { stroke: #F59E0B; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M6.5 10c0-3 2.5-5 5.5-5s5.5 2 5.5 5v3.5c0 3-2.5 5-5.5 5s-5.5-2-5.5-5V10z" class="q-body" stroke-width="2" fill="none"/>
+  <path d="M13.5 15.5l3 3" class="q-body" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

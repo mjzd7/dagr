@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FFF1F2; stroke: #FFE4E6; }
+    .cody-body { stroke: #FF5543; fill: none; }
+    .eye { fill: #FF5543; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #450A0A; stroke: #7F1D1D; }
+      .cody-body { stroke: #F87171; }
+      .eye { fill: #F87171; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <circle cx="9" cy="12" r="2.2" class="eye"/>
+  <circle cx="15" cy="12" r="2.2" class="eye"/>
+  <rect x="5" y="8.5" width="14" height="7" rx="2.5" class="cody-body" stroke-width="1.8"/>
+</svg>

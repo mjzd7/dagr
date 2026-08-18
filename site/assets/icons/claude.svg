@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FFF7ED; stroke: #FFEDD5; }
+    .claude-body { fill: #D97757; }
+    .spark { fill: #C2410C; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #291811; stroke: #431E12; }
+      .claude-body { fill: #D97757; }
+      .spark { fill: #FDBA74; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <circle cx="12" cy="12" r="5" class="claude-body"/>
+  <path d="M12 4v2.5m0 11V20M4 12h2.5m11 0H20" class="spark" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

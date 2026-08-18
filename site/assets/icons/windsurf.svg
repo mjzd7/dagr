@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #ECFDF5; stroke: #D1FAE5; }
+    .wave { fill: #09B6A2; }
+    .core { fill: #047857; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #062E28; stroke: #0D4E44; }
+      .wave { fill: #14B8A6; }
+      .core { fill: #5EEAD4; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M4.5 13.5c4-5 11-5 15 0-4 5-11 5-15 0z" class="wave"/>
+  <circle cx="12" cy="13.5" r="2.5" class="core"/>
+</svg>

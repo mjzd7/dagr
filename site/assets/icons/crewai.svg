@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FEF2F2; stroke: #FECACA; }
+    .crew { fill: #DC2626; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #450A0A; stroke: #7F1D1D; }
+      .crew { fill: #F87171; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <circle cx="8" cy="9.5" r="2.5" class="crew"/>
+  <circle cx="16" cy="9.5" r="2.5" class="crew"/>
+  <circle cx="12" cy="15" r="2.5" class="crew"/>
+</svg>

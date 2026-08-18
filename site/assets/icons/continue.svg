@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #EEF2FF; stroke: #C7D2FE; }
+    .arrow { stroke: #4F46E5; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #312E81; stroke: #4338CA; }
+      .arrow { stroke: #818CF8; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M6 18l6-6-6-6m6 12l6-6-6-6" class="arrow" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

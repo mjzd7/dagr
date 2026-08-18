@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #F8FAFC; stroke: #E2E8F0; }
+    .gear { stroke: #475569; fill: none; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0F172A; stroke: #1E293B; }
+      .gear { stroke: #94A3B8; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <circle cx="12" cy="12" r="4.5" class="gear" stroke-width="2"/>
+  <path d="M12 4v2.5m0 11V20M4 12h2.5m11 0H20M6.5 6.5l2 2m7 7l2 2M6.5 17.5l2-2m7-7l2-2" class="gear" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #F7FEE7; stroke: #D9F99D; }
+    .pear { fill: #65A30D; }
+    .stem { stroke: #4D7C0F; fill: none; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #14532D; stroke: #166534; }
+      .pear { fill: #84CC16; }
+      .stem { stroke: #A3E635; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M12 6c-2 0-3.5 2.5-3.5 5 0 3.5 2 6 3.5 6s3.5-2.5 3.5-6c0-2.5-1.5-5-3.5-5z" class="pear"/>
+  <path d="M12 4c0 1.5.8 2 1.5 2" class="stem" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

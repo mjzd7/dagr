@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FEF3C7; stroke: #FDE68A; }
+    .aider-icon { stroke: #D97706; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #451A03; stroke: #78350F; }
+      .aider-icon { stroke: #FBBF24; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <circle cx="12" cy="12" r="7.5" class="aider-icon" stroke-width="1.8" fill="none"/>
+  <path d="M7.5 12.5l3 3 6-6" class="aider-icon" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

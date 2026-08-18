@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #EFF6FF; stroke: #DBEAFE; }
+    .ribbon { fill: #007ACC; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0F172A; stroke: #1E293B; }
+      .ribbon { fill: #38BDF8; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M17.5 4.5l-8.5 7.5 8.5 7.5 2.5-1.2V5.7zM9 12L5.5 9.5l-2 .8 2.8 1.7-2.8 1.7 2 .8L9 12z" class="ribbon"/>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #F4F4F5; stroke: #E4E4E7; }
+    .fg-cursor { fill: #000000; }
+    .accent { fill: #00D8FF; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #18181B; stroke: #27272A; }
+      .fg-cursor { fill: #FFFFFF; }
+      .accent { fill: #00E5FF; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M7 6l10 5.5-4.5 1.5-2 4.5L7 6z" class="accent"/>
+  <path d="M12.5 13l3.5 3.5" class="fg-cursor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

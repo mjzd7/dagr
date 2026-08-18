@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FAF5FF; stroke: #E9D5FF; }
+    .emacs-icon { stroke: #7C3AED; fill: none; }
+    .emacs-core { fill: #7C3AED; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #3B0764; stroke: #581C87; }
+      .emacs-icon { stroke: #C084FC; }
+      .emacs-core { fill: #C084FC; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <circle cx="12" cy="12" r="7.5" class="emacs-icon" stroke-width="1.8"/>
+  <path d="M8 12c2-3 6-3 8 0-2 3-6 3-8 0z" class="emacs-core"/>
+</svg>

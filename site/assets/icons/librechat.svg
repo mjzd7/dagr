@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #F1F5F9; stroke: #CBD5E1; }
+    .bubble { fill: #334155; }
+    .dot { fill: #F1F5F9; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0F172A; stroke: #334155; }
+      .bubble { fill: #E2E8F0; }
+      .dot { fill: #0F172A; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M5 6.5h14v8H9l-4 3.5V6.5z" class="bubble"/>
+  <circle cx="9" cy="10.5" r="1.1" class="dot"/>
+  <circle cx="12" cy="10.5" r="1.1" class="dot"/>
+  <circle cx="15" cy="10.5" r="1.1" class="dot"/>
+</svg>

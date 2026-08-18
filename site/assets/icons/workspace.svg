@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FFF1F2; stroke: #FFE4E6; }
+    .git-node { fill: #F05032; }
+    .git-branch { stroke: #F05032; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #450A0A; stroke: #7F1D1D; }
+      .git-node { fill: #FB7185; }
+      .git-branch { stroke: #FB7185; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M18 13.5a2.5 2.5 0 1 1-3.5-2.3V7.8a2.5 2.5 0 1 1 2 0v3.4c.9.5 1.5 1.4 1.5 2.3z" class="git-node"/>
+  <path d="M8.5 7a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z" class="git-node"/>
+  <path d="M9.5 12l5 2.5" class="git-branch" stroke-width="1.6" fill="none"/>
+</svg>

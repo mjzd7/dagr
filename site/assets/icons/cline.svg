@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #EFF6FF; stroke: #BFDBFE; }
+    .robot { stroke: #2563EB; fill: none; }
+    .eye { fill: #2563EB; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #1E3A8A; stroke: #1D4ED8; }
+      .robot { stroke: #60A5FA; }
+      .eye { fill: #60A5FA; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <circle cx="9" cy="11" r="1.5" class="eye"/>
+  <circle cx="15" cy="11" r="1.5" class="eye"/>
+  <rect x="6" y="7" width="12" height="10" rx="3" class="robot" stroke-width="1.8"/>
+  <path d="M9 14h6" class="robot" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

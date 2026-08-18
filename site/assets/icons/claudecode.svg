@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #F3F4F6; stroke: #E5E7EB; }
+    .prompt { stroke: #D97757; }
+    .cursor-line { stroke: #111827; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #1F2937; stroke: #374151; }
+      .prompt { stroke: #F97316; }
+      .cursor-line { stroke: #F9FAFB; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M6.5 8.5l3.5 3.5-3.5 3.5" class="prompt" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="12" y1="15.5" x2="17.5" y2="15.5" class="cursor-line" stroke-width="2" stroke-linecap="round"/>
+</svg>

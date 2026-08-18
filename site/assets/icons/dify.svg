@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #EFF6FF; stroke: #BFDBFE; }
+    .cube { fill: #1D4ED8; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #1E3A8A; stroke: #1D4ED8; }
+      .cube { fill: #60A5FA; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <rect x="5.5" y="5.5" width="5.5" height="5.5" rx="1.2" class="cube"/>
+  <rect x="13" y="5.5" width="5.5" height="5.5" rx="1.2" class="cube"/>
+  <rect x="5.5" y="13" width="5.5" height="5.5" rx="1.2" class="cube"/>
+  <rect x="13" y="13" width="5.5" height="5.5" rx="1.2" class="cube"/>
+</svg>

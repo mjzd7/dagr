@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FDF4FF; stroke: #F5D0FE; }
+    .portal { stroke: #C026D3; fill: none; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #4A044E; stroke: #701A75; }
+      .portal { stroke: #E879F9; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <circle cx="12" cy="12" r="6.5" class="portal" stroke-width="1.8"/>
+  <path d="M12 5.5v13M5.5 12h13" class="portal" stroke-width="1.6"/>
+</svg>

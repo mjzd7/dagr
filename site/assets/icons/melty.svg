@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #FFFBEB; stroke: #FDE68A; }
+    .honey { stroke: #D97706; fill: none; }
+    .drop { fill: #D97706; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #451A03; stroke: #78350F; }
+      .honey { stroke: #F59E0B; }
+      .drop { fill: #F59E0B; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M12 4.5l6.5 3.8v7.4L12 19.5l-6.5-3.8V8.3L12 4.5z" class="honey" stroke-width="2"/>
+  <circle cx="12" cy="12" r="2.2" class="drop"/>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <style>
+    .bg { fill: #EFF6FF; stroke: #BFDBFE; }
+    .devin-d { stroke: #2563EB; fill: none; }
+    .devin-dot { fill: #2563EB; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #172554; stroke: #1E3A8A; }
+      .devin-d { stroke: #60A5FA; }
+      .devin-dot { fill: #60A5FA; }
+    }
+  </style>
+  <rect class="bg" width="24" height="24" rx="6" stroke-width="1"/>
+  <path d="M6 6h5.5c4 0 6.5 2.5 6.5 6s-2.5 6-6.5 6H6V6z" class="devin-d" stroke-width="2"/>
+  <circle cx="11.5" cy="12" r="2" class="devin-dot"/>
+</svg>
