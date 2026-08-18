@@ -222,6 +222,57 @@ Checking 48 staged files against .dagr/rules.yaml...
 
 ---
 
+## 📊 Live Lifetime Telemetry & ROI Dashboard
+
+DAGR features a built-in, local-first analytics engine and embedded zero-cloud web dashboard to track cumulative token savings, estimated dollar ROI ($3.00/1M blended LLM pricing), compression ratios, and client usage across all connected AI coding tools.
+
+<div align="center">
+
+<img src="target/dashboard_preview.png" alt="DAGR Lifetime Telemetry & ROI Dashboard" width="100%" />
+
+</div>
+
+### 🚀 CLI Telemetry & Dashboard Commands:
+
+```bash
+# 1. Launch the interactive Linear-aesthetic Web Dashboard (opens http://127.0.0.1:3333 with live SSE streaming)
+dagr dashboard
+
+# 2. View the terminal ROI Value Scoreboard
+dagr stats
+
+# 3. Launch the full-screen interactive Terminal TUI (Ratatui + Crossterm)
+dagr stats --tui
+
+# 4. Export structured telemetry ledger for engineering audit & team billing
+dagr stats --export json
+dagr stats --export csv
+
+# 5. Start background incremental file watcher (<0.3ms re-indexing on save)
+dagr watch
+```
+
+---
+
+## 🔍 5-Stage Zero-Miss Symbol & Intent Engine
+
+Never worry about typing exact function names or file paths again. DAGR uses a multi-tier fallback pipeline to resolve symbols and fuzzy intent in sub-millisecond speeds:
+
+1. **Stage 1 (`< 0.05ms`):** Exact URI & Blake3 hash lookup in local SQLite index.
+2. **Stage 2 (`< 0.2ms`):** Tokenizes `camelCase`, `snake_case`, `kebab-case`, and applies Jaro-Winkler distance metric ($\ge 0.78$) to resolve typos and abbreviations.
+3. **Stage 3 (`< 0.5ms`):** Full-text docstring & type signature search across workspace AST nodes.
+4. **Stage 4 (`< 0.1ms`):** Proximity boosting for imported/module-adjacent symbols.
+5. **Stage 5:** Top-3 disambiguation ranking with deterministic confidence scores.
+
+```bash
+# Slices correctly even with partial or abbreviated queries:
+dagr context processPayment
+dagr context billing.ts:charge
+dagr context authService.login,database.getUser
+```
+
+---
+
 ## 📊 Transparent Metrics & Mathematical Formulas
 
 DAGR adheres to 100% transparency. We do not use rough character estimates; all metrics are calculated mathematically using industry-standard Byte-Pair Encoding (BPE) tokenizers.
