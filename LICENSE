@@ -1,21 +1,38 @@
-MIT License
+Business Source License 1.1 (BSL 1.1)
 
-Copyright (c) 2026 Mohit Dagar
+Parameters:
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Licensor:             Mohit Dagar
+Licensed Work:        DAGR (including all source code, crates, tools, skills, and documentation)
+Change Date:          August 18, 2030
+Change License:       Apache License, Version 2.0 (or MIT License)
+Additional Use Grant: Free for personal use, individual developers, development, evaluation, 
+                      testing, educational use, and internal developer workstation workflows. 
+                      You may not provide the Software or any substantial portion thereof 
+                      to third parties as a hosted, managed, or multi-tenant cloud service (SaaS), 
+                      nor embed the Software into a competing commercial AI hypervisor/orchestration 
+                      product without an express commercial license from the Licensor.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+---
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Business Source License Text
+
+The Licensor hereby grants you the right to copy, modify, create derivative works, redistribute,
+and make non-production and production use of the Licensed Work solely for the purposes defined
+in the Additional Use Grant above.
+
+Effective on the Change Date, or the fourth anniversary of the first public release of a version
+of the Licensed Work, whichever is earlier, the Licensor hereby grants you rights under the terms
+of the Change License.
+
+If you are using the Licensed Work in a manner that exceeds the Additional Use Grant, you must
+obtain a commercial license from the Licensor prior to such use.
+
+THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE LICENSED WORK OR THE USE OR
+OTHER DEALINGS IN THE LICENSED WORK.
+
+Copyright (c) 2026 Mohit Dagar. All rights reserved.

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![GitHub License](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![License](https://img.shields.io/badge/License-BSL--1.1-blue.svg)](./LICENSE)
 [![Rust 2021](https://img.shields.io/badge/Rust-2021_Edition-orange.svg)](https://www.rust-lang.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-JSON--RPC_2.0-blue.svg)](https://modelcontextprotocol.io/)
 [![A2A Swarm Protocol](https://img.shields.io/badge/A2A-Swarm_Bus-9cf.svg)](#-dual-protocol-gateway-mcp--a2a)
@@ -606,6 +606,12 @@ If you prefer to configure IDEs manually instead of using `dagr mcp install`:
 
 ## 📜 License
 
-Distributed under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
+Distributed under the **Business Source License 1.1 (BSL 1.1)**. 
+
+* **100% Free for Individual Developers:** Free for personal use, individual developers, development, evaluation, testing, educational use, and internal developer workstation workflows.
+* **Commercial / Multi-Tenant SaaS Protection:** Providing DAGR as a hosted, multi-tenant cloud service (SaaS) or embedding into competing commercial AI products requires a commercial license from the Licensor.
+* **Open Source Transition:** Automatically converts to **Apache 2.0 / MIT** on August 18, 2030.
+
+See [`LICENSE`](./LICENSE) for the full legal text.
 
 **Creator & Lead Architect:** [Mohit Dagar](https://github.com/mjzd7)
