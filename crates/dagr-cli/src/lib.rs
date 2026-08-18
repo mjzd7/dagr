@@ -569,23 +569,24 @@ pub fn handle_mcp_install(client: &str, bin_path: Option<&str>) -> Result<()> {
 pub fn handle_mcp_list_clients() -> Result<()> {
     use dagr_mcp::McpInstaller;
 
-    println!("\n🔌 Supported MCP AI Coding Agents & IDEs (30+ Supported):");
-    println!("═══════════════════════════════════════════════════════════════════════════════════");
+    println!("\n🔌 Supported MCP AI Coding Agents & IDEs (31 Supported):");
+    println!("══════════════════════════════════════════════════════════════════════════════════════════════");
     println!(
-        "  {:<16} | {:<22} | {:<16} | CONFIG PATH",
+        "  {:<16} | {:<26} | {:<18} | CONFIG PATH",
         "CLIENT ID", "NAME", "CATEGORY"
     );
-    println!("───────────────────────────────────────────────────────────────────────────────────");
+    println!("──────────────────────────────────────────────────────────────────────────────────────────────");
     for client in McpInstaller::list_supported_clients() {
         println!(
-            "  {:<16} | {:<22} | {:<16} | {}",
+            "  {:<16} | {} {:<23} | {:<18} | {}",
             client.id.bold().cyan(),
+            client.icon,
             client.name,
             client.category.yellow(),
             client.primary_config.dimmed()
         );
     }
-    println!("═══════════════════════════════════════════════════════════════════════════════════");
+    println!("══════════════════════════════════════════════════════════════════════════════════════════════");
     println!(
         "Install command for any client: {}",
         "dagr mcp install --client <CLIENT_ID>".green().bold()

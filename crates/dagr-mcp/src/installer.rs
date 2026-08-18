@@ -5,6 +5,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone)]
 pub struct SupportedClientInfo {
     pub id: &'static str,
+    pub icon: &'static str,
     pub name: &'static str,
     pub category: &'static str,
     pub description: &'static str,
@@ -14,13 +15,15 @@ pub struct SupportedClientInfo {
 pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     SupportedClientInfo {
         id: "cursor",
+        icon: "💻",
         name: "Cursor IDE",
-        category: "IDE",
+        category: "AI IDE",
         description: "AI-first Code Editor built on VS Code",
         primary_config: "~/.cursor/mcp.json",
     },
     SupportedClientInfo {
         id: "claude",
+        icon: "🧠",
         name: "Claude Desktop",
         category: "Desktop App",
         description: "Anthropic's Native Desktop Application for macOS & Windows",
@@ -28,6 +31,7 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "claudecode",
+        icon: "⌨️",
         name: "Claude Code CLI",
         category: "CLI Agent",
         description: "Anthropic's official terminal coding agent",
@@ -35,13 +39,15 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "windsurf",
+        icon: "🌊",
         name: "Windsurf (Codeium)",
-        category: "IDE",
+        category: "AI IDE",
         description: "Agentic IDE by Codeium with Cascade flows",
         primary_config: "~/.codeium/windsurf/mcp_config.json",
     },
     SupportedClientInfo {
         id: "vscode",
+        icon: "🔷",
         name: "VS Code / GitHub Copilot",
         category: "IDE",
         description: "Visual Studio Code with MCP extensions & Copilot Chat",
@@ -49,6 +55,7 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "roocode",
+        icon: "🦘",
         name: "Roo Code (Roo Cline)",
         category: "Extension / Agent",
         description: "Community-driven autonomous coding assistant for VS Code",
@@ -56,6 +63,7 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "cline",
+        icon: "🤖",
         name: "Cline",
         category: "Extension / Agent",
         description: "Autonomous coding agent extension for VS Code",
@@ -63,6 +71,7 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "continue",
+        icon: "🚀",
         name: "Continue.dev",
         category: "Extension / IDE",
         description: "Open-source AI code assistant for VS Code & JetBrains",
@@ -70,34 +79,39 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "zed",
+        icon: "⚡",
         name: "Zed Editor",
-        category: "IDE",
+        category: "Fast Rust IDE",
         description: "High-performance Rust-native code editor",
         primary_config: "~/.config/zed/settings.json",
     },
     SupportedClientInfo {
         id: "aider",
+        icon: "🤝",
         name: "Aider AI",
-        category: "CLI Agent",
+        category: "CLI Pair Programmer",
         description: "Terminal pair programming tool with git auto-commits",
         primary_config: "~/.aider/mcp.json",
     },
     SupportedClientInfo {
         id: "openinterpreter",
+        icon: "🌐",
         name: "Open Interpreter",
-        category: "CLI Agent",
+        category: "Terminal Agent",
         description: "Natural language terminal command and code executor",
         primary_config: "~/.open-interpreter/mcp.json",
     },
     SupportedClientInfo {
         id: "antigravity",
+        icon: "🪐",
         name: "Google Antigravity / Gemini CLI",
-        category: "CLI / IDE Agent",
+        category: "Agentic IDE / CLI",
         description: "Advanced Agentic Coding hypervisor & CLI harness",
         primary_config: "~/.gemini/config/mcp.json",
     },
     SupportedClientInfo {
         id: "amazonq",
+        icon: "☁️",
         name: "Amazon Q Developer",
         category: "Enterprise Agent",
         description: "AWS AI coding and transformation assistant",
@@ -105,13 +119,15 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "jetbrains",
-        name: "JetBrains (IntelliJ, PyCharm, RustRover)",
-        category: "IDE",
+        icon: "🛠️",
+        name: "JetBrains (IntelliJ, PyCharm)",
+        category: "IDE Suite",
         description: "JetBrains IDE suite with MCP bridge integration",
         primary_config: "~/.config/JetBrains/mcp.json",
     },
     SupportedClientInfo {
         id: "goose",
+        icon: "🪿",
         name: "Goose (Block / Square)",
         category: "Open-Source Agent",
         description: "On-machine autonomous developer agent by Block",
@@ -119,27 +135,31 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "cody",
+        icon: "🔍",
         name: "Sourcegraph Cody",
-        category: "Enterprise Agent",
+        category: "Enterprise Assistant",
         description: "Codebase-aware AI assistant by Sourcegraph",
         primary_config: "~/.sourcegraph/cody-mcp.json",
     },
     SupportedClientInfo {
         id: "neovim",
+        icon: "🌿",
         name: "Neovim (avante.nvim / mcphub)",
-        category: "Editor",
+        category: "Terminal Editor",
         description: "Vim-fork with Lua-native AI extensions",
         primary_config: "~/.config/nvim/mcp.json",
     },
     SupportedClientInfo {
         id: "emacs",
+        icon: "🐃",
         name: "Emacs (gptel / mcp.el)",
-        category: "Editor",
+        category: "Extensible Editor",
         description: "Extensible text editor with Emacs Lisp MCP bridge",
         primary_config: "~/.emacs.d/mcp.json",
     },
     SupportedClientInfo {
         id: "devin",
+        icon: "👨‍💻",
         name: "Cognition Devin",
         category: "Autonomous Agent",
         description: "Autonomous software engineering agent platform",
@@ -147,6 +167,7 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "opencode",
+        icon: "⚙️",
         name: "OpenCode (Sisyphus)",
         category: "Multi-Agent Harness",
         description: "Multi-agent task orchestration engine",
@@ -154,34 +175,39 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "melty",
+        icon: "🍯",
         name: "Melty",
-        category: "Open-Source IDE",
+        category: "Open-Source AI IDE",
         description: "Open-source AI-native code editor",
         primary_config: "~/.melty/mcp.json",
     },
     SupportedClientInfo {
         id: "pearai",
+        icon: "🍐",
         name: "PearAI",
-        category: "Open-Source IDE",
+        category: "Open-Source AI IDE",
         description: "Open-source AI code editor fork of VS Code",
         primary_config: "~/.pearai/mcp.json",
     },
     SupportedClientInfo {
         id: "trae",
+        icon: "🥋",
         name: "Trae AI (ByteDance)",
-        category: "Adaptive IDE",
+        category: "Adaptive AI IDE",
         description: "Adaptive AI-powered development environment",
         primary_config: "~/.trae/mcp.json",
     },
     SupportedClientInfo {
         id: "boltdiy",
+        icon: "⚡",
         name: "Bolt.diy",
-        category: "Web Agent",
+        category: "WebContainer Agent",
         description: "In-browser AI app builder and WebContainer agent",
         primary_config: ".bolt/mcp.json",
     },
     SupportedClientInfo {
         id: "dify",
+        icon: "🧩",
         name: "Dify.ai",
         category: "LLM Ops Platform",
         description: "Visual agent orchestration and tool execution runtime",
@@ -189,27 +215,31 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "langchain",
-        name: "LangChain / LangGraph Studio",
+        icon: "🦜",
+        name: "LangChain / LangGraph",
         category: "Agent Framework",
         description: "Multi-agent graph runtime and developer studio",
         primary_config: "~/.langchain/mcp.json",
     },
     SupportedClientInfo {
         id: "crewai",
+        icon: "👥",
         name: "CrewAI",
-        category: "Agent Framework",
+        category: "Multi-Agent Swarm",
         description: "Role-playing autonomous AI agent teams",
         primary_config: ".crewai/mcp.json",
     },
     SupportedClientInfo {
         id: "autogen",
+        icon: "🤖",
         name: "Microsoft AutoGen",
-        category: "Agent Framework",
+        category: "Multi-Agent System",
         description: "Conversational multi-agent systems from Microsoft",
         primary_config: ".autogen/mcp.json",
     },
     SupportedClientInfo {
         id: "librechat",
+        icon: "💬",
         name: "LibreChat / Ollama",
         category: "Self-Hosted Agent",
         description: "Open-source extensible AI chat platform with MCP",
@@ -217,15 +247,17 @@ pub const SUPPORTED_CLIENTS: &[SupportedClientInfo] = &[
     },
     SupportedClientInfo {
         id: "superagent",
+        icon: "🔮",
         name: "Superagent.sh",
-        category: "Cloud Agent",
+        category: "Production Agent",
         description: "Open-source framework for running AI agents in production",
         primary_config: "~/.superagent/mcp.json",
     },
     SupportedClientInfo {
         id: "workspace",
+        icon: "📁",
         name: "Project Local Workspace",
-        category: "Workspace",
+        category: "Workspace Root",
         description: "Direct project repository settings (.cursor, .vscode, .agents)",
         primary_config: ".cursor/mcp.json",
     },
@@ -388,19 +420,11 @@ impl McpInstaller {
             }
             "openinterpreter" => {
                 paths.push(home.join(".open-interpreter").join("mcp.json"));
-                paths.push(
-                    home.join(".config")
-                        .join("open-interpreter")
-                        .join("mcp.json"),
-                );
+                paths.push(home.join(".config").join("open-interpreter").join("mcp.json"));
             }
             "antigravity" => {
                 paths.push(home.join(".gemini").join("config").join("mcp.json"));
-                paths.push(
-                    home.join(".gemini")
-                        .join("antigravity-cli")
-                        .join("mcp.json"),
-                );
+                paths.push(home.join(".gemini").join("antigravity-cli").join("mcp.json"));
             }
             "amazonq" => {
                 paths.push(home.join(".aws").join("q").join("mcp.json"));
@@ -412,12 +436,7 @@ impl McpInstaller {
             }
             "goose" => {
                 paths.push(home.join(".config").join("goose").join("mcp.json"));
-                paths.push(
-                    home.join(".local")
-                        .join("share")
-                        .join("goose")
-                        .join("mcp.json"),
-                );
+                paths.push(home.join(".local").join("share").join("goose").join("mcp.json"));
             }
             "cody" => {
                 paths.push(home.join(".sourcegraph").join("cody-mcp.json"));
@@ -513,12 +532,14 @@ impl McpInstaller {
 
     /// Automatically installs or updates the MCP server configuration for a client
     pub fn install(client: &str, custom_bin_path: Option<&str>) -> Result<Vec<PathBuf>> {
-        let binary_cmd = custom_bin_path.map(|s| s.to_string()).unwrap_or_else(|| {
-            std::env::current_exe()
-                .ok()
-                .and_then(|p| p.to_str().map(|s| s.to_string()))
-                .unwrap_or_else(|| "dagr".to_string())
-        });
+        let binary_cmd = custom_bin_path
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| {
+                std::env::current_exe()
+                    .ok()
+                    .and_then(|p| p.to_str().map(|s| s.to_string()))
+                    .unwrap_or_else(|| "dagr".to_string())
+            });
 
         let target_paths = Self::get_client_config_paths(client);
         let mut updated_paths = Vec::new();
@@ -583,7 +604,10 @@ mod tests {
         McpInstaller::inject_dagr_config(&mut json, "/usr/local/bin/dagr")?;
 
         assert_eq!(json["mcpServers"]["fetch"]["command"], "uvx");
-        assert_eq!(json["mcpServers"]["dagr"]["command"], "/usr/local/bin/dagr");
+        assert_eq!(
+            json["mcpServers"]["dagr"]["command"],
+            "/usr/local/bin/dagr"
+        );
         Ok(())
     }
 

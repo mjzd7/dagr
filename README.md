@@ -345,39 +345,39 @@ dagr mcp install --client <CLIENT_ID>
 dagr mcp list-clients
 ```
 
-| Client ID | Agent / IDE Name | Category | Primary Configuration Location |
-| :--- | :--- | :--- | :--- |
-| `cursor` | **Cursor IDE** | AI IDE | `~/.cursor/mcp.json` |
-| `claude` | **Claude Desktop** | Desktop App | `claude_desktop_config.json` |
-| `claudecode` | **Claude Code CLI** | CLI Agent | `~/.claude/mcp.json` |
-| `windsurf` | **Windsurf (Codeium)** | AI IDE | `~/.codeium/windsurf/mcp_config.json` |
-| `vscode` | **VS Code / Copilot** | IDE | `.vscode/mcp.json` |
-| `roocode` | **Roo Code (Roo Cline)** | VS Code Extension | globalStorage `cline_mcp_settings.json` |
-| `cline` | **Cline** | VS Code Extension | `saoudrizwan.claude-dev/cline_mcp_settings.json` |
-| `continue` | **Continue.dev** | Extension / IDE | `~/.continue/config.json` |
-| `zed` | **Zed Editor** | Fast Rust Editor | `~/.config/zed/settings.json` |
-| `aider` | **Aider AI** | CLI Pair Programmer | `~/.aider/mcp.json` |
-| `openinterpreter` | **Open Interpreter** | CLI Agent | `~/.open-interpreter/mcp.json` |
-| `antigravity` | **Google Antigravity / Gemini CLI** | Agentic IDE | `~/.gemini/config/mcp.json` |
-| `amazonq` | **Amazon Q Developer** | Enterprise Agent | `~/.aws/q/mcp.json` |
-| `jetbrains` | **JetBrains (IntelliJ, PyCharm)** | IDE Suite | `~/.config/JetBrains/mcp.json` |
-| `goose` | **Goose (Block / Square)** | Open-Source Agent | `~/.config/goose/mcp.json` |
-| `cody` | **Sourcegraph Cody** | Enterprise Assistant | `~/.sourcegraph/cody-mcp.json` |
-| `neovim` | **Neovim (avante.nvim / mcphub)** | Terminal Editor | `~/.config/nvim/mcp.json` |
-| `emacs` | **Emacs (gptel / mcp.el)** | Extensible Editor | `~/.emacs.d/mcp.json` |
-| `devin` | **Cognition Devin** | Autonomous Agent | `.devin/mcp.json` |
-| `opencode` | **OpenCode (Sisyphus)** | Multi-Agent Harness | `~/.opencode/mcp.json` |
-| `melty` | **Melty** | Open-Source AI IDE | `~/.melty/mcp.json` |
-| `pearai` | **PearAI** | AI Code Editor | `~/.pearai/mcp.json` |
-| `trae` | **Trae AI (ByteDance)** | Adaptive IDE | `~/.trae/mcp.json` |
-| `boltdiy` | **Bolt.diy** | In-Browser Web Agent | `.bolt/mcp.json` |
-| `dify` | **Dify.ai** | LLM Ops Runtime | `~/.dify/mcp.json` |
-| `langchain` | **LangChain / LangGraph** | Agent Framework | `~/.langchain/mcp.json` |
-| `crewai` | **CrewAI** | Multi-Agent Swarm | `.crewai/mcp.json` |
-| `autogen` | **Microsoft AutoGen** | Multi-Agent Framework | `.autogen/mcp.json` |
-| `librechat` | **LibreChat / Ollama** | Self-Hosted Chat | `~/.librechat/mcp.json` |
-| `superagent` | **Superagent.sh** | Production Agent | `~/.superagent/mcp.json` |
-| `workspace` | **Local Git Workspace** | Workspace Root | `.cursor/mcp.json`, `.vscode/mcp.json` |
+| Icon | Client ID | Agent / IDE Name | Category | Primary Configuration Location |
+| :---: | :--- | :--- | :--- | :--- |
+| 💻 | `cursor` | **Cursor IDE** | AI IDE | `~/.cursor/mcp.json` |
+| 🧠 | `claude` | **Claude Desktop** | Desktop App | `claude_desktop_config.json` |
+| ⌨️ | `claudecode` | **Claude Code CLI** | CLI Agent | `~/.claude/mcp.json` |
+| 🌊 | `windsurf` | **Windsurf (Codeium)** | AI IDE | `~/.codeium/windsurf/mcp_config.json` |
+| 🔷 | `vscode` | **VS Code / Copilot** | IDE | `.vscode/mcp.json` |
+| 🦘 | `roocode` | **Roo Code (Roo Cline)** | VS Code Extension | globalStorage `cline_mcp_settings.json` |
+| 🤖 | `cline` | **Cline** | VS Code Extension | `saoudrizwan.claude-dev/cline_mcp_settings.json` |
+| 🚀 | `continue` | **Continue.dev** | Extension / IDE | `~/.continue/config.json` |
+| ⚡ | `zed` | **Zed Editor** | Fast Rust Editor | `~/.config/zed/settings.json` |
+| 🤝 | `aider` | **Aider AI** | CLI Pair Programmer | `~/.aider/mcp.json` |
+| 🌐 | `openinterpreter` | **Open Interpreter** | CLI Agent | `~/.open-interpreter/mcp.json` |
+| 🪐 | `antigravity` | **Google Antigravity / Gemini CLI** | Agentic IDE | `~/.gemini/config/mcp.json` |
+| ☁️ | `amazonq` | **Amazon Q Developer** | Enterprise Agent | `~/.aws/q/mcp.json` |
+| 🛠️ | `jetbrains` | **JetBrains (IntelliJ, PyCharm)** | IDE Suite | `~/.config/JetBrains/mcp.json` |
+| 🪿 | `goose` | **Goose (Block / Square)** | Open-Source Agent | `~/.config/goose/mcp.json` |
+| 🔍 | `cody` | **Sourcegraph Cody** | Enterprise Assistant | `~/.sourcegraph/cody-mcp.json` |
+| 🌿 | `neovim` | **Neovim (avante.nvim / mcphub)** | Terminal Editor | `~/.config/nvim/mcp.json` |
+| 🐃 | `emacs` | **Emacs (gptel / mcp.el)** | Extensible Editor | `~/.emacs.d/mcp.json` |
+| 👨‍💻 | `devin` | **Cognition Devin** | Autonomous Agent | `.devin/mcp.json` |
+| ⚙️ | `opencode` | **OpenCode (Sisyphus)** | Multi-Agent Harness | `~/.opencode/mcp.json` |
+| 🍯 | `melty` | **Melty** | Open-Source AI IDE | `~/.melty/mcp.json` |
+| 🍐 | `pearai` | **PearAI** | AI Code Editor | `~/.pearai/mcp.json` |
+| 🥋 | `trae` | **Trae AI (ByteDance)** | Adaptive IDE | `~/.trae/mcp.json` |
+| ⚡ | `boltdiy` | **Bolt.diy** | In-Browser Web Agent | `.bolt/mcp.json` |
+| 🧩 | `dify` | **Dify.ai** | LLM Ops Runtime | `~/.dify/mcp.json` |
+| 🦜 | `langchain` | **LangChain / LangGraph** | Agent Framework | `~/.langchain/mcp.json` |
+| 👥 | `crewai` | **CrewAI** | Multi-Agent Swarm | `.crewai/mcp.json` |
+| 🤖 | `autogen` | **Microsoft AutoGen** | Multi-Agent Framework | `.autogen/mcp.json` |
+| 💬 | `librechat` | **LibreChat / Ollama** | Self-Hosted Chat | `~/.librechat/mcp.json` |
+| 🔮 | `superagent` | **Superagent.sh** | Production Agent | `~/.superagent/mcp.json` |
+| 📁 | `workspace` | **Local Git Workspace** | Workspace Root | `.cursor/mcp.json`, `.vscode/mcp.json` |
 
 ---
 
