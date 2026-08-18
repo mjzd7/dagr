@@ -178,32 +178,39 @@ impl LocalIndexStore {
 
     /// Searches for symbols matching a fuzzy or partial query across all indexed files (<0.2ms)
     pub fn search_symbols(&self, query: &str, limit: usize) -> Result<Vec<CodeGraphNode>> {
-        let pattern = format!("%{}%", query.trim().to_lowercase());
-        let mut stmt = self.conn.prepare(
-            "SELECT serialized_payload FROM symbol_index 
-             WHERE LOWER(symbol_name) LIKE ?1 OR LOWER(file_path) LIKE ?1 OR LOWER(serialized_payload) LIKE ?1 
-             ORDER BY 
-               CASE 
-                 WHEN LOWER(symbol_name) = LOWER(?2) THEN 1
-                 WHEN LOWER(symbol_name) LIKE ?2 || '%' THEN 2
-                 WHEN LOWER(symbol_name) LIKE ?1 THEN 3
-                 ELSE 4 
-               END
-             LIMIT ?3",
-        )?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT symbol_name, file_path, serialized_payload FROM symbol_index")?;
 
-        let rows = stmt.query_map(params![pattern, query.trim(), limit as i64], |row| {
-            let payload: String = row.get(0)?;
-            Ok(payload)
+        let rows = stmt.query_map([], |row| {
+            let symbol_name: String = row.get(0)?;
+            let file_path: String = row.get(1)?;
+            let payload: String = row.get(2)?;
+            Ok((symbol_name, file_path, payload))
         })?;
 
-        let mut results = Vec::new();
+        let mut scored_results: Vec<(CodeGraphNode, usize)> = Vec::new();
         for row in rows {
-            let payload = row?;
+            let (sym_name, path, payload) = row?;
             if let Ok(node) = serde_json::from_str::<CodeGraphNode>(&payload) {
-                results.push(node);
+                let score = crate::fuzzy::compute_symbol_match_score(
+                    query,
+                    &sym_name,
+                    &path,
+                    node.docstring.as_deref(),
+                );
+                if score > 0 {
+                    scored_results.push((node, score));
+                }
             }
         }
+
+        scored_results.sort_by_key(|b| std::cmp::Reverse(b.1));
+        let results = scored_results
+            .into_iter()
+            .take(limit)
+            .map(|(node, _)| node)
+            .collect();
 
         Ok(results)
     }

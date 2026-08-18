@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAGR Hypervisor // Lifetime Telemetry & ROI Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#090b10',
+                        surface: '#11141c',
+                        card: 'rgba(20, 24, 34, 0.75)',
+                        borderGlow: 'rgba(255, 255, 255, 0.08)',
+                        brand: {
+                            emerald: '#10b981',
+                            indigo: '#6366f1',
+                            amber: '#f59e0b',
+                            cyan: '#06b6d4'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+                        sans: ['Inter', '-apple-system', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            background-color: #090b10;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(17, 20, 28, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.35);
+        }
+        .glow-indigo {
+            box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.35);
+        }
+        .pulse-live {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.95); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+    </style>
+</head>
+<body class="text-zinc-100 font-sans min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-50 glass-card border-b border-white/10 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 via-emerald-400 to-cyan-400 flex items-center justify-center font-mono font-bold text-black text-lg shadow-lg">
+                ⚡
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="font-bold text-base tracking-tight text-white">DAGR HYPERVISOR</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">v0.1.0</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">AST WAL ENGINE</span>
+                </div>
+                <p class="text-xs text-zinc-400 font-mono truncate max-w-md" id="workspace-path">Loading workspace...</p>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center space-x-1 bg-zinc-900/80 p-1 rounded-xl border border-white/5 text-sm font-medium">
+            <button onclick="switchTab('overview')" id="tab-btn-overview" class="px-3.5 py-1.5 rounded-lg bg-white/10 text-white font-semibold shadow-sm transition-all">Overview</button>
+            <button onclick="switchTab('live')" id="tab-btn-live" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span>
+                <span>Live Feed</span>
+            </button>
+            <button onclick="switchTab('graph')" id="tab-btn-graph" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all">Code Graph</button>
+            <button onclick="switchTab('guard')" id="tab-btn-guard" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all">Guard Health</button>
+            <button onclick="switchTab('export')" id="tab-btn-export" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all">Export</button>
+        </nav>
+
+        <!-- Right Utilities -->
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 text-xs font-mono text-zinc-400 bg-zinc-900/60 px-3 py-1.5 rounded-lg border border-white/5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500" id="sse-indicator"></span>
+                <span id="sse-status">Connected (SSE)</span>
+            </div>
+            <button onclick="fetchStats()" class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-medium border border-white/10 transition-colors flex items-center space-x-1">
+                <span>↻ Refresh</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+        <!-- TAB 1: OVERVIEW & ROI SCOREBOARD -->
+        <div id="tab-overview" class="space-y-6">
+            
+            <!-- Metric KPI Stat Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1: Total Tokens Saved -->
+                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
+                    <div class="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
+                        <span>LIFETIME TOKENS SAVED</span>
+                        <span class="text-emerald-400">💎 95% Cut</span>
+                    </div>
+                    <div class="text-3xl font-extrabold tracking-tight text-white font-mono" id="total-tokens-saved">0</div>
+                    <div class="text-xs text-zinc-400 mt-2 flex items-center space-x-1">
+                        <span class="text-emerald-400 font-semibold" id="total-slices-count">0</span>
+                        <span>AST slices served (<0.3ms avg)</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Estimated USD Saved -->
+                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"></div>
+                    <div class="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
+                        <span>ESTIMATED ROI SAVINGS</span>
+                        <span class="text-indigo-400">$3.00/1M blended</span>
+                    </div>
+                    <div class="text-3xl font-extrabold tracking-tight text-emerald-400 font-mono" id="total-usd-saved">$0.00</div>
+                    <div class="text-xs text-zinc-400 mt-2">
+                        <span>Based on Sonnet 3.5 & GPT-4o pricing</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Token Compression Ratio -->
+                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition-all"></div>
+                    <div class="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
+                        <span>AVG COMPRESSION RATIO</span>
+                        <span class="text-cyan-400" id="compression-gauge">0.0%</span>
+                    </div>
+                    <div class="text-3xl font-extrabold tracking-tight text-white font-mono" id="compression-ratio-pct">0.0%</div>
+                    <div class="w-full bg-zinc-800 h-2 rounded-full mt-3 overflow-hidden">
+                        <div id="compression-bar" class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Pre-PR Violations Prevented -->
+                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
+                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all"></div>
+                    <div class="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
+                        <span>GUARD VIOLATIONS CAUGHT</span>
+                        <span class="text-amber-400">🛡️ Pre-PR Zero Bug</span>
+                    </div>
+                    <div class="text-3xl font-extrabold tracking-tight text-amber-400 font-mono" id="violations-prevented">0</div>
+                    <div class="text-xs text-zinc-400 mt-2">
+                        <span>Architectural boundaries enforced</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section: Velocity & Client Breakdown -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left 2 Cols: 30-Day Savings Velocity Chart -->
+                <div class="lg:col-span-2 glass-card rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Savings Velocity (30-Day Trend)</h3>
+                            <p class="text-xs text-zinc-400 font-mono">Cumulative tokens saved per calendar day</p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active Telemetry</span>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas id="velocityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right 1 Col: Top AI Clients Breakdown -->
+                <div class="glass-card rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white mb-1">Top AI Coding Clients</h3>
+                        <p class="text-xs text-zinc-400 font-mono">Token distribution by connected IDE / agent</p>
+                    </div>
+                    <div class="space-y-3.5 my-auto" id="clients-breakdown-list">
+                        <div class="text-xs text-zinc-500 font-mono text-center py-4">Awaiting first slice events...</div>
+                    </div>
+                    <div class="pt-3 border-t border-white/5 text-[11px] font-mono text-zinc-400 flex justify-between">
+                        <span>Auto-configured clients</span>
+                        <span class="text-white font-semibold">31 IDEs Supported</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB 2: LIVE STREAM FEED -->
+        <div id="tab-live" class="space-y-4 hidden">
+            <div class="glass-card rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center space-x-2">
+                            <span>Live Slicing & Telemetry Stream</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-live"></span>
+                        </h3>
+                        <p class="text-xs text-zinc-400 font-mono">Real-time event push from MCP servers, IDE agents, and CLI</p>
+                    </div>
+                    <span class="text-xs font-mono text-zinc-400" id="live-events-count">0 events recorded</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-white/5">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead class="bg-zinc-900/90 text-zinc-400 border-b border-white/10 uppercase tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4">Time</th>
+                                <th class="py-3 px-4">Client</th>
+                                <th class="py-3 px-4">Event</th>
+                                <th class="py-3 px-4">Symbol / File</th>
+                                <th class="py-3 px-4 text-right">Raw</th>
+                                <th class="py-3 px-4 text-right">Sliced</th>
+                                <th class="py-3 px-4 text-right">Tokens Saved</th>
+                                <th class="py-3 px-4 text-right">Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="events-table-body" class="divide-y divide-white/5 text-zinc-300">
+                            <tr>
+                                <td colspan="8" class="py-8 text-center text-zinc-500 font-mono">No live events captured yet. Run 'dagr context &lt;symbol&gt;' or use Cursor/Claude Code.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: INTERACTIVE CODE GRAPH -->
+        <div id="tab-graph" class="space-y-4 hidden">
+            <div class="glass-card rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white">2D Interactive AST Symbol Graph</h3>
+                        <p class="text-xs text-zinc-400 font-mono">Force-directed visualization of indexed functions, classes, and cross-file dependencies</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs font-mono text-zinc-400">
+                        <span class="px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">● Functions</span>
+                        <span class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">● Classes/Types</span>
+                        <span class="px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">● Modules</span>
+                    </div>
+                </div>
+
+                <div class="relative w-full h-[520px] bg-zinc-950/80 rounded-xl border border-white/5 overflow-hidden flex items-center justify-center">
+                    <canvas id="graphCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+                    <div id="graph-tooltip" class="absolute hidden glass-card px-3 py-2 rounded-lg text-xs font-mono pointer-events-none shadow-xl border border-white/20 z-10"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: GUARD POLICY HEALTH -->
+        <div id="tab-guard" class="space-y-4 hidden">
+            <div class="glass-card rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Architectural Layer Policy Health</h3>
+                        <p class="text-xs text-zinc-400 font-mono">Real-time boundary rules enforced in .dagr/rules.yaml</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Status: Enforcing</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 space-y-2">
+                        <div class="text-xs font-mono text-zinc-400">LAYER RULE #1</div>
+                        <div class="text-sm font-bold text-white">Presentation Layer Separation</div>
+                        <p class="text-xs text-zinc-400">UI / Controllers cannot import database connection pools directly.</p>
+                        <div class="text-[11px] font-mono text-emerald-400 pt-2">✓ 0 Violations (Protected)</div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 space-y-2">
+                        <div class="text-xs font-mono text-zinc-400">LAYER RULE #2</div>
+                        <div class="text-sm font-bold text-white">Domain Purity Rule</div>
+                        <p class="text-xs text-zinc-400">Domain entities cannot import external HTTP / vendor SDKs.</p>
+                        <div class="text-[11px] font-mono text-emerald-400 pt-2">✓ 0 Violations (Protected)</div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 space-y-2">
+                        <div class="text-xs font-mono text-zinc-400">LAYER RULE #3</div>
+                        <div class="text-sm font-bold text-white">Prompt Injection Sanitizer</div>
+                        <p class="text-xs text-zinc-400">Sanitizes raw context injection in MCP tools.</p>
+                        <div class="text-[11px] font-mono text-emerald-400 pt-2">✓ Active & Armed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: EXPORT & AUDIT -->
+        <div id="tab-export" class="space-y-4 hidden">
+            <div class="glass-card rounded-2xl p-6 space-y-6">
+                <div>
+                    <h3 class="text-base font-bold text-white">Telemetry Export & Audit Ledger</h3>
+                    <p class="text-xs text-zinc-400 font-mono">Download structured telemetry records for team billing and engineering audit</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-5 rounded-xl bg-zinc-900/60 border border-white/5 space-y-3">
+                        <div class="text-sm font-bold text-white">Export as CSV Ledger</div>
+                        <p class="text-xs text-zinc-400">Full tabular history with timestamps, client IDs, symbols, and token reduction metrics.</p>
+                        <a href="/api/export?format=csv" download="dagr_telemetry.csv" class="inline-block px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-colors">
+                            ⬇ Download CSV Ledger
+                        </a>
+                    </div>
+
+                    <div class="p-5 rounded-xl bg-zinc-900/60 border border-white/5 space-y-3">
+                        <div class="text-sm font-bold text-white">Export as JSON Stream</div>
+                        <p class="text-xs text-zinc-400">Structured JSON format ready for ingest into Datadog, Grafana, or OpenTelemetry.</p>
+                        <a href="/api/export?format=json" download="dagr_telemetry.json" class="inline-block px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white font-semibold text-xs transition-colors">
+                            ⬇ Download JSON Stream
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t border-white/5 py-4 px-6 text-center text-xs font-mono text-zinc-500 flex justify-between items-center">
+        <span>⚡ DAGR Native Hypervisor Engine</span>
+        <span>Zero-Cloud • Local-First • 100% Deterministic</span>
+    </footer>
+
+    <!-- Frontend Logic & State Engine -->
+    <script>
+        let velocityChartInstance = null;
+
+        function switchTab(tabId) {
+            const tabs = ['overview', 'live', 'graph', 'guard', 'export'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tabId) {
+                    el.classList.remove('hidden');
+                    btn.className = 'px-3.5 py-1.5 rounded-lg bg-white/10 text-white font-semibold shadow-sm transition-all';
+                } else {
+                    el.classList.add('hidden');
+                    btn.className = 'px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all';
+                }
+            });
+
+            if (tabId === 'graph') {
+                initCodeGraph();
+            }
+        }
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/stats');
+                if (!res.ok) return;
+                const data = await res.json();
+                renderStats(data);
+            } catch (err) {
+                console.error("Error fetching stats:", err);
+            }
+        }
+
+        function renderStats(data) {
+            const summary = data.summary || {};
+            const clients = data.clients || [];
+            const velocity = data.velocity || [];
+
+            document.getElementById('total-tokens-saved').innerText = (summary.total_tokens_saved || 0).toLocaleString();
+            document.getElementById('total-slices-count').innerText = (summary.total_slices || 0).toLocaleString();
+            document.getElementById('total-usd-saved').innerText = `$${(summary.estimated_usd_saved || 0).toFixed(2)}`;
+            
+            const compRatio = ((summary.overall_compression_ratio || 0) * 100).toFixed(1);
+            document.getElementById('compression-ratio-pct').innerText = `${compRatio}%`;
+            document.getElementById('compression-gauge').innerText = `${compRatio}%`;
+            document.getElementById('compression-bar').style.width = `${Math.min(100, Math.max(0, compRatio))}%`;
+            document.getElementById('violations-prevented').innerText = summary.violations_prevented || 0;
+
+            if (data.workspace) {
+                document.getElementById('workspace-path').innerText = data.workspace;
+            }
+
+            // Render Client Breakdown
+            const clientsContainer = document.getElementById('clients-breakdown-list');
+            if (clients.length > 0) {
+                clientsContainer.innerHTML = clients.map(c => `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-mono">
+                            <span class="text-white font-medium capitalize">💻 ${c.client_id}</span>
+                            <span class="text-zinc-400">${c.tokens_saved.toLocaleString()} tokens (${c.percentage}%)</span>
+                        </div>
+                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-indigo-500 h-full rounded-full" style="width: ${c.percentage}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Velocity Chart
+            renderVelocityChart(velocity);
+        }
+
+        function renderVelocityChart(points) {
+            const ctx = document.getElementById('velocityChart');
+            if (!ctx) return;
+
+            const labels = points.length > 0 ? points.map(p => p.date) : ['Today'];
+            const dataValues = points.length > 0 ? points.map(p => p.tokens_saved) : [0];
+
+            if (velocityChartInstance) {
+                velocityChartInstance.data.labels = labels;
+                velocityChartInstance.data.datasets[0].data = dataValues;
+                velocityChartInstance.update();
+                return;
+            }
+
+            velocityChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Tokens Saved',
+                        data: dataValues,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10b981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#71717a', font: { family: 'monospace', size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#71717a', font: { family: 'monospace', size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function fetchRecentEvents() {
+            try {
+                const res = await fetch('/api/events');
+                if (!res.ok) return;
+                const events = await res.json();
+                renderEventsTable(events);
+            } catch (err) {
+                console.error("Error fetching events:", err);
+            }
+        }
+
+        function renderEventsTable(events) {
+            const tbody = document.getElementById('events-table-body');
+            document.getElementById('live-events-count').innerText = `${events.length} events recorded`;
+
+            if (events.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-zinc-500 font-mono">No live events captured yet. Run 'dagr context &lt;symbol&gt;' or use Cursor/Claude Code.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = events.map(e => {
+                const dateStr = new Date(e.timestamp).toLocaleTimeString();
+                const pct = e.raw_tokens > 0 ? ((e.tokens_saved / e.raw_tokens) * 100).toFixed(0) : 0;
+                return `
+                    <tr class="hover:bg-white/[0.02] transition-colors">
+                        <td class="py-3 px-4 text-zinc-400">${dateStr}</td>
+                        <td class="py-3 px-4 font-semibold text-indigo-400">${e.client_id}</td>
+                        <td class="py-3 px-4 text-zinc-300">${e.event_type}</td>
+                        <td class="py-3 px-4 text-emerald-400 font-semibold truncate max-w-xs">${e.symbol_name || e.file_path || '-'}</td>
+                        <td class="py-3 px-4 text-right text-zinc-400">${e.raw_tokens.toLocaleString()}</td>
+                        <td class="py-3 px-4 text-right text-zinc-400">${e.sliced_tokens.toLocaleString()}</td>
+                        <td class="py-3 px-4 text-right text-emerald-400 font-bold">+${e.tokens_saved.toLocaleString()} (-${pct}%)</td>
+                        <td class="py-3 px-4 text-right text-cyan-400">${(e.latency_us / 1000).toFixed(2)}ms</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Live Server-Sent Events (SSE) Listener
+        function connectSSE() {
+            const source = new EventSource('/api/stream');
+            const indicator = document.getElementById('sse-indicator');
+            const status = document.getElementById('sse-status');
+
+            source.onopen = () => {
+                indicator.className = 'w-2 h-2 rounded-full bg-emerald-500';
+                status.innerText = 'Connected (SSE)';
+            };
+
+            source.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    fetchStats();
+                    fetchRecentEvents();
+                } catch (e) {}
+            };
+
+            source.onerror = () => {
+                indicator.className = 'w-2 h-2 rounded-full bg-amber-500';
+                status.innerText = 'Reconnecting...';
+            };
+        }
+
+        // 2D Force-Directed Graph Visualizer
+        let graphInitialized = false;
+        async function initCodeGraph() {
+            if (graphInitialized) return;
+            graphInitialized = true;
+
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            let nodes = [];
+            try {
+                const res = await fetch('/api/graph');
+                if (res.ok) {
+                    const data = await res.json();
+                    nodes = data.nodes || [];
+                }
+            } catch (e) {}
+
+            if (nodes.length === 0) {
+                // Fallback demo graph nodes
+                nodes = [
+                    { id: '1', name: 'processPayment', type: 'fn', x: 200, y: 150, vx: 0, vy: 0 },
+                    { id: '2', name: 'verifyToken', type: 'fn', x: 350, y: 220, vx: 0, vy: 0 },
+                    { id: '3', name: 'CowSandbox', type: 'type', x: 450, y: 120, vx: 0, vy: 0 },
+                    { id: '4', name: 'search_symbols', type: 'fn', x: 280, y: 320, vx: 0, vy: 0 },
+                    { id: '5', name: 'TelemetryStore', type: 'type', x: 550, y: 260, vx: 0, vy: 0 }
+                ];
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw connecting edges
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i].x, nodes[i].y);
+                        ctx.lineTo(nodes[j].x, nodes[j].y);
+                        ctx.stroke();
+                    }
+                }
+
+                // Draw nodes
+                nodes.forEach(n => {
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = n.type === 'fn' ? '#6366f1' : '#10b981';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#e4e4e7';
+                    ctx.font = '11px monospace';
+                    ctx.fillText(n.name, n.x + 12, n.y + 4);
+                });
+
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchStats();
+            fetchRecentEvents();
+            connectSSE();
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 use crate::protocol::ToolDefinition;
-use dagr_core::{DagrError, Language, Result};
+use dagr_core::{DagrError, Language, Result, TelemetryEvent, TelemetryStore, TimeWindow};
 use dagr_guard::ArchitectureGuard;
 use dagr_sandbox::CowSandbox;
 use dagr_slicer::{SlicerConfig, SymbolicSlicer};
@@ -7,6 +7,7 @@ use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
+use std::time::Instant;
 use uuid::Uuid;
 
 pub struct ToolRegistry {
@@ -65,7 +66,16 @@ impl ToolRegistry {
                     "required": ["command"]
                 }),
             },
-            // Tool 4: A2A Swarm Handshake & Lock Arbitrator
+            // Tool 4: MCP Lifetime Stats & ROI Inspector
+            ToolDefinition {
+                name: "dagr_get_lifetime_stats".into(),
+                description: "Returns cumulative lifetime efficiency metrics: tokens saved, estimated USD saved, compression ratio, and client breakdown.".into(),
+                input_schema: json!({
+                    "type": "object",
+                    "properties": {}
+                }),
+            },
+            // Tool 5: A2A Swarm Handshake & Lock Arbitrator
             ToolDefinition {
                 name: "dagr_a2a_handshake".into(),
                 description: "Registers an autonomous agent session and acquires optimistic file write locks to prevent peer conflicts in multi-agent swarms.".into(),
@@ -79,7 +89,7 @@ impl ToolRegistry {
                     "required": ["agent_id", "role"]
                 }),
             },
-            // Tool 5: A2A Peer Context Transfer
+            // Tool 6: A2A Peer Context Transfer
             ToolDefinition {
                 name: "dagr_a2a_transfer_context".into(),
                 description: "Passes compressed AST slices and contract envelopes directly between peer agents without disk re-parsing.".into(),
@@ -94,7 +104,7 @@ impl ToolRegistry {
                     "required": ["from_agent", "to_agent", "file_path", "symbol_name"]
                 }),
             },
-            // Tool 6: A2A Peer Patch Verification
+            // Tool 7: A2A Peer Patch Verification
             ToolDefinition {
                 name: "dagr_a2a_verify_peer_patch".into(),
                 description: "Allows a Reviewer/Tester agent to execute test suites on another agent's staged shadow transaction before approving commit.".into(),
@@ -117,6 +127,7 @@ impl ToolRegistry {
             "dagr_get_context_slice" => self.handle_get_context_slice(arguments),
             "dagr_verify_architecture" => self.handle_verify_architecture(arguments),
             "dagr_execute_sandboxed" => self.handle_execute_sandboxed(arguments),
+            "dagr_get_lifetime_stats" => self.handle_get_lifetime_stats(),
             "dagr_a2a_handshake" => self.handle_a2a_handshake(arguments),
             "dagr_a2a_transfer_context" => self.handle_a2a_transfer_context(arguments),
             "dagr_a2a_verify_peer_patch" => self.handle_a2a_verify_peer_patch(arguments),
@@ -125,6 +136,7 @@ impl ToolRegistry {
     }
 
     fn handle_get_context_slice(&self, args: &Value) -> Result<Value> {
+        let start = Instant::now();
         let file_path = args["file_path"]
             .as_str()
             .ok_or_else(|| DagrError::Config("file_path is required".into()))?;
@@ -144,6 +156,21 @@ impl ToolRegistry {
         let slicer = SymbolicSlicer::new(SlicerConfig::default());
         let slice = slicer.slice(Path::new(file_path), &content, lang, symbol_name)?;
 
+        let latency_us = start.elapsed().as_micros() as u64;
+
+        // Fail-safe telemetry recording
+        if let Ok(store) = TelemetryStore::open(&self.workspace_root) {
+            let ev = TelemetryEvent::new_slice(
+                "mcp",
+                file_path,
+                symbol_name,
+                slice.original_file_tokens,
+                slice.estimated_tokens,
+                latency_us,
+            );
+            let _ = store.record_event(&ev);
+        }
+
         Ok(json!({
             "target_symbol": slice.target_symbol,
             "language": format!("{:?}", slice.language),
@@ -157,6 +184,7 @@ impl ToolRegistry {
     }
 
     fn handle_verify_architecture(&self, args: &Value) -> Result<Value> {
+        let start = Instant::now();
         let source_file = args["source_file"].as_str().unwrap_or("");
         let imports: Vec<String> = args["proposed_imports"]
             .as_array()
@@ -169,6 +197,12 @@ impl ToolRegistry {
 
         let guard = ArchitectureGuard::load(&self.workspace_root)?;
         let violations = guard.check_file_imports(source_file, &imports);
+        let latency_us = start.elapsed().as_micros() as u64;
+
+        if let Ok(store) = TelemetryStore::open(&self.workspace_root) {
+            let ev = TelemetryEvent::new_guard_check("mcp", violations.len(), latency_us);
+            let _ = store.record_event(&ev);
+        }
 
         Ok(json!({
             "valid": violations.is_empty(),
@@ -197,6 +231,17 @@ impl ToolRegistry {
             "stdout": result.stdout,
             "stderr": result.stderr,
             "rolled_back": !success
+        }))
+    }
+
+    fn handle_get_lifetime_stats(&self) -> Result<Value> {
+        let store = TelemetryStore::open(&self.workspace_root)?;
+        let summary = store.get_summary(TimeWindow::Lifetime)?;
+        let clients = store.get_client_breakdown()?;
+
+        Ok(json!({
+            "lifetime_summary": summary,
+            "client_breakdown": clients
         }))
     }
 

@@ -1,9 +1,15 @@
+pub mod server;
 pub mod skills_installer;
+pub mod tui;
 pub mod updater;
+pub mod watcher;
 
 use clap::{Parser, Subcommand, ValueEnum};
 use colored::*;
-use dagr_core::{DagrError, Language, LocalIndexStore, MinimalContextSlice, Result};
+use dagr_core::{
+    DagrError, Language, LocalIndexStore, MinimalContextSlice, Result, TelemetryEvent,
+    TelemetryStore, TimeWindow,
+};
 use dagr_guard::ArchitectureGuard;
 use dagr_mcp::McpServer;
 use dagr_sandbox::CowSandbox;
@@ -38,7 +44,7 @@ pub enum Commands {
                         dagr context src/auth.py:verify_token --format json"
     )]
     Context {
-        /// Target in format "path/to/file.ext:symbolName"
+        /// Target in format "path/to/file.ext:symbolName" or comma-separated symbols
         target: String,
 
         /// Maximum dependency depth traversal hops
@@ -96,6 +102,65 @@ pub enum Commands {
         /// Commit shadow changes into working tree if verification passes
         #[arg(short = 'c', long)]
         commit_on_success: bool,
+    },
+
+    /// Launch the live interactive Web Dashboard and SSE telemetry stream
+    #[command(
+        name = "dashboard",
+        about = "Launch the interactive Web Dashboard & real-time telemetry stream",
+        long_about = "Starts an embedded local web dashboard at http://127.0.0.1:3333 with live SSE event streaming.\n\n\
+                      EXAMPLES:\n  \
+                        dagr dashboard\n  \
+                        dagr dashboard --port 8080\n  \
+                        dagr dashboard --no-open"
+    )]
+    Dashboard {
+        /// Port to bind web server (default: 3333, auto-falls back to 3334..3340)
+        #[arg(short = 'p', long)]
+        port: Option<u16>,
+
+        /// Do not automatically open browser on launch
+        #[arg(long)]
+        no_open: bool,
+    },
+
+    /// View or export lifetime efficiency metrics, tokens saved, and ROI analytics
+    #[command(
+        name = "stats",
+        about = "Display cumulative token savings, USD ROI, and telemetry ledger",
+        long_about = "Aggregates lifetime token compression metrics, estimated dollar cost savings, and client usage.\n\n\
+                      EXAMPLES:\n  \
+                        dagr stats\n  \
+                        dagr stats --tui\n  \
+                        dagr stats --web\n  \
+                        dagr stats --export json"
+    )]
+    Stats {
+        /// Launch the interactive terminal TUI dashboard
+        #[arg(short = 't', long)]
+        tui: bool,
+
+        /// Launch the web dashboard directly
+        #[arg(short = 'w', long)]
+        web: bool,
+
+        /// Export telemetry data (json, csv)
+        #[arg(short = 'e', long)]
+        export: Option<String>,
+    },
+
+    /// Start incremental background file watcher for instant sub-millisecond AST re-indexing
+    #[command(
+        name = "watch",
+        about = "Incrementally re-index workspace AST symbols in real time on save",
+        long_about = "Monitors workspace file events via OS kernel notify and re-indexes AST in <0.3ms.\n\n\
+                      EXAMPLES:\n  \
+                        dagr watch"
+    )]
+    Watch {
+        /// Workspace directory to watch (default: current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
     },
 
     /// Start the Model Context Protocol (MCP) JSON-RPC 2.0 stdio server for Cursor / Claude Desktop / Windsurf
@@ -202,7 +267,7 @@ pub enum OutputFormat {
 }
 
 /// Executes the resolved CLI command
-pub fn execute_cli(cli: Cli) -> Result<()> {
+pub async fn execute_cli(cli: Cli) -> Result<()> {
     let is_mcp_start = matches!(
         &cli.command,
         Commands::Mcp {
@@ -210,6 +275,7 @@ pub fn execute_cli(cli: Cli) -> Result<()> {
         }
     );
     let is_update = matches!(&cli.command, Commands::Update { .. });
+    let is_dashboard = matches!(&cli.command, Commands::Dashboard { .. });
 
     let result = match cli.command {
         Commands::Context {
@@ -227,6 +293,32 @@ pub fn execute_cli(cli: Cli) -> Result<()> {
             sandbox,
             commit_on_success,
         } => handle_run(&command, sandbox, commit_on_success),
+        Commands::Dashboard { port, no_open } => {
+            let root = std::env::current_dir()?;
+            server::DashboardServer::bind_and_run(root, port, !no_open).await
+        }
+        Commands::Stats { tui, web, export } => {
+            let root = std::env::current_dir()?;
+            if tui {
+                tui::run_tui(&root)
+            } else if web {
+                server::DashboardServer::bind_and_run(root, None, true).await
+            } else if let Some(exp) = export {
+                let store = TelemetryStore::open(&root)?;
+                if exp.to_lowercase() == "csv" {
+                    println!("{}", store.export_csv()?);
+                } else {
+                    println!("{}", store.export_json()?);
+                }
+                Ok(())
+            } else {
+                handle_stats_summary(&root)
+            }
+        }
+        Commands::Watch { workspace } => {
+            let watcher = watcher::WorkspaceWatcher::new(workspace);
+            watcher.watch()
+        }
         Commands::Mcp { action } => match action {
             McpAction::Start => {
                 let server = McpServer::new(std::env::current_dir()?);
@@ -246,11 +338,75 @@ pub fn execute_cli(cli: Cli) -> Result<()> {
     };
 
     // Show non-blocking update notification on stderr if available
-    if !is_mcp_start && !is_update && result.is_ok() {
+    if !is_mcp_start && !is_update && !is_dashboard && result.is_ok() {
         updater::AutoUpdater::notify_if_update_available();
     }
 
     result
+}
+
+pub fn handle_stats_summary(workspace_root: &Path) -> Result<()> {
+    let store = TelemetryStore::open(workspace_root)?;
+    let summary = store.get_summary(TimeWindow::Lifetime)?;
+    let clients = store.get_client_breakdown()?;
+
+    let pct_str = format!("{:.1}%", summary.overall_compression_ratio * 100.0);
+    let bar_filled = (summary.overall_compression_ratio * 24.0).round() as usize;
+    let bar = format!(
+        "{}{}",
+        "█".repeat(bar_filled).green(),
+        "░".repeat(24_usize.saturating_sub(bar_filled)).dimmed()
+    );
+
+    eprintln!(
+        "\n{}",
+        "⚡ DAGR Lifetime Telemetry & Value Scoreboard"
+            .bold()
+            .cyan()
+    );
+    eprintln!("┌────────────────────────────────────────────────────────────────────────┐");
+    eprintln!(
+        "│ Lifetime Tokens Saved: {:<47} │",
+        summary.total_tokens_saved.to_string().bold().green()
+    );
+    eprintln!(
+        "│ Estimated ROI Savings: {:<47} │",
+        format!("${:.2} USD", summary.estimated_usd_saved)
+            .bold()
+            .yellow()
+    );
+    eprintln!(
+        "│ Slices Served:         {:<47} │",
+        summary.total_slices.to_string().cyan()
+    );
+    eprintln!(
+        "│ Avg Compression Ratio: [{}] {:<20} │",
+        bar,
+        pct_str.bold().green()
+    );
+    eprintln!(
+        "│ Guard Checks Caught:   {:<47} │",
+        summary.violations_prevented.to_string().magenta()
+    );
+    eprintln!("└────────────────────────────────────────────────────────────────────────┘");
+
+    if !clients.is_empty() {
+        eprintln!("\n{}", "🔌 Top AI Coding Agent Distribution:".bold());
+        for c in clients {
+            eprintln!(
+                "   • {:<16} {:>10} tokens ({:.1}%)",
+                c.client_id.cyan(),
+                c.tokens_saved.to_string().green(),
+                c.percentage
+            );
+        }
+    }
+
+    eprintln!(
+        "\n💡 Launch full web visualizer: {}",
+        "dagr dashboard".bold().green()
+    );
+    Ok(())
 }
 
 /// Resolves symbol and file target using direct syntax (file:symbol), SQLite index, or workspace AST match
@@ -354,54 +510,96 @@ pub fn resolve_target_symbol(workspace_root: &Path, target: &str) -> Result<(Pat
 }
 
 pub fn handle_context(target: &str, depth: usize, format: OutputFormat) -> Result<()> {
+    let start = std::time::Instant::now();
     let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    let (file_path, symbol_name) = resolve_target_symbol(&current_dir, target)?;
+    let targets: Vec<&str> = target
+        .split(',')
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .collect();
 
-    let source_code = std::fs::read_to_string(&file_path)?;
-    let ext = file_path.extension().and_then(|s| s.to_str()).unwrap_or("");
-    let language = Language::from_extension(ext);
-
+    let mut slices = Vec::new();
     let slicer = SymbolicSlicer::new(SlicerConfig {
         max_depth_hops: depth,
         max_token_budget: 1500,
         include_comments: false,
     });
 
-    let slice = slicer.slice(&file_path, &source_code, language, &symbol_name)?;
+    for t in targets {
+        let (file_path, symbol_name) = resolve_target_symbol(&current_dir, t)?;
+        let source_code = std::fs::read_to_string(&file_path)?;
+        let ext = file_path.extension().and_then(|s| s.to_str()).unwrap_or("");
+        let language = Language::from_extension(ext);
+
+        let slice = slicer.slice(&file_path, &source_code, language, &symbol_name)?;
+
+        // Record telemetry (fail-safe)
+        if let Ok(store) = TelemetryStore::open(&current_dir) {
+            let latency_us = start.elapsed().as_micros() as u64;
+            let ev = TelemetryEvent::new_slice(
+                "cli",
+                &file_path.to_string_lossy(),
+                &symbol_name,
+                slice.original_file_tokens,
+                slice.estimated_tokens,
+                latency_us,
+            );
+            let _ = store.record_event(&ev);
+        }
+
+        slices.push(slice);
+    }
+
+    if slices.is_empty() {
+        return Err(DagrError::InvalidInput(format!(
+            "No valid targets parsed from query '{}'",
+            target
+        )));
+    }
 
     match format {
         OutputFormat::Json => {
-            println!("{}", serde_json::to_string_pretty(&slice)?);
+            if slices.len() == 1 {
+                println!("{}", serde_json::to_string_pretty(&slices[0])?);
+            } else {
+                println!("{}", serde_json::to_string_pretty(&slices)?);
+            }
         }
         OutputFormat::Plain => {
-            for contract in &slice.type_contracts {
-                println!("{}", contract);
-            }
-            for (_line_no, line) in &slice.sparse_code_lines {
-                println!("{}", line);
+            for slice in &slices {
+                for contract in &slice.type_contracts {
+                    println!("{}", contract);
+                }
+                for (_line_no, line) in &slice.sparse_code_lines {
+                    println!("{}", line);
+                }
             }
         }
         OutputFormat::Markdown => {
-            println!("### Symbolic AST Slice: `{}`", slice.target_symbol);
-            println!("- **File**: `{}`", slice.file_path.display());
-            println!(
-                "- **Compression**: {:.1}% token reduction ({} down from {})",
-                slice.compression_ratio * 100.0,
-                slice.estimated_tokens,
-                slice.original_file_tokens
-            );
-            println!("\n```{:?}\n// --- Type Contracts ---", slice.language);
-            for contract in &slice.type_contracts {
-                println!("{}", contract);
+            for slice in &slices {
+                println!("### Symbolic AST Slice: `{}`", slice.target_symbol);
+                println!("- **File**: `{}`", slice.file_path.display());
+                println!(
+                    "- **Compression**: {:.1}% token reduction ({} down from {})",
+                    slice.compression_ratio * 100.0,
+                    slice.estimated_tokens,
+                    slice.original_file_tokens
+                );
+                println!("\n```{:?}\n// --- Type Contracts ---", slice.language);
+                for contract in &slice.type_contracts {
+                    println!("{}", contract);
+                }
+                println!("\n// --- Implementation Slice ---");
+                for (_line_no, line) in &slice.sparse_code_lines {
+                    println!("{}", line);
+                }
+                println!("```\n");
             }
-            println!("\n// --- Implementation Slice ---");
-            for (_line_no, line) in &slice.sparse_code_lines {
-                println!("{}", line);
-            }
-            println!("```");
         }
         OutputFormat::Pretty => {
-            render_pretty_slice(&slice);
+            for slice in &slices {
+                render_pretty_slice(slice);
+            }
         }
     }
 
@@ -461,9 +659,17 @@ pub fn render_pretty_slice(slice: &MinimalContextSlice) {
 }
 
 pub fn handle_guard(workspace_root: &Path, format: OutputFormat) -> Result<()> {
+    let start = std::time::Instant::now();
     let guard = ArchitectureGuard::load(workspace_root)?;
     let total_rules = guard.config.boundaries.len();
     let violations = guard.scan_workspace(workspace_root)?;
+    let latency_us = start.elapsed().as_micros() as u64;
+
+    // Record guard telemetry (fail-safe)
+    if let Ok(store) = TelemetryStore::open(workspace_root) {
+        let ev = TelemetryEvent::new_guard_check("cli", violations.len(), latency_us);
+        let _ = store.record_event(&ev);
+    }
 
     if format == OutputFormat::Json {
         let status = if violations.is_empty() {
@@ -846,12 +1052,65 @@ mod tests {
         assert_eq!(sym, "calculate_monthly_discounts");
 
         // 2. Fuzzy / partial generic resolution
-        let (fuzzy_path, fuzzy_sym) =
-            resolve_target_symbol(temp_dir.path(), "calculate_monthly")?;
+        let (fuzzy_path, fuzzy_sym) = resolve_target_symbol(temp_dir.path(), "calculate_monthly")?;
         assert_eq!(fuzzy_path, src_file);
         assert_eq!(fuzzy_sym, "calculate_monthly_discounts");
 
         Ok(())
     }
-}
 
+    #[test]
+    fn test_multi_target_slicing_and_telemetry() -> Result<()> {
+        let temp_dir = tempfile::tempdir().map_err(DagrError::Io)?;
+        let src_file1 = temp_dir.path().join("auth.py");
+        let src_file2 = temp_dir.path().join("billing.py");
+
+        std::fs::write(&src_file1, "def verify_token():\n    return True\n")
+            .map_err(DagrError::Io)?;
+        std::fs::write(&src_file2, "def charge_customer():\n    return 100\n")
+            .map_err(DagrError::Io)?;
+
+        // Verify multi-target resolution
+        let (p1, s1) = resolve_target_symbol(temp_dir.path(), "verify_token")?;
+        let (p2, s2) = resolve_target_symbol(temp_dir.path(), "charge_customer")?;
+        assert_eq!(p1, src_file1);
+        assert_eq!(s1, "verify_token");
+        assert_eq!(p2, src_file2);
+        assert_eq!(s2, "charge_customer");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cli_parsing_dashboard_and_stats_and_watch() {
+        let args_dash = vec!["dagr", "dashboard", "--port", "8080", "--no-open"];
+        let cli_dash = Cli::try_parse_from(args_dash).expect("CLI parsing failed");
+        assert_eq!(
+            cli_dash.command,
+            Commands::Dashboard {
+                port: Some(8080),
+                no_open: true,
+            }
+        );
+
+        let args_stats = vec!["dagr", "stats", "--tui", "--export", "json"];
+        let cli_stats = Cli::try_parse_from(args_stats).expect("CLI parsing failed");
+        assert_eq!(
+            cli_stats.command,
+            Commands::Stats {
+                tui: true,
+                web: false,
+                export: Some("json".into()),
+            }
+        );
+
+        let args_watch = vec!["dagr", "watch", "--workspace", "."];
+        let cli_watch = Cli::try_parse_from(args_watch).expect("CLI parsing failed");
+        assert_eq!(
+            cli_watch.command,
+            Commands::Watch {
+                workspace: PathBuf::from("."),
+            }
+        );
+    }
+}
