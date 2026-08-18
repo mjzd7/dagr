@@ -1,0 +1,12 @@
+# Rust / Cargo
+/target
+Cargo.lock
+
+# DAGR Runtime
+.dagr/
+.dagr/shadow/
+.dagr/journal.db
+
+# OS Artifacts
+.DS_Store
+Thumbs.db
