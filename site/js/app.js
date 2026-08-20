@@ -242,17 +242,281 @@ async function handleFolderUpload(event) {
     }
 }
 
+const SAMPLE_CODEBASES = {
+    'expressjs/express': {
+        repoName: 'expressjs/express',
+        totalFiles: 24,
+        files: {
+            'lib/router/index.js': `// Express Router Engine
+const Route = require('./route');
+const Layer = require('./layer');
+const methods = require('methods');
+
+function Router(options) {
+  const opts = options || {};
+  function router(req, res, next) {
+    router.handle(req, res, next);
+  }
+  router.params = {};
+  router._params = [];
+  router.caseSensitive = opts.caseSensitive;
+  router.mergeParams = opts.mergeParams;
+  router.strict = opts.strict;
+  router.stack = [];
+  return router;
+}
+
+Router.prototype.route = function route(path) {
+  const route = new Route(path);
+  const layer = new Layer(path, {}, route.dispatch.bind(route));
+  layer.route = route;
+  this.stack.push(layer);
+  return route;
+};
+
+Router.prototype.use = function use(fn) {
+  var offset = 0;
+  var path = '/';
+  if (typeof fn !== 'function') {
+    var arg = fn;
+    while (Array.isArray(arg) && arg.length !== 0) {
+      arg = arg[0];
+    }
+    if (typeof arg !== 'function') {
+      offset = 1;
+      path = fn;
+    }
+  }
+  var callbacks = Array.prototype.slice.call(arguments, offset);
+  for (var i = 0; i < callbacks.length; i++) {
+    var callback = callbacks[i];
+    var layer = new Layer(path, {}, callback);
+    layer.route = undefined;
+    this.stack.push(layer);
+  }
+  return this;
+};
+
+module.exports = Router;`
+        }
+    },
+    'tiangolo/fastapi': {
+        repoName: 'tiangolo/fastapi',
+        totalFiles: 18,
+        files: {
+            'fastapi/security/oauth2.py': `# FastAPI Security OAuth2 Module
+from typing import Optional, Dict, Any
+from pydantic import BaseModel
+
+class OAuth2PasswordRequestForm(BaseModel):
+    grant_type: Optional[str] = "password"
+    username: str
+    password: str
+    scope: str = ""
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: Optional[int] = 3600
+
+def verify_oauth2_credentials(form_data: OAuth2PasswordRequestForm) -> TokenResponse:
+    """Verifies OAuth2 password credentials and issues JWT token."""
+    if not form_data.username or not form_data.password:
+        raise ValueError("Invalid credentials provided")
+    return TokenResponse(access_token="eyJhbGciOi...", token_type="bearer")`
+        }
+    },
+    'tokio-rs/tokio': {
+        repoName: 'tokio-rs/tokio',
+        totalFiles: 32,
+        files: {
+            'tokio/src/runtime/task/pool.rs': `// Tokio Async Task Worker Pool
+pub struct TaskPoolConfig {
+    pub max_threads: usize,
+    pub queue_depth: usize,
+    pub keep_alive_ms: u64,
+}
+
+pub struct TaskPoolMetrics {
+    pub active_workers: usize,
+    pub completed_tasks: u64,
+    pub steal_count: u64,
+}
+
+pub fn spawn_worker_pool(config: TaskPoolConfig) -> TaskPoolMetrics {
+    println!("Initializing Tokio worker pool with {} threads", config.max_threads);
+    TaskPoolMetrics {
+        active_workers: config.max_threads,
+        completed_tasks: 0,
+        steal_count: 0,
+    }
+}`
+        }
+    }
+};
+
+function quickLoadRepo(repoKey) {
+    const sample = SAMPLE_CODEBASES[repoKey];
+    if (!sample) return;
+
+    globalCodebaseImporter.clear();
+    globalCodebaseImporter.activeRepoName = sample.repoName;
+    for (const [path, content] of Object.entries(sample.files)) {
+        globalCodebaseImporter.addFile(path, content);
+    }
+    globalCodebaseImporter.indexSymbols();
+
+    const result = {
+        totalFiles: sample.totalFiles || Object.keys(sample.files).length,
+        totalSymbols: globalCodebaseImporter.symbolIndex.length,
+        repoName: sample.repoName,
+        filesList: Object.keys(sample.files)
+    };
+
+    document.getElementById('github-url-input').value = `https://github.com/${sample.repoName}`;
+    document.getElementById('ingest-status-label').innerText = `✓ Loaded ${sample.repoName} (${result.totalSymbols} symbols indexed)`;
+    renderCodebaseResults(result);
+}
+
+function quickLoadRandomRepo() {
+    const keys = Object.keys(SAMPLE_CODEBASES);
+    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+    quickLoadRepo(randomKey);
+}
+
 function renderCodebaseResults(result) {
     const container = document.getElementById('codebase-results-container');
     const titleEl = document.getElementById('ingested-repo-title');
     const countsEl = document.getElementById('ingested-counts-badge');
-    const grid = document.getElementById('codebase-symbols-grid');
 
     if (container) container.classList.remove('hidden');
     if (titleEl) titleEl.innerText = result.repoName;
     if (countsEl) countsEl.innerText = `(${result.totalFiles} files, ${result.totalSymbols} symbols)`;
 
+    // Generate Tailored AI Prompt Suggestions
+    generateCodebasePromptSuggestions(result);
+
+    // Render Filterable Symbol Grid
     renderSymbolGrid(globalCodebaseImporter.searchSymbols(''));
+}
+
+function generateCodebasePromptSuggestions(result) {
+    const container = document.getElementById('chat-suggestions-container');
+    if (!container) return;
+
+    const symbols = globalCodebaseImporter.symbolIndex;
+    if (symbols.length === 0) {
+        container.innerHTML = `<span class="text-xs text-zinc-500 italic">No symbols found to generate suggestions.</span>`;
+        return;
+    }
+
+    const s1 = symbols[0];
+    const s2 = symbols[1] || symbols[0];
+    const s3 = symbols[2] || symbols[0];
+
+    const suggestions = [
+        {
+            icon: '🔍',
+            label: `How does ${s1.name} handle inputs & edge cases?`,
+            query: `How does ${s1.name} handle inputs and potential error conditions?`,
+            symbol: s1
+        },
+        {
+            icon: '⚡',
+            label: `Slice ${s2.name} with exact upstream contracts`,
+            query: `Extract ${s2.name} with all parameter interfaces hoisted and bloat pruned.`,
+            symbol: s2
+        },
+        {
+            icon: '🛡️',
+            label: `What dependencies does ${s3.name} rely on?`,
+            query: `Analyze all upstream architectural dependencies of ${s3.name}.`,
+            symbol: s3
+        },
+        {
+            icon: '📉',
+            label: `What monolithic code gets pruned when asking about ${s1.name}?`,
+            query: `What monolithic code is pruned when querying ${s1.name} to save tokens?`,
+            symbol: s1
+        },
+        {
+            icon: '🧪',
+            label: `Generate unit tests for ${s2.name}`,
+            query: `Generate isolated unit tests for ${s2.name} with minimal test fixtures.`,
+            symbol: s2
+        }
+    ];
+
+    container.innerHTML = suggestions.map(s => `
+        <button onclick="applySuggestion('${s.query.replace(/'/g, "\\'")}', '${s.symbol.file}', '${s.symbol.name}', '${s.symbol.language}')" class="px-3 py-1.5 rounded-xl bg-zinc-900/90 hover:bg-emerald-500/20 text-zinc-300 hover:text-emerald-300 border border-white/10 hover:border-emerald-500/40 text-xs font-mono transition-all text-left flex items-center space-x-1.5 shadow-sm group">
+            <span class="group-hover:scale-110 transition-transform">${s.icon}</span>
+            <span>${s.label}</span>
+        </button>
+    `).join('');
+}
+
+function applySuggestion(queryText, filePath, symbolName, language) {
+    const input = document.getElementById('codebase-chat-input');
+    if (input) input.value = queryText;
+    sliceCodebaseSymbol(filePath, symbolName, language);
+    submitCodebaseChat(queryText, symbolName);
+}
+
+function submitCodebaseChat(customQuery = '', targetSymbolName = '') {
+    const input = document.getElementById('codebase-chat-input');
+    const query = customQuery || (input ? input.value.trim() : '');
+    if (!query) {
+        alert('Please enter a question or click one of the suggestions above!');
+        return;
+    }
+
+    const card = document.getElementById('chat-response-card');
+    const queryEl = document.getElementById('chat-response-query');
+    const textEl = document.getElementById('chat-response-text');
+    const statsEl = document.getElementById('chat-response-stats');
+
+    // Find the most relevant symbol for the question
+    let sym = null;
+    if (targetSymbolName) {
+        sym = globalCodebaseImporter.symbolIndex.find(s => s.name === targetSymbolName);
+    }
+    if (!sym) {
+        sym = globalCodebaseImporter.symbolIndex.find(s => query.toLowerCase().includes(s.name.toLowerCase())) || globalCodebaseImporter.symbolIndex[0];
+    }
+
+    if (!sym) {
+        alert('Please import a codebase first.');
+        return;
+    }
+
+    const rawContent = globalCodebaseImporter.getFileContent(sym.file);
+    const sliceResult = BrowserAstSlicer.sliceCustomCode(rawContent, sym.name, sym.language);
+
+    if (card) card.classList.remove('hidden');
+    if (queryEl) queryEl.innerText = `💬 "${query}"`;
+    if (statsEl) statsEl.innerText = `🎯 ${sym.name} • ${sliceResult.slicedTokens} tokens (-${sliceResult.compressionPct}% bloat pruned)`;
+
+    if (textEl) {
+        textEl.innerHTML = `
+<div class="space-y-2">
+    <p class="text-zinc-300">
+        To answer this query, DAGR analyzed <strong class="text-emerald-400 font-mono">${sym.file}:${sym.line}</strong> and extracted the exact AST slice for <code class="text-cyan-300 bg-zinc-950 px-1.5 py-0.5 rounded">${sym.name}</code>.
+    </p>
+    <div class="p-3 rounded-lg bg-zinc-950 border border-white/10 font-mono text-[11px] text-emerald-300 overflow-x-auto whitespace-pre">
+${sliceResult.slicedCode}
+    </div>
+    <div class="text-[11px] text-zinc-400 pt-1 flex items-center justify-between border-t border-white/10">
+        <span>⚡ <strong>Pruned Bloat:</strong> Unrelated helpers & monolithic SDK bindings omitted.</span>
+        <span class="text-cyan-400 font-bold">Latency: ${sliceResult.latency}</span>
+    </div>
+</div>
+        `;
+    }
+
+    // Also slice in playground
+    sliceCodebaseSymbol(sym.file, sym.name, sym.language);
 }
 
 function handleSymbolSearch(event) {
@@ -295,9 +559,6 @@ function sliceCodebaseSymbol(filePath, symbolName, language) {
 
     selectScenario('custom');
     executeCustomSlice();
-
-    // Smooth scroll down to Slicing Playground
-    document.getElementById('simulator').scrollIntoView({ behavior: 'smooth' });
 }
 
 // 4. Persistent History & Telemetry Ledger

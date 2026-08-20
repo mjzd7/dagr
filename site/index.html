@@ -322,7 +322,25 @@ export async function sendReceiptEmail(email: string, amount: number) {
                             <span>⚡ Ingest & Index Repo</span>
                         </button>
                     </div>
-                    <div class="text-[11px] font-mono text-zinc-500 flex justify-between">
+                    
+                    <!-- Quick-Pick Random Codebases -->
+                    <div class="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-mono">
+                        <span class="text-zinc-500">Quick-Pick Samples:</span>
+                        <button onclick="quickLoadRepo('expressjs/express')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-cyan-400 border border-cyan-500/30 transition-all">
+                            ⚡ Express.js (Router)
+                        </button>
+                        <button onclick="quickLoadRepo('tiangolo/fastapi')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-emerald-400 border border-emerald-500/30 transition-all">
+                            ⚡ FastAPI (OAuth2)
+                        </button>
+                        <button onclick="quickLoadRepo('tokio-rs/tokio')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-indigo-400 border border-indigo-500/30 transition-all">
+                            ⚡ Tokio (WorkerPool)
+                        </button>
+                        <button onclick="quickLoadRandomRepo()" id="btn-random-repo" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold border border-emerald-500/40 transition-all">
+                            🎲 Pick Random Codebase
+                        </button>
+                    </div>
+
+                    <div class="text-[11px] font-mono text-zinc-500 flex justify-between pt-1">
                         <span>Supported: Public repos & single file links in TypeScript, Python, Rust, Go</span>
                         <span id="ingest-status-label" class="text-cyan-400 font-semibold"></span>
                     </div>
@@ -348,9 +366,49 @@ export async function sendReceiptEmail(email: string, amount: number) {
                     </div>
                 </div>
 
-                <!-- Cross-Codebase Symbol Search & File Dropdown -->
+                <!-- Cross-Codebase Symbol Search, AI Chatbox & Suggestions -->
                 <div id="codebase-results-container" class="hidden space-y-4 pt-4 border-t border-white/5">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <!-- Interactive Codebase Chatbox & Tailored Prompt Suggestions -->
+                    <div class="p-4 sm:p-5 rounded-2xl bg-zinc-950/90 border border-emerald-500/40 space-y-3 shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                <span class="text-xs font-mono font-bold text-white">Ask DAGR About Ingested Codebase</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-emerald-400/90 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">AST Context Slicer Assistant</span>
+                        </div>
+                        
+                        <!-- Chat Prompt Input -->
+                        <div class="flex gap-2">
+                            <input type="text" id="codebase-chat-input" placeholder="Ask anything about this repo (e.g. 'How does processPayment handle errors?')..." class="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500" onkeydown="if (event.key === 'Enter') submitCodebaseChat();" />
+                            <button onclick="submitCodebaseChat()" id="btn-chat-submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-bold font-mono text-xs transition-all flex items-center space-x-1.5 shrink-0">
+                                <span>Ask ⚡</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Dynamic AI Suggestions (What you can ask about this codebase) -->
+                        <div class="space-y-1.5 pt-1">
+                            <div class="text-[11px] font-mono text-zinc-400 flex items-center space-x-1.5">
+                                <span>💡</span>
+                                <span>Suggested questions for this codebase (click to slice & answer):</span>
+                            </div>
+                            <div id="chat-suggestions-container" class="flex flex-wrap gap-2">
+                                <!-- Dynamically populated chips with questions based on indexed symbols -->
+                            </div>
+                        </div>
+
+                        <!-- Chat Response Output Card -->
+                        <div id="chat-response-card" class="hidden p-4 rounded-xl bg-zinc-900/95 border border-emerald-500/30 space-y-2 text-xs font-mono">
+                            <div class="flex items-center justify-between text-zinc-400 border-b border-white/10 pb-2">
+                                <span id="chat-response-query" class="text-white font-bold truncate">Query</span>
+                                <span class="text-emerald-400 text-[10px] shrink-0 font-bold ml-2" id="chat-response-stats">280 tokens (-96% bloat pruned)</span>
+                            </div>
+                            <div id="chat-response-text" class="text-zinc-300 leading-relaxed whitespace-pre-wrap"></div>
+                        </div>
+                    </div>
+
+                    <!-- Filtered Symbols Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
                         <div class="text-xs font-mono text-zinc-400">
                             Loaded Codebase: <strong class="text-white" id="ingested-repo-title">mjzd7/dagr</strong>
                             <span class="text-emerald-400 ml-2" id="ingested-counts-badge">(12 files, 48 symbols)</span>
