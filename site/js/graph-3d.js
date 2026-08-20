@@ -1,4 +1,4 @@
-// 🪐 DAGR 3D WebGL AST Dependency & Pruning Orbit Graph with 3D Billboard Labels & Zero-Hang Engine
+// 🪐 DAGR 3D WebGL AST Dependency & Pruning Orbit Graph (Rock-Solid Orbit Math & Zero-Decay Camera)
 
 class Graph3DVisualizer {
     constructor(containerId, tooltipId) {
@@ -7,11 +7,21 @@ class Graph3DVisualizer {
         if (!this.container || typeof THREE === 'undefined') return;
 
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(45, this.container.clientWidth / (this.container.clientHeight || 420), 0.1, 1000);
-        this.camera.position.set(0, 25, 90);
+        
+        // Spherical coordinate parameters (Fixed Radius Math)
+        this.cameraDistance = 95; // Absolute spherical orbit radius
+        this.rotX = 0.25;         // Pitch (radians)
+        this.rotY = 0.0;          // Yaw (radians)
+        this.autoOrbit = true;
+
+        const width = this.container.clientWidth || window.innerWidth;
+        const height = this.container.clientHeight || 420;
+
+        this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        this.updateCameraPosition();
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight || 420);
+        this.renderer.setSize(width, height);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.container.innerHTML = '';
         this.container.appendChild(this.renderer.domElement);
@@ -24,9 +34,6 @@ class Graph3DVisualizer {
         this.isMouseDown = false;
         this.prevMouseX = 0;
         this.prevMouseY = 0;
-        this.rotX = 0.25;
-        this.rotY = 0;
-        this.autoOrbit = true;
 
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
@@ -39,20 +46,28 @@ class Graph3DVisualizer {
     }
 
     initLights() {
-        const ambient = new THREE.AmbientLight(0xffffff, 0.75);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.85);
         this.scene.add(ambient);
 
-        const emeraldPoint = new THREE.PointLight(0x10b981, 2.5, 200);
-        emeraldPoint.position.set(0, 15, 30);
+        const emeraldPoint = new THREE.PointLight(0x10b981, 2.5, 250);
+        emeraldPoint.position.set(0, 20, 40);
         this.scene.add(emeraldPoint);
 
-        const cyanPoint = new THREE.PointLight(0x06b6d4, 2.0, 180);
-        cyanPoint.position.set(-25, -20, 25);
+        const cyanPoint = new THREE.PointLight(0x06b6d4, 2.0, 200);
+        cyanPoint.position.set(-30, -20, 30);
         this.scene.add(cyanPoint);
 
-        const redPoint = new THREE.PointLight(0xef4444, 1.2, 160);
-        redPoint.position.set(35, 20, -30);
+        const redPoint = new THREE.PointLight(0xef4444, 1.2, 180);
+        redPoint.position.set(40, 20, -35);
         this.scene.add(redPoint);
+    }
+
+    updateCameraPosition() {
+        // Strict spherical coordinates (R, theta, phi) centered at (0, 0, 0)
+        this.camera.position.x = this.cameraDistance * Math.sin(this.rotY) * Math.cos(this.rotX);
+        this.camera.position.y = this.cameraDistance * Math.sin(this.rotX);
+        this.camera.position.z = this.cameraDistance * Math.cos(this.rotY) * Math.cos(this.rotX);
+        this.camera.lookAt(0, 0, 0);
     }
 
     initEvents() {
@@ -78,11 +93,12 @@ class Graph3DVisualizer {
                 const deltaY = e.clientY - this.prevMouseY;
                 
                 this.rotY += deltaX * 0.007;
-                // Clamp pitch between -1.35 and 1.35 to prevent gimbal lock and NaN hangs
+                // Clamp pitch strictly between -1.35 and 1.35 radians to prevent gimbal flip
                 this.rotX = Math.max(-1.35, Math.min(1.35, this.rotX + deltaY * 0.007));
                 
                 this.prevMouseX = e.clientX;
                 this.prevMouseY = e.clientY;
+                this.updateCameraPosition();
             }
 
             this.checkHover(e.clientX, e.clientY);
@@ -90,15 +106,16 @@ class Graph3DVisualizer {
 
         dom.addEventListener('wheel', (e) => {
             e.preventDefault();
-            this.camera.position.z = Math.max(25, Math.min(160, this.camera.position.z + e.deltaY * 0.07));
-        });
+            this.cameraDistance = Math.max(30, Math.min(220, this.cameraDistance + e.deltaY * 0.08));
+            this.updateCameraPosition();
+        }, { passive: false });
 
         window.addEventListener('resize', () => this.resize());
     }
 
     resize() {
         if (!this.container || !this.renderer || !this.camera) return;
-        const width = this.container.clientWidth || 800;
+        const width = this.container.clientWidth || window.innerWidth;
         const height = this.container.clientHeight || 420;
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
@@ -107,32 +124,32 @@ class Graph3DVisualizer {
 
     createLabelSprite(text, type) {
         const canvas = document.createElement('canvas');
-        canvas.width = 380;
-        canvas.height = 80;
+        canvas.width = 400;
+        canvas.height = 90;
         const ctx = canvas.getContext('2d');
 
-        let bgColor = 'rgba(16, 185, 129, 0.85)';
+        let bgColor = 'rgba(16, 185, 129, 0.90)';
         let borderColor = '#34d399';
         let prefix = '🎯 [TARGET] ';
         let textColor = '#ffffff';
 
         if (type === 'contract') {
-            bgColor = 'rgba(6, 182, 212, 0.85)';
+            bgColor = 'rgba(6, 182, 212, 0.90)';
             borderColor = '#22d3ee';
             prefix = '🏗️ [CONTRACT] ';
         } else if (type === 'pruned') {
-            bgColor = 'rgba(239, 68, 68, 0.75)';
+            bgColor = 'rgba(239, 68, 68, 0.85)';
             borderColor = '#f87171';
             prefix = '✂️ [PRUNED] ';
         }
 
-        // Draw pill container
+        // Draw pill background
         ctx.fillStyle = bgColor;
         ctx.strokeStyle = borderColor;
         ctx.lineWidth = 4;
         
         ctx.beginPath();
-        ctx.roundRect(10, 10, 360, 60, 14);
+        ctx.roundRect(10, 10, 380, 70, 16);
         ctx.fill();
         ctx.stroke();
 
@@ -141,18 +158,22 @@ class Graph3DVisualizer {
         ctx.font = 'bold 24px JetBrains Mono, monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(prefix + text, 190, 40);
+        ctx.fillText(prefix + text, 200, 45);
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearFilter;
-        const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+        const spriteMat = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: false,
+            depthWrite: false
+        });
         const sprite = new THREE.Sprite(spriteMat);
-        sprite.scale.set(15, 3.2, 1);
+        sprite.scale.set(16, 3.6, 1);
         return sprite;
     }
 
     loadScenario(targetName, contracts = [], pruned = []) {
-        // Safe disposal of existing meshes and geometries
         this.cleanupScene();
 
         // 1. LLM Context Boundary 3D Wireframe Icosahedron (Emerald Sphere)
@@ -161,7 +182,7 @@ class Graph3DVisualizer {
             color: 0x10b981,
             wireframe: true,
             transparent: true,
-            opacity: 0.22
+            opacity: 0.25
         });
         const boundarySphere = new THREE.Mesh(boundaryGeo, boundaryMat);
         this.scene.add(boundarySphere);
@@ -180,14 +201,14 @@ class Graph3DVisualizer {
         targetMesh.userData = {
             label: targetName || 'TargetFunction',
             type: 'target',
-            status: 'KEPT IN 3D CONTEXT',
+            status: 'KEPT IN CONTEXT (LLM PROMPT)',
             tokens: 180,
-            description: '🎯 Target Function: Central execution symbol requested by prompt.'
+            description: '🎯 Target Function: Central symbol requested by prompt.'
         };
         this.scene.add(targetMesh);
         this.nodeMeshes.push(targetMesh);
 
-        // Add 3D Billboard Label for Target
+        // Target Billboard Label
         const targetLabel = this.createLabelSprite(targetName || 'TargetFunction', 'target');
         targetLabel.position.set(0, 7.5, 0);
         this.scene.add(targetLabel);
@@ -199,7 +220,7 @@ class Graph3DVisualizer {
             const angle = (idx / contractList.length) * Math.PI * 2;
             const dist = 16.5;
             const x = Math.cos(angle) * dist;
-            const y = (idx % 2 === 0 ? 5.5 : -5.5);
+            const y = (idx % 2 === 0 ? 6.0 : -6.0);
             const z = Math.sin(angle) * dist;
 
             const geo = new THREE.SphereGeometry(2.8, 24, 24);
@@ -214,14 +235,14 @@ class Graph3DVisualizer {
             mesh.userData = {
                 label: c,
                 type: 'contract',
-                status: 'HOISTED CONTRACT',
+                status: 'HOISTED CONTRACT (TYPE SAFE)',
                 tokens: 45,
-                description: '🏗️ Upstream Type Contract: Hoisted inside prompt boundary to prevent LLM hallucinations.'
+                description: '🏗️ Upstream Type Contract: Kept inside boundary to preserve parameter contracts without hallucinations.'
             };
             this.scene.add(mesh);
             this.nodeMeshes.push(mesh);
 
-            // Add 3D Billboard Label
+            // Contract Billboard Label
             const label = this.createLabelSprite(c, 'contract');
             label.position.set(x, y + 5.2, z);
             this.scene.add(label);
@@ -232,13 +253,13 @@ class Graph3DVisualizer {
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(x, y, z)
             ]);
-            const lineMat = new THREE.LineBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.75, linewidth: 2 });
+            const lineMat = new THREE.LineBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.8 });
             const line = new THREE.Line(lineGeo, lineMat);
             this.scene.add(line);
             this.lines.push(line);
         });
 
-        // 4. Pruned Outer Debris (Red Spheres drifting outside boundary)
+        // 4. Pruned Outer Debris (Red Spheres in Outer Orbit)
         const defaultPruned = ['NotificationService', 'DatabasePool', 'RefundWebhook', 'TaxCalculator', 'AuditLogger', 'ExportScript'];
         const prunedList = pruned.length > 0 ? pruned : defaultPruned;
 
@@ -255,7 +276,7 @@ class Graph3DVisualizer {
             const mat = new THREE.MeshStandardMaterial({
                 color: 0xef4444,
                 transparent: true,
-                opacity: 0.45,
+                opacity: 0.55,
                 roughness: 0.8
             });
             const mesh = new THREE.Mesh(geo, mat);
@@ -263,14 +284,14 @@ class Graph3DVisualizer {
             mesh.userData = {
                 label: p,
                 type: 'pruned',
-                status: 'PRUNED FROM 3D CONTEXT',
+                status: 'PRUNED FROM LLM PROMPT (-95% BLOAT)',
                 tokens: 1250,
-                description: '✂️ Pruned Monolith Code: Omitted from LLM prompt (-95% token savings).'
+                description: '✂️ Pruned Monolith Code: Omitted from prompt to save tokens and prevent lost-in-the-middle confusion.'
             };
             this.scene.add(mesh);
             this.nodeMeshes.push(mesh);
 
-            // Add 3D Billboard Label for pruned nodes
+            // Pruned Billboard Label
             const label = this.createLabelSprite(p, 'pruned');
             label.position.set(x, y + 4.2, z);
             this.scene.add(label);
@@ -340,7 +361,7 @@ class Graph3DVisualizer {
                 </div>
                 <p class="text-zinc-300 text-[11px] leading-relaxed">${data.description}</p>
                 <div class="text-[10px] text-zinc-500 pt-1 border-t border-white/10 flex justify-between">
-                    <span>Token Footprint: <strong class="text-white">${data.tokens} tokens</strong></span>
+                    <span>Token Impact: <strong class="text-white">${data.tokens} tokens</strong></span>
                     <span>Status: <strong class="${data.type === 'pruned' ? 'text-red-400' : 'text-emerald-400'}">${data.status}</strong></span>
                 </div>
             </div>
@@ -363,9 +384,20 @@ class Graph3DVisualizer {
     }
 
     resetCamera() {
+        this.cameraDistance = 95;
         this.rotX = 0.25;
-        this.rotY = 0;
-        this.camera.position.set(0, 25, 90);
+        this.rotY = 0.0;
+        this.updateCameraPosition();
+    }
+
+    zoomIn() {
+        this.cameraDistance = Math.max(30, this.cameraDistance - 15);
+        this.updateCameraPosition();
+    }
+
+    zoomOut() {
+        this.cameraDistance = Math.min(220, this.cameraDistance + 15);
+        this.updateCameraPosition();
     }
 
     toggleAutoOrbit() {
@@ -380,16 +412,11 @@ class Graph3DVisualizer {
             if (this.isDestroyed) return;
             this.animFrameId = requestAnimationFrame(render);
 
-            // Smooth auto-orbit rotation when user is not actively dragging
+            // Smooth continuous orbit drift when not actively dragging
             if (!this.isMouseDown && this.autoOrbit) {
                 this.rotY += 0.0035;
+                this.updateCameraPosition();
             }
-
-            const radius = this.camera.position.z;
-            this.camera.position.x = radius * Math.sin(this.rotY) * Math.cos(this.rotX);
-            this.camera.position.y = radius * Math.sin(this.rotX);
-            this.camera.position.z = radius * Math.cos(this.rotY) * Math.cos(this.rotX);
-            this.camera.lookAt(0, 0, 0);
 
             this.renderer.render(this.scene, this.camera);
         };
@@ -410,6 +437,7 @@ class Graph3DVisualizer {
 // Global 3D Visualizer Singleton
 let global3DVisualizer = null;
 let activeGraphMode = '2d'; // '2d' or '3d'
+let isFullscreenActive = false;
 
 function init3DVisualizer() {
     if (!document.getElementById('graph3dContainer')) return;
@@ -460,41 +488,34 @@ function update3DGraphForScenario() {
     }
 }
 
-// Fullscreen Modal Controls
-function openGraphFullscreen() {
-    const modal = document.getElementById('graph-fullscreen-modal');
-    const modalTarget = document.getElementById('fullscreen-graph-target');
-    if (!modal || !modalTarget) return;
+// Seamless CSS Fullscreen Inspection Toggle (Zero DOM Detach / Zero Glitch)
+function toggleGraphFullscreen() {
+    const card = document.getElementById('graph-visualizer-card');
+    const fullscreenBtn = document.getElementById('graph-fullscreen-btn');
+    const hud = document.getElementById('fullscreen-hud-bar');
 
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    if (!card) return;
+    isFullscreenActive = !isFullscreenActive;
 
-    // Move 3D or 2D canvas into fullscreen modal
-    const originalWrapper = document.getElementById('graph2dWrapper');
-    if (originalWrapper) {
-        modalTarget.appendChild(originalWrapper);
+    if (isFullscreenActive) {
+        card.classList.add('fixed', 'inset-0', 'z-50', 'w-screen', 'h-screen', 'rounded-none', 'bg-black/95', 'backdrop-blur-3xl', 'p-8', 'flex', 'flex-col', 'justify-between');
+        card.classList.remove('rounded-3xl', 'p-6');
+        document.body.style.overflow = 'hidden';
+        if (hud) hud.classList.remove('hidden');
+        if (fullscreenBtn) fullscreenBtn.innerHTML = '<span>✕ Exit Fullscreen</span>';
+    } else {
+        card.classList.remove('fixed', 'inset-0', 'z-50', 'w-screen', 'h-screen', 'rounded-none', 'bg-black/95', 'backdrop-blur-3xl', 'p-8', 'flex', 'flex-col', 'justify-between');
+        card.classList.add('rounded-3xl', 'p-6');
+        document.body.style.overflow = '';
+        if (hud) hud.classList.add('hidden');
+        if (fullscreenBtn) fullscreenBtn.innerHTML = '<span>⛶ Fullscreen</span>';
+    }
+
+    setTimeout(() => {
         if (global3DVisualizer && activeGraphMode === '3d') {
-            setTimeout(() => global3DVisualizer.resize(), 100);
+            global3DVisualizer.resize();
         } else if (globalGraphVisualizer) {
-            setTimeout(() => globalGraphVisualizer.resize(), 100);
+            globalGraphVisualizer.resize();
         }
-    }
-}
-
-function closeGraphFullscreen() {
-    const modal = document.getElementById('graph-fullscreen-modal');
-    const originalHost = document.getElementById('graph-original-host');
-    const originalWrapper = document.getElementById('graph2dWrapper');
-
-    if (!modal || !originalHost || !originalWrapper) return;
-
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-
-    originalHost.appendChild(originalWrapper);
-    if (global3DVisualizer && activeGraphMode === '3d') {
-        setTimeout(() => global3DVisualizer.resize(), 100);
-    } else if (globalGraphVisualizer) {
-        setTimeout(() => globalGraphVisualizer.resize(), 100);
-    }
+    }, 100);
 }

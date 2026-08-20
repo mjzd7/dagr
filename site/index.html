@@ -75,7 +75,7 @@
 <body class="text-zinc-100 font-sans min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
 
     <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-50 glass-card border-b border-white/10 px-6 py-3.5 flex items-center justify-between">
+    <header class="sticky top-0 z-40 glass-card border-b border-white/10 px-6 py-3.5 flex items-center justify-between">
         <div class="flex items-center space-x-3">
             <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 via-emerald-400 to-cyan-400 flex items-center justify-center font-mono font-bold text-black text-lg shadow-lg">
                 ⚡
@@ -367,7 +367,7 @@ export async function sendReceiptEmail(email: string, amount: number) {
             </div>
         </section>
 
-        <!-- 4. VISUAL AST DEPENDENCY & PRUNING GRAPH (2D / 3D SWITCHER & FULLSCREEN MODAL) -->
+        <!-- 4. VISUAL AST DEPENDENCY & PRUNING GRAPH (2D / 3D SWITCHER & FULLSCREEN) -->
         <section id="visual-graph" class="space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -385,13 +385,39 @@ export async function sendReceiptEmail(email: string, amount: number) {
                             🪐 3D WebGL Orbit
                         </button>
                     </div>
-                    <button onclick="openGraphFullscreen()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300 hover:text-white transition-all flex items-center space-x-1.5">
+                    <button onclick="toggleGraphFullscreen()" id="graph-fullscreen-btn" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300 hover:text-white transition-all flex items-center space-x-1.5 shadow-sm">
                         <span>⛶ Fullscreen</span>
                     </button>
                 </div>
             </div>
 
-            <div class="glass-card rounded-3xl p-6 space-y-4 relative" id="graph-original-host">
+            <!-- Visualizer Card Container -->
+            <div class="glass-card rounded-3xl p-6 space-y-4 relative transition-all" id="graph-visualizer-card">
+                <!-- Fullscreen Top HUD Bar (Visible only when Fullscreen) -->
+                <div id="fullscreen-hud-bar" class="hidden flex items-center justify-between border-b border-white/10 pb-3">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-bold text-white font-mono">🪐 DAGR 3D/2D Immersive Graph Inspection</span>
+                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono border border-emerald-500/30">Live Context Model</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="if (global3DVisualizer) global3DVisualizer.resetCamera()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
+                            🔄 Reset Camera
+                        </button>
+                        <button onclick="if (global3DVisualizer) global3DVisualizer.zoomIn()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
+                            🔍 Zoom +
+                        </button>
+                        <button onclick="if (global3DVisualizer) global3DVisualizer.zoomOut()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
+                            🔍 Zoom -
+                        </button>
+                        <button onclick="if (global3DVisualizer) global3DVisualizer.toggleAutoOrbit()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-cyan-400">
+                            🌀 Auto-Orbit
+                        </button>
+                        <button onclick="toggleGraphFullscreen()" class="px-4 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-xs font-mono text-red-400 font-bold transition-all">
+                            ✕ Exit Fullscreen
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Legend Strip -->
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4 text-xs font-mono">
                     <div class="flex flex-wrap items-center gap-3">
@@ -405,14 +431,14 @@ export async function sendReceiptEmail(email: string, amount: number) {
                 </div>
 
                 <!-- 2D / 3D Canvas Host Container -->
-                <div id="graph2dWrapper" class="relative w-full rounded-2xl bg-zinc-950/90 border border-white/5 overflow-hidden flex items-center justify-center min-h-[420px]">
+                <div id="graph2dWrapper" class="relative w-full rounded-2xl bg-zinc-950/90 border border-white/5 overflow-hidden flex items-center justify-center min-h-[420px] flex-1">
                     <canvas id="astGraphCanvas" class="cursor-grab active:cursor-grabbing w-full h-[420px]"></canvas>
                     
                     <!-- 3D WebGL Container -->
                     <div id="graph3dContainer" class="hidden w-full h-[420px] cursor-grab active:cursor-grabbing"></div>
 
                     <!-- Dynamic Tooltip -->
-                    <div id="graphTooltip" class="hidden absolute glass-card p-3 rounded-xl border border-white/20 shadow-2xl z-20 pointer-events-none transition-all">
+                    <div id="graphTooltip" class="hidden absolute glass-card p-3 rounded-xl border border-white/20 shadow-2xl z-50 pointer-events-none transition-all">
                         <!-- Populated dynamically -->
                     </div>
                 </div>
@@ -463,39 +489,6 @@ export async function sendReceiptEmail(email: string, amount: number) {
                 </div>
             </div>
         </section>
-
-        <!-- FULLSCREEN GRAPH MODAL OVERLAY -->
-        <div id="graph-fullscreen-modal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl p-6 flex flex-col justify-between">
-            <!-- Modal Header HUD -->
-            <div class="flex items-center justify-between border-b border-white/10 pb-4">
-                <div class="flex items-center space-x-3">
-                    <span class="text-sm font-bold text-white font-mono">🪐 DAGR 3D/2D Immersive Graph Inspection</span>
-                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono border border-emerald-500/30">Live Context Model</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="if (global3DVisualizer) global3DVisualizer.resetCamera()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
-                        🔄 Reset Camera
-                    </button>
-                    <button onclick="if (global3DVisualizer) global3DVisualizer.toggleAutoOrbit()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-cyan-400">
-                        🌀 Auto-Orbit
-                    </button>
-                    <button onclick="closeGraphFullscreen()" class="px-4 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-xs font-mono text-red-400 font-bold transition-all">
-                        ✕ Exit Fullscreen
-                    </button>
-                </div>
-            </div>
-
-            <!-- Fullscreen Host Target -->
-            <div id="fullscreen-graph-target" class="flex-1 my-4 flex items-center justify-center relative rounded-3xl overflow-hidden bg-zinc-950/80 border border-white/5">
-                <!-- Wrapper will be moved here -->
-            </div>
-
-            <!-- Modal Footer FinOps Info -->
-            <div class="flex items-center justify-between border-t border-white/10 pt-3 text-xs font-mono text-zinc-400">
-                <span>Green Core: Target Symbol • Cyan Satellites: Hoisted Contracts • Outer Debris: Pruned (-95% Bloat)</span>
-                <span class="text-emerald-400 font-bold">Sub-0.3ms Zero-Cloud Local AST Engine</span>
-            </div>
-        </div>
 
         <!-- 5. LIVE ITERATIONS & TELEMETRY LEDGER -->
         <section id="history-ledger" class="space-y-6">

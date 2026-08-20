@@ -3,7 +3,7 @@ const path = require('path');
 const assert = require('assert');
 
 (async () => {
-    console.log('🧪 Starting E2E Verification for 3D Zero-Hang Engine, Billboard Labels & Fullscreen Modal...');
+    console.log('🧪 Starting E2E Verification for 3D Zero-Hang Engine, Billboard Labels & Seamless Fullscreen HUD...');
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
 
@@ -20,33 +20,41 @@ const assert = require('assert');
         return {
             meshes: global3DVisualizer.nodeMeshes.length,
             labels: global3DVisualizer.labelSprites.length,
-            lines: global3DVisualizer.lines.length,
+            cameraDist: global3DVisualizer.cameraDistance,
             autoOrbit: global3DVisualizer.autoOrbit
         };
     });
 
     assert(stats3D.meshes >= 3, 'Should have target, contract and boundary meshes');
     assert(stats3D.labels >= 3, 'Should have billboard text labels for all nodes');
-    console.log(`✓ 3D Scene Verified: ${stats3D.meshes} meshes, ${stats3D.labels} billboard sprites`);
+    assert.strictEqual(stats3D.cameraDist, 95, 'Camera distance should be constant 95');
+    console.log(`✓ 3D Scene Verified: ${stats3D.meshes} meshes, ${stats3D.labels} billboard sprites, camera distance ${stats3D.cameraDist}`);
 
-    // 3. Open Fullscreen Modal
-    await page.click('button:has-text("⛶ Fullscreen")');
-    const isModalVisible = await page.locator('#graph-fullscreen-modal').isVisible();
-    assert(isModalVisible, 'Fullscreen modal must be visible');
+    // 3. Test Continuous Orbit Without Decay (Wait 1.5 seconds)
+    await page.waitForTimeout(1500);
+    const cameraDistAfterOrbit = await page.evaluate(() => global3DVisualizer.cameraDistance);
+    assert.strictEqual(cameraDistAfterOrbit, 95, 'Camera distance must remain strictly 95 without decaying into 0');
 
-    // 4. Test Camera Controls in Fullscreen
+    // 4. Open Seamless Fullscreen Mode
+    await page.click('#graph-fullscreen-btn');
+    const isHudVisible = await page.locator('#fullscreen-hud-bar').isVisible();
+    assert(isHudVisible, 'Fullscreen HUD bar must be visible');
+
+    // 5. Test Camera Controls in Fullscreen
     await page.click('button:has-text("🔄 Reset Camera")');
+    await page.click('button:has-text("🔍 Zoom +")');
+    await page.click('button:has-text("🔍 Zoom -")');
     await page.click('button:has-text("🌀 Auto-Orbit")');
 
-    // 5. Close Fullscreen Modal
-    await page.click('button:has-text("✕ Exit Fullscreen")');
-    const isModalClosed = await page.locator('#graph-fullscreen-modal').isHidden();
-    assert(isModalClosed, 'Fullscreen modal must be closed');
+    // 6. Close Fullscreen
+    await page.click('#graph-fullscreen-btn');
+    const isHudClosed = await page.locator('#fullscreen-hud-bar').isHidden();
+    assert(isHudClosed, 'Fullscreen HUD bar must be hidden after exiting');
 
-    // 6. Verify Graph Anatomy Guide Cards exist
+    // 7. Verify Graph Anatomy Guide Cards exist
     const anatomyGuide = await page.locator('text=How to Read This Code Graph').isVisible();
     assert(anatomyGuide, 'Graph Anatomy Guide section must be visible');
 
-    console.log('✅ ALL 3D ENGINE, BILLBOARD LABELS & FULLSCREEN MODAL TESTS PASSED 100%!');
+    console.log('✅ ALL 3D ZERO-HANG ENGINE, BILLBOARD LABELS & SEAMLESS FULLSCREEN TESTS PASSED 100%!');
     await browser.close();
 })();
