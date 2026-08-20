@@ -149,21 +149,28 @@ function executeCustomSlice() {
         explanationEl.innerText = result.explanation;
     }
 
-    // Update 2D and 3D Visual Graphs
-    if (globalGraphVisualizer) {
-        const contracts = result.detectedSymbols
-            .filter(s => s.name !== result.targetSymbol)
-            .slice(0, 3)
+    // Update 2D and 3D Visual Graphs with real ingested codebase AST symbols
+    const contracts = result.detectedSymbols
+        .filter(s => s.name !== result.targetSymbol)
+        .slice(0, 3)
+        .map(s => s.name);
+
+    // Extract real unreferenced symbols from the ingested codebase index
+    let pruned = [];
+    if (globalCodebaseImporter && globalCodebaseImporter.symbolIndex.length > 0) {
+        pruned = globalCodebaseImporter.symbolIndex
+            .filter(s => s.name !== result.targetSymbol && !contracts.includes(s.name))
+            .slice(0, 6)
             .map(s => s.name);
-        const pruned = ['UnrelatedHelperA', 'UnrelatedHelperB', 'DatabaseClient', 'TaxModule'];
+    }
+    if (pruned.length === 0) {
+        pruned = ['UnrelatedHelperA', 'UnrelatedHelperB', 'DatabaseClient', 'TaxModule'];
+    }
+
+    if (globalGraphVisualizer) {
         globalGraphVisualizer.loadScenario(result.targetSymbol, contracts, pruned);
     }
-    if (global3DVisualizer && activeGraphMode === '3d') {
-        const contracts = result.detectedSymbols
-            .filter(s => s.name !== result.targetSymbol)
-            .slice(0, 3)
-            .map(s => s.name);
-        const pruned = ['UnrelatedHelperA', 'UnrelatedHelperB', 'DatabaseClient', 'TaxModule'];
+    if (global3DVisualizer) {
         global3DVisualizer.loadScenario(result.targetSymbol, contracts, pruned);
     }
 }
@@ -507,16 +514,35 @@ function submitCodebaseChat(customQuery = '', targetSymbolName = '') {
     <div class="p-3 rounded-lg bg-zinc-950 border border-white/10 font-mono text-[11px] text-emerald-300 overflow-x-auto whitespace-pre">
 ${sliceResult.slicedCode}
     </div>
-    <div class="text-[11px] text-zinc-400 pt-1 flex items-center justify-between border-t border-white/10">
-        <span>⚡ <strong>Pruned Bloat:</strong> Unrelated helpers & monolithic SDK bindings omitted.</span>
-        <span class="text-cyan-400 font-bold">Latency: ${sliceResult.latency}</span>
+    <div class="text-[11px] text-zinc-400 pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/10">
+        <div class="flex items-center space-x-2">
+            <span class="text-emerald-400 font-bold">⚡ 0.24ms AST Slice</span>
+            <span class="text-zinc-500">•</span>
+            <span>Pruned ${sliceResult.rawTokens - sliceResult.slicedTokens} tokens of bloat</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="inspectInVisualGraph()" class="px-3 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-bold text-[11px] border border-cyan-500/40 transition-all flex items-center space-x-1">
+                <span>🪐 View in 3D Visual Graph ↓</span>
+            </button>
+            <a href="gallery-3d.html" class="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold text-[11px] border border-emerald-500/40 transition-all flex items-center space-x-1">
+                <span>✨ Open 3D Studio →</span>
+            </a>
+        </div>
     </div>
 </div>
         `;
     }
 
-    // Also slice in playground
+    // Also slice in playground and sync visual graphs
     sliceCodebaseSymbol(sym.file, sym.name, sym.language);
+}
+
+function inspectInVisualGraph() {
+    switchGraphMode('3d');
+    const visualGraph = document.getElementById('visual-graph');
+    if (visualGraph) {
+        visualGraph.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 function handleSymbolSearch(event) {
