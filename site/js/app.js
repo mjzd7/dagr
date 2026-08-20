@@ -1,4 +1,4 @@
-// ⚡ DAGR Interactive Landing Page & Custom Code AST Slicer Engine
+// ⚡ DAGR Interactive Landing Page, Multi-File Codebase Importer & 3D AST Slicer Engine
 
 document.addEventListener('DOMContentLoaded', () => {
     initSimulator();
@@ -38,7 +38,9 @@ function selectScenario(scenarioKey) {
         if (customPanel) customPanel.classList.add('hidden');
         renderSimulatorScenario(scenarioKey);
     }
+    
     updateGraphForActiveScenario();
+    if (activeGraphMode === '3d') update3DGraphForScenario();
 }
 
 function renderSimulatorScenario(key) {
@@ -71,7 +73,6 @@ function renderSimulatorScenario(key) {
 function setupCustomCodeListeners() {
     const codeTextarea = document.getElementById('custom-code-input');
     const langSelect = document.getElementById('custom-lang-select');
-    const symbolInput = document.getElementById('custom-symbol-input');
 
     if (codeTextarea) {
         codeTextarea.addEventListener('input', () => {
@@ -148,6 +149,7 @@ function executeCustomSlice() {
         explanationEl.innerText = result.explanation;
     }
 
+    // Update 2D and 3D Visual Graphs
     if (globalGraphVisualizer) {
         const contracts = result.detectedSymbols
             .filter(s => s.name !== result.targetSymbol)
@@ -156,14 +158,149 @@ function executeCustomSlice() {
         const pruned = ['UnrelatedHelperA', 'UnrelatedHelperB', 'DatabaseClient', 'TaxModule'];
         globalGraphVisualizer.loadScenario(result.targetSymbol, contracts, pruned);
     }
+    if (global3DVisualizer && activeGraphMode === '3d') {
+        const contracts = result.detectedSymbols
+            .filter(s => s.name !== result.targetSymbol)
+            .slice(0, 3)
+            .map(s => s.name);
+        const pruned = ['UnrelatedHelperA', 'UnrelatedHelperB', 'DatabaseClient', 'TaxModule'];
+        global3DVisualizer.loadScenario(result.targetSymbol, contracts, pruned);
+    }
 }
 
-function renderCustomSlicing() {
-    updateDetectedSymbols();
+// 3. Multi-File Codebase Ingestion (GitHub, GitLab, ZIP, Folder)
+function switchIngestMode(mode) {
+    ['github', 'zip', 'folder'].forEach(m => {
+        const tab = document.getElementById(`ingest-tab-${m}`);
+        const panel = document.getElementById(`ingest-panel-${m}`);
+        if (m === mode) {
+            if (tab) tab.className = 'px-4 py-2 rounded-xl bg-white/10 text-white font-semibold text-xs border border-white/20 transition-all flex items-center space-x-2';
+            if (panel) panel.classList.remove('hidden');
+        } else {
+            if (tab) tab.className = 'px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all flex items-center space-x-2';
+            if (panel) panel.classList.add('hidden');
+        }
+    });
+}
+
+async function importFromGitHubUrl() {
+    const urlInput = document.getElementById('github-url-input');
+    const statusLabel = document.getElementById('ingest-status-label');
+    const importBtn = document.getElementById('github-import-btn');
+
+    const url = urlInput.value.trim();
+    if (!url) {
+        alert('Please enter a GitHub repository or file URL.');
+        return;
+    }
+
+    try {
+        importBtn.innerText = '⏳ Ingesting...';
+        statusLabel.innerText = 'Fetching repository tree & indexing symbols...';
+        const result = await globalCodebaseImporter.importFromGitHub(url);
+
+        renderCodebaseResults(result);
+        statusLabel.innerText = `✓ Loaded ${result.totalFiles} files (${result.totalSymbols} symbols)`;
+        importBtn.innerText = '⚡ Ingest & Index Repo';
+    } catch (e) {
+        console.error(e);
+        statusLabel.innerText = `Error: ${e.message}`;
+        alert(e.message);
+        importBtn.innerText = '⚡ Ingest & Index Repo';
+    }
+}
+
+async function handleZipUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const statusLabel = document.getElementById('ingest-status-label');
+    statusLabel.innerText = `Extracting ${file.name}...`;
+
+    try {
+        const result = await globalCodebaseImporter.importFromZip(file);
+        renderCodebaseResults(result);
+        statusLabel.innerText = `✓ Extracted ${result.totalFiles} files (${result.totalSymbols} symbols) from ZIP`;
+    } catch (e) {
+        alert(`ZIP Extraction failed: ${e.message}`);
+    }
+}
+
+async function handleFolderUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const statusLabel = document.getElementById('ingest-status-label');
+    statusLabel.innerText = `Ingesting ${files.length} files...`;
+
+    try {
+        const result = await globalCodebaseImporter.importFromFolder(files);
+        renderCodebaseResults(result);
+        statusLabel.innerText = `✓ Ingested ${result.totalFiles} files (${result.totalSymbols} symbols)`;
+    } catch (e) {
+        alert(`Folder ingestion failed: ${e.message}`);
+    }
+}
+
+function renderCodebaseResults(result) {
+    const container = document.getElementById('codebase-results-container');
+    const titleEl = document.getElementById('ingested-repo-title');
+    const countsEl = document.getElementById('ingested-counts-badge');
+    const grid = document.getElementById('codebase-symbols-grid');
+
+    if (container) container.classList.remove('hidden');
+    if (titleEl) titleEl.innerText = result.repoName;
+    if (countsEl) countsEl.innerText = `(${result.totalFiles} files, ${result.totalSymbols} symbols)`;
+
+    renderSymbolGrid(globalCodebaseImporter.searchSymbols(''));
+}
+
+function handleSymbolSearch(event) {
+    const query = event.target.value;
+    const matches = globalCodebaseImporter.searchSymbols(query);
+    renderSymbolGrid(matches);
+}
+
+function renderSymbolGrid(symbols) {
+    const grid = document.getElementById('codebase-symbols-grid');
+    if (!grid) return;
+
+    if (symbols.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-6 text-center text-zinc-500 font-mono text-xs">No matching symbols found. Try searching for "function", "class", or "get".</div>`;
+        return;
+    }
+
+    grid.innerHTML = symbols.map(s => `
+        <div onclick="sliceCodebaseSymbol('${s.file}', '${s.name}', '${s.language}')" class="p-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/10 hover:border-emerald-500/40 cursor-pointer transition-all group flex items-center justify-between">
+            <div class="min-w-0">
+                <div class="text-xs font-bold text-white group-hover:text-emerald-400 truncate flex items-center space-x-1.5">
+                    <span>⚡</span>
+                    <span class="truncate">${s.name}</span>
+                </div>
+                <div class="text-[10px] font-mono text-zinc-500 truncate">${s.file}:${s.line}</div>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-zinc-800 text-[10px] font-mono text-cyan-400 border border-white/5 uppercase">${s.language}</span>
+        </div>
+    `).join('');
+}
+
+function sliceCodebaseSymbol(filePath, symbolName, language) {
+    const rawContent = globalCodebaseImporter.getFileContent(filePath);
+    if (!rawContent) return;
+
+    // Populate custom code panel with selected file
+    document.getElementById('custom-code-input').value = rawContent;
+    document.getElementById('custom-symbol-input').value = symbolName;
+    document.getElementById('custom-lang-select').value = language;
+
+    selectScenario('custom');
     executeCustomSlice();
+
+    // Smooth scroll down to Slicing Playground
+    document.getElementById('simulator').scrollIntoView({ behavior: 'smooth' });
 }
 
-// 3. Persistent History & Telemetry Ledger
+// 4. Persistent History & Telemetry Ledger
 function initHistoryLedger() {
     renderHistoryLedger();
 }
@@ -173,7 +310,6 @@ function renderHistoryLedger() {
     const metrics = SlicingHistoryStore.getMetrics();
     const history = SlicingHistoryStore.getHistory();
 
-    // Update cumulative summary cards
     if (document.getElementById('history-total-slices')) {
         document.getElementById('history-total-slices').innerText = metrics.totalSlices;
     }
@@ -216,7 +352,7 @@ function clearSlicingHistory() {
     }
 }
 
-// 4. Dynamic Token ROI Financial Calculator
+// 5. Dynamic Token ROI Financial Calculator
 function initRoiCalculator() {
     const teamSlider = document.getElementById('calc-team-size');
     const promptsSlider = document.getElementById('calc-prompts-day');
@@ -232,7 +368,6 @@ function initRoiCalculator() {
         document.getElementById('calc-team-val').innerText = `${teamSize} engineers`;
         document.getElementById('calc-prompts-val').innerText = `${promptsPerDay} prompts / dev / day`;
 
-        // 9,500 tokens saved average per slice, 21 work days
         const tokensSavedPerMonth = teamSize * promptsPerDay * 9500 * 21;
         const usdSavedPerMonth = (tokensSavedPerMonth / 1_000_000) * pricePerM;
         const hoursSavedPerYear = Math.round(teamSize * 2.5 * 12);
@@ -248,7 +383,7 @@ function initRoiCalculator() {
     recalculate();
 }
 
-// 5. 31 Supported AI Coding Clients Grid
+// 6. 31 Supported AI Coding Clients Grid
 function initClientsGrid() {
     const grid = document.getElementById('clients-grid-container');
     const searchInput = document.getElementById('clients-search-input');
@@ -298,7 +433,7 @@ function initClientsGrid() {
     renderClients();
 }
 
-// 6. Clipboard Utility
+// 7. Clipboard Utility
 function copyToClipboard(text, triggerBtn) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => showCopyFeedback(triggerBtn));
