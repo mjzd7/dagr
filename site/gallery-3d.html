@@ -64,13 +64,13 @@
 
         <!-- Scenario Switcher -->
         <div class="flex items-center space-x-2">
-            <button onclick="loadScenarioData('payment')" id="btn-payment" class="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all">
+            <button onclick="switchScenario('payment')" id="btn-payment" class="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all">
                 TypeScript: processPayment
             </button>
-            <button onclick="loadScenarioData('auth')" id="btn-auth" class="px-3.5 py-1.5 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
+            <button onclick="switchScenario('auth')" id="btn-auth" class="px-3.5 py-1.5 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
                 Python: verify_token
             </button>
-            <button onclick="loadScenarioData('db')" id="btn-db" class="px-3.5 py-1.5 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
+            <button onclick="switchScenario('db')" id="btn-db" class="px-3.5 py-1.5 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
                 Rust: open_database
             </button>
             <a href="index.html" class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-mono font-semibold transition-all">
@@ -156,7 +156,7 @@
         </div>
     </main>
 
-    <!-- Atmospheric 3D Force Graph Engine Script with Dynamic Boundary Guard -->
+    <!-- Robust Single-Instance 3D Engine Script -->
     <script>
         let Graph = null;
         let bloomPass = null;
@@ -174,6 +174,7 @@
         let highlightNodes = new Set();
         let highlightLinks = new Set();
         let hoverNode = null;
+        let orbitAngle = 0;
 
         const GLOBE_RADIUS = 68; // Globe mesh boundary radius
 
@@ -181,12 +182,9 @@
             payment: {
                 name: 'TypeScript (Stripe Payment)',
                 nodes: [
-                    // 1. Green Target Core strictly centered at (0, 0, 0)
-                    { id: 'processPayment', name: '🎯 processPayment()', group: 'target', tokens: 180, desc: '🎯 Target Function: Central business logic symbol requested by prompt.', fx: 0, fy: 0, fz: 0 },
-                    // 2. Cyan Blue Contract Nodes: 120° angular gap, different arm lengths (r1 = 35, r2 = 49), strictly inside globe
+                    { id: 'processPayment', name: '🎯 processPayment()', group: 'target', tokens: 180, desc: '🎯 Target Function: Central business logic symbol requested by prompt.', fx: 0, fy: 0, fz: 0, baseFx: 0, baseFy: 0, baseFz: 0 },
                     { id: 'PaymentPayload', name: '🏗️ PaymentPayload', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Input interface hoisted to prevent hallucinated params.', fx: 34, fy: 10, fz: 8, baseFx: 34, baseFy: 10, baseFz: 8 },
                     { id: 'PaymentReceipt', name: '🏗️ PaymentReceipt', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Return type interface hoisted for deterministic type safety.', fx: -24, fy: -12, fz: 41, baseFx: -24, baseFy: -12, baseFz: 41 },
-                    // 3. Pruned Bloat outside the globe mesh (radius > 100 > 68)
                     { id: 'DatabasePool', name: '✂️ DatabasePool', group: 'pruned', tokens: 1850, desc: '✂️ Pruned Monolith Code: 400 lines of raw SQL connection pooling omitted.', fx: -105, fy: 50, fz: -40, baseFx: -105, baseFy: 50, baseFz: -40 },
                     { id: 'StripeClient', name: '✂️ StripeClient', group: 'pruned', tokens: 2400, desc: '✂️ Pruned Monolith Code: Entire Stripe SDK bindings omitted (-95% bloat).', fx: 115, fy: 40, fz: 55, baseFx: 115, baseFy: 40, baseFz: 55 },
                     { id: 'NotificationService', name: '✂️ NotificationService', group: 'pruned', tokens: 1200, desc: '✂️ Pruned Monolith Code: Unrelated transactional email & SMS workers pruned.', fx: -50, fy: -85, fz: 95, baseFx: -50, baseFy: -85, baseFz: 95 },
@@ -206,7 +204,7 @@
             auth: {
                 name: 'Python (JWT Auth)',
                 nodes: [
-                    { id: 'verify_token', name: '🎯 verify_token()', group: 'target', tokens: 140, desc: '🎯 Target Function: JWT HMAC verification logic requested by prompt.', fx: 0, fy: 0, fz: 0 },
+                    { id: 'verify_token', name: '🎯 verify_token()', group: 'target', tokens: 140, desc: '🎯 Target Function: JWT HMAC verification logic requested by prompt.', fx: 0, fy: 0, fz: 0, baseFx: 0, baseFy: 0, baseFz: 0 },
                     { id: 'AuthToken', name: '🏗️ AuthToken', group: 'contract', tokens: 40, desc: '🏗️ Pydantic Contract: JWT payload schema hoisted for validation.', fx: 32, fy: 12, fz: -10, baseFx: 32, baseFy: 12, baseFz: -10 },
                     { id: 'TokenValidationResult', name: '🏗️ TokenValidationResult', group: 'contract', tokens: 35, desc: '🏗️ Pydantic Contract: Output schema hoisted to guarantee type safety.', fx: -22, fy: -14, fz: 42, baseFx: -22, baseFy: -14, baseFz: 42 },
                     { id: 'RateLimiter', name: '✂️ RateLimiter', group: 'pruned', tokens: 1600, desc: '✂️ Pruned Code: Redis sliding window rate-limiter omitted.', fx: -105, fy: 45, fz: 55, baseFx: -105, baseFy: 45, baseFz: 55 },
@@ -226,7 +224,7 @@
             db: {
                 name: 'Rust (SQLite Storage)',
                 nodes: [
-                    { id: 'open_database', name: '🎯 open_database()', group: 'target', tokens: 190, desc: '🎯 Target Function: SQLite connection builder requested by prompt.', fx: 0, fy: 0, fz: 0 },
+                    { id: 'open_database', name: '🎯 open_database()', group: 'target', tokens: 190, desc: '🎯 Target Function: SQLite connection builder requested by prompt.', fx: 0, fy: 0, fz: 0, baseFx: 0, baseFy: 0, baseFz: 0 },
                     { id: 'DbConfig', name: '🏗️ DbConfig', group: 'contract', tokens: 50, desc: '🏗️ Rust Struct: Connection config struct hoisted for compiler contracts.', fx: 35, fy: 14, fz: 10, baseFx: 35, baseFy: 14, baseFz: 10 },
                     { id: 'StorageMetrics', name: '🏗️ StorageMetrics', group: 'contract', tokens: 45, desc: '🏗️ Rust Struct: Telemetry metrics struct hoisted for return typing.', fx: -25, fy: -10, fz: 44, baseFx: -25, baseFy: -10, baseFz: 44 },
                     { id: 'RawPool', name: '✂️ RawPool', group: 'pruned', tokens: 2200, desc: '✂️ Pruned Code: Mutex pool locks & thread allocator pruned.', fx: -115, fy: 45, fz: -55, baseFx: -115, baseFy: 45, baseFz: -55 },
@@ -245,7 +243,8 @@
             }
         };
 
-        let currentData = SCENARIOS.payment;
+        let currentKey = 'payment';
+        let currentData = JSON.parse(JSON.stringify(SCENARIOS.payment));
 
         function getNodeColor(node) {
             if (highlightNodes.size > 0) {
@@ -299,7 +298,7 @@
         }
 
         function setupAtmosphericBackground(scene) {
-            // 1. 🛡️ Concentric Prompt Boundary Globe Mesh centered at (0, 0, 0) with radius GLOBE_RADIUS
+            // 1. 🛡️ Concentric Prompt Boundary Globe Mesh centered at (0, 0, 0)
             const shieldGeo = new THREE.IcosahedronGeometry(GLOBE_RADIUS, 2);
             const shieldMat = new THREE.MeshBasicMaterial({
                 color: 0x10b981,
@@ -311,7 +310,7 @@
             shieldMesh.position.set(0, 0, 0);
             scene.add(shieldMesh);
 
-            // 2. 🌌 Symmetrical Deep Space Starfield Particles centered at (0, 0, 0)
+            // 2. 🌌 Symmetrical Deep Space Starfield Particles
             const starGeo = new THREE.BufferGeometry();
             const starCount = 1500;
             const starPositions = new Float32Array(starCount * 3);
@@ -341,7 +340,7 @@
             starParticles.position.set(0, 0, 0);
             scene.add(starParticles);
 
-            // 3. 🌐 Perspective Cyber-Grid Floor Plane perfectly leveled on X-Z plane at y = -95
+            // 3. 🌐 Perspective Cyber-Grid Floor Plane at y = -95
             gridHelper = new THREE.GridHelper(600, 40, 0x06b6d4, 0x1e293b);
             gridHelper.position.set(0, -95, 0);
             gridHelper.material.transparent = true;
@@ -387,7 +386,6 @@
                 .nodeVal(node => getNodeVal(node))
                 .nodeColor(node => getNodeColor(node))
                 .nodeResolution(24)
-                // Animated glowing energy particle beams on connection lines
                 .linkDirectionalParticles(link => link.value > 1 ? 5 : 1)
                 .linkDirectionalParticleSpeed(link => link.value > 1 ? 0.009 : 0.002)
                 .linkDirectionalParticleWidth(link => link.value > 1 ? 3.2 : 1.2)
@@ -399,8 +397,8 @@
                     return link.value > 1 ? 'rgba(6, 182, 212, 0.85)' : 'rgba(239, 68, 68, 0.25)';
                 })
                 .linkWidth(link => link.value > 1 ? 2.5 : 0.8)
-                // Interactive Node Drag & Boundary Enforcement Physics
-                .onNodeDrag((node, translate) => {
+                // Interactive Node Drag & Boundary Physics
+                .onNodeDrag((node) => {
                     const distFromCenter = Math.hypot(node.x, node.y, node.z);
 
                     // 1. Target node is permanently locked at (0, 0, 0)
@@ -410,7 +408,7 @@
                         return;
                     }
 
-                    // 2. Blue Contract Nodes: Locked inside globe (dist < GLOBE_RADIUS - 8)
+                    // 2. Blue Contract Nodes: Clamped inside globe
                     if (node.group === 'contract') {
                         if (distFromCenter > GLOBE_RADIUS - 6) {
                             const scale = (GLOBE_RADIUS - 10) / distFromCenter;
@@ -430,7 +428,7 @@
                         }
                     }
 
-                    // 3. Red Pruned Nodes: Repelled from entering globe (dist > GLOBE_RADIUS + 12)
+                    // 3. Red Pruned Nodes: Repelled outside globe
                     if (node.group === 'pruned') {
                         if (distFromCenter < GLOBE_RADIUS + 18) {
                             const scale = (GLOBE_RADIUS + 30) / Math.max(1, distFromCenter);
@@ -463,7 +461,6 @@
                         node.fz = node.baseFz || 55;
                     }
                 })
-                // Interactive Hover Highlighting
                 .onNodeHover(node => {
                     highlightNodes.clear();
                     highlightLinks.clear();
@@ -489,10 +486,8 @@
                          .linkColor(Graph.linkColor());
                 })
                 .onNodeClick(node => {
-                    // Trigger Slicing Shockwave Ring
                     triggerShockwave(node.x, node.y, node.z, Graph.scene(), node.group === 'target' ? 0x10b981 : (node.group === 'contract' ? 0x06b6d4 : 0xef4444));
 
-                    // Aim camera smoothly
                     const distance = 80;
                     const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
                     Graph.cameraPosition(
@@ -506,61 +501,59 @@
             // Setup Atmospheric Environment into Three.js Scene
             setupAtmosphericBackground(Graph.scene());
 
-            // Attach Unreal Bloom Pass Shader to PostProcessing Composer
+            // Attach Unreal Bloom Pass
             try {
                 if (typeof THREE.UnrealBloomPass !== 'undefined') {
                     bloomPass = new THREE.UnrealBloomPass();
-                    bloomPass.strength = 2.6;   // Vibrant neon bloom
-                    bloomPass.radius = 0.85;    // Glow diffusion
-                    bloomPass.threshold = 0.12; // Glow threshold
+                    bloomPass.strength = 2.6;
+                    bloomPass.radius = 0.85;
+                    bloomPass.threshold = 0.12;
                     Graph.postProcessingComposer().addPass(bloomPass);
                 }
             } catch(e) {
-                console.warn('Unreal Bloom Pass initialization error:', e);
+                console.warn('Unreal Bloom Pass error:', e);
             }
 
             // Set initial camera perspective strictly aimed at origin (0, 0, 0)
             Graph.cameraPosition({ x: 0, y: 25, z: 220 }, { x: 0, y: 0, z: 0 }, 1000);
-
-            // Ambient background animation loop locked around origin (0, 0, 0)
-            let angle = 0;
-            setInterval(() => {
-                // Symmetrical auto-orbit around (0, 0, 0)
-                if (!hoverNode) {
-                    Graph.cameraPosition({
-                        x: 220 * Math.sin(angle),
-                        y: 25,
-                        z: 220 * Math.cos(angle)
-                    }, { x: 0, y: 0, z: 0 });
-                    angle += Math.PI / 2600;
-                }
-
-                // Slow rotation of Prompt Boundary Shield centered at (0,0,0)
-                if (shieldMesh && isShieldActive) {
-                    shieldMesh.rotation.y += 0.003;
-                    shieldMesh.rotation.x += 0.0015;
-                }
-
-                // Parallax Starfield Drift
-                if (starParticles && isStarsActive) {
-                    starParticles.rotation.y -= 0.0008;
-                }
-
-                // Animate Shockwaves
-                for (let i = shockwaveRings.length - 1; i >= 0; i--) {
-                    const ring = shockwaveRings[i];
-                    ring.scale += 2.5;
-                    ring.opacity -= 0.025;
-                    ring.mesh.scale.set(ring.scale, ring.scale, 1);
-                    ring.mesh.material.opacity = Math.max(0, ring.opacity);
-
-                    if (ring.opacity <= 0) {
-                        Graph.scene().remove(ring.mesh);
-                        shockwaveRings.splice(i, 1);
-                    }
-                }
-            }, 10);
+            updateInfoCard(currentData.nodes[0]);
         }
+
+        // Single persistent animation loop
+        setInterval(() => {
+            if (!Graph) return;
+
+            if (!hoverNode) {
+                Graph.cameraPosition({
+                    x: 220 * Math.sin(orbitAngle),
+                    y: 25,
+                    z: 220 * Math.cos(orbitAngle)
+                }, { x: 0, y: 0, z: 0 });
+                orbitAngle += Math.PI / 2600;
+            }
+
+            if (shieldMesh && isShieldActive) {
+                shieldMesh.rotation.y += 0.003;
+                shieldMesh.rotation.x += 0.0015;
+            }
+
+            if (starParticles && isStarsActive) {
+                starParticles.rotation.y -= 0.0008;
+            }
+
+            for (let i = shockwaveRings.length - 1; i >= 0; i--) {
+                const ring = shockwaveRings[i];
+                ring.scale += 2.5;
+                ring.opacity -= 0.025;
+                ring.mesh.scale.set(ring.scale, ring.scale, 1);
+                ring.mesh.material.opacity = Math.max(0, ring.opacity);
+
+                if (ring.opacity <= 0) {
+                    Graph.scene().remove(ring.mesh);
+                    shockwaveRings.splice(i, 1);
+                }
+            }
+        }, 10);
 
         function updateInfoCard(node) {
             const card = document.getElementById('node-info-card');
@@ -597,8 +590,10 @@
             }
         }
 
-        function loadScenarioData(key) {
-            currentData = SCENARIOS[key];
+        function switchScenario(key) {
+            currentKey = key;
+            currentData = JSON.parse(JSON.stringify(SCENARIOS[key]));
+
             ['payment', 'auth', 'db'].forEach(k => {
                 const btn = document.getElementById(`btn-${k}`);
                 if (k === key) {
@@ -608,7 +603,15 @@
                 }
             });
 
-            init3DForceGraph();
+            highlightNodes.clear();
+            highlightLinks.clear();
+            hoverNode = null;
+
+            // Seamlessly update dataset without destroying Three.js canvas
+            if (Graph) {
+                Graph.graphData(currentData);
+                Graph.cameraPosition({ x: 0, y: 25, z: 220 }, { x: 0, y: 0, z: 0 }, 1000);
+            }
             updateInfoCard(currentData.nodes[0]);
         }
 
