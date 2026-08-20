@@ -4,4 +4,4 @@ pub mod tx;
 
 pub use engine::CloneEngine;
 pub use journal::SandboxJournal;
-pub use tx::{CowSandbox, ExecutionResult, SandboxTx};
+pub use tx::{BranchContext, CowSandbox, ExecutionResult, SandboxTx};

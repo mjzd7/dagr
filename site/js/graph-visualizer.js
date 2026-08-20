@@ -170,7 +170,7 @@ class GraphVisualizer {
             x: centerX,
             y: centerY,
             radius: 26 * window.devicePixelRatio,
-            color: '#10b981',
+            color: '#FFFFFF',
             status: 'KEPT IN CONTEXT',
             tokens: 180,
             description: '🎯 Target Function: The exact symbol your prompt needs to inspect or edit.'
@@ -188,7 +188,7 @@ class GraphVisualizer {
                 x: centerX + Math.cos(angle) * dist,
                 y: centerY - Math.abs(Math.sin(angle)) * dist - 25 * window.devicePixelRatio,
                 radius: 20 * window.devicePixelRatio,
-                color: '#06b6d4',
+                color: '#D4D4D8',
                 status: 'HOISTED CONTRACT',
                 tokens: 45,
                 description: '🏗️ Upstream Type Contract: Hoisted to preserve parameter types so the AI won\'t hallucinate invalid signatures.'
@@ -210,7 +210,7 @@ class GraphVisualizer {
                 x: centerX + Math.cos(angle) * dist,
                 y: centerY + Math.sin(angle) * dist,
                 radius: 16 * window.devicePixelRatio,
-                color: 'rgba(239, 68, 68, 0.45)',
+                color: 'rgba(113, 113, 122, 0.35)',
                 status: 'PRUNED FROM CONTEXT',
                 tokens: 1450,
                 description: '✂️ Irrelevant Monolithic Code: Omitted from the LLM prompt to eliminate token bloat and avoid lost-in-the-middle confusion.'
@@ -235,16 +235,16 @@ class GraphVisualizer {
         // Draw LLM Context Boundary Ring
         ctx.beginPath();
         ctx.arc(centerX, centerY, 155 * window.devicePixelRatio, 0, Math.PI * 2);
-        ctx.setLineDash([8, 8]);
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
-        ctx.lineWidth = 2 * window.devicePixelRatio;
+        ctx.setLineDash([6, 6]);
+        ctx.strokeStyle = 'rgba(48, 209, 88, 0.4)';
+        ctx.lineWidth = 1.5 * window.devicePixelRatio;
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.font = `bold ${10 * window.devicePixelRatio}px JetBrains Mono, monospace`;
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.8)';
+        ctx.font = `600 ${10 * window.devicePixelRatio}px -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, monospace`;
+        ctx.fillStyle = 'rgba(48, 209, 88, 0.9)';
         ctx.textAlign = 'center';
-        ctx.fillText('⚡ DAGR LLM PROMPT BOUNDARY (95% TOKENS SAVED OUTSIDE)', centerX, centerY - 165 * window.devicePixelRatio);
+        ctx.fillText('⚡ DAGR ACTIVE PROMPT BOUNDARY (95% BLOAT PRUNED OUTSIDE)', centerX, centerY - 165 * window.devicePixelRatio);
 
         // Draw Links
         for (const l of this.links) {
@@ -253,12 +253,12 @@ class GraphVisualizer {
             ctx.lineTo(l.to.x, l.to.y);
 
             if (l.type === 'contract') {
-                ctx.strokeStyle = 'rgba(6, 182, 212, 0.65)';
+                ctx.strokeStyle = 'rgba(100, 210, 255, 0.7)';
                 ctx.lineWidth = 2 * window.devicePixelRatio;
                 ctx.stroke();
             } else {
                 ctx.setLineDash([4, 4]);
-                ctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
+                ctx.strokeStyle = 'rgba(255, 69, 58, 0.25)';
                 ctx.lineWidth = 1 * window.devicePixelRatio;
                 ctx.stroke();
                 ctx.setLineDash([]);
@@ -273,15 +273,15 @@ class GraphVisualizer {
             ctx.arc(n.x, n.y, n.radius + (isHovered ? 4 : 0), 0, Math.PI * 2);
 
             if (n.type === 'target') {
-                ctx.fillStyle = isHovered ? '#34d399' : '#10b981';
-                ctx.shadowColor = 'rgba(16, 185, 129, 0.6)';
-                ctx.shadowBlur = isHovered ? 25 : 15;
+                ctx.fillStyle = isHovered ? '#30D158' : '#28CD41';
+                ctx.shadowColor = 'rgba(48, 209, 88, 0.65)';
+                ctx.shadowBlur = isHovered ? 24 : 14;
             } else if (n.type === 'contract') {
-                ctx.fillStyle = isHovered ? '#22d3ee' : '#06b6d4';
-                ctx.shadowColor = 'rgba(6, 182, 212, 0.5)';
+                ctx.fillStyle = isHovered ? '#64D2FF' : '#0A84FF';
+                ctx.shadowColor = 'rgba(10, 132, 255, 0.55)';
                 ctx.shadowBlur = isHovered ? 20 : 10;
             } else {
-                ctx.fillStyle = isHovered ? 'rgba(239, 68, 68, 0.85)' : 'rgba(239, 68, 68, 0.4)';
+                ctx.fillStyle = isHovered ? 'rgba(255, 69, 58, 0.85)' : 'rgba(255, 69, 58, 0.35)';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0)';
                 ctx.shadowBlur = 0;
             }
@@ -289,13 +289,13 @@ class GraphVisualizer {
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            ctx.strokeStyle = isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.25)';
+            ctx.strokeStyle = isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.3)';
             ctx.lineWidth = 1.5 * window.devicePixelRatio;
             ctx.stroke();
 
             // Text Label
-            ctx.font = `${11 * window.devicePixelRatio}px JetBrains Mono, monospace`;
-            ctx.fillStyle = isHovered ? '#ffffff' : (n.type === 'pruned' ? 'rgba(244, 114, 182, 0.8)' : '#f3f4f6');
+            ctx.font = `500 ${11 * window.devicePixelRatio}px -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, monospace`;
+            ctx.fillStyle = isHovered ? '#ffffff' : (n.type === 'pruned' ? 'rgba(255, 69, 58, 0.75)' : '#f5f5f7');
             ctx.textAlign = 'center';
             ctx.fillText(n.label, n.x, n.y + n.radius + 14 * window.devicePixelRatio);
         }

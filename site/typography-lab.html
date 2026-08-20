@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dagr — Brand Wordmark Typography Lab</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    
+    <!-- Google Fonts: Geist, Inter, Space Grotesk, Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700;800;900&family=Geist+Mono:wght@500;700&family=Inter:wght@700;800;900&family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Geist', sans-serif;
+            letter-spacing: -0.02em;
+        }
+        .titanium-glass {
+            background: rgba(18, 18, 22, 0.85);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-top: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.85), inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+            border-radius: 24px;
+        }
+        .font-geist { font-family: 'Geist', sans-serif; }
+        .font-geist-mono { font-family: 'Geist Mono', monospace; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .font-space { font-family: 'Space Grotesk', sans-serif; }
+        .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-sf { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen p-6 sm:p-12 space-y-12 max-w-6xl mx-auto selection:bg-white selection:text-black">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between border-b border-white/10 pb-6">
+        <a href="index.html" class="flex items-center space-x-3 group">
+            <div class="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center p-1.5 shadow-lg group-hover:scale-105 transition-transform">
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                    <line x1="3" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                    <line x1="13" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                    <circle cx="3" cy="3" r="2" fill="#000000" />
+                    <circle cx="13" cy="3" r="2" fill="#000000" />
+                    <circle cx="8" cy="12" r="2.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+                </svg>
+            </div>
+            <div>
+                <span class="font-black text-lg text-white font-mono">dagr</span>
+                <span class="text-xs text-zinc-500 font-mono block">Brand Wordmark Typography Research</span>
+            </div>
+        </a>
+
+        <div class="flex items-center space-x-4 text-xs font-mono text-zinc-400">
+            <a href="index.html" class="text-white hover:underline">← Main Overview</a>
+            <a href="tech.html" class="hover:text-white">Technical Lab</a>
+            <a href="brand.html" class="hover:text-white">Brand Standards</a>
+        </div>
+    </header>
+
+    <!-- Lab Intro -->
+    <section class="text-center space-y-4 max-w-3xl mx-auto">
+        <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mono bg-white/10 text-white border border-white/20">
+            <span>🔬 Deep Typography Evaluation</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-black text-white tracking-tight">
+            The Optimal Wordmark for <span class="font-mono text-zinc-300">dagr</span>
+        </h1>
+        <p class="text-sm sm:text-base text-zinc-400 leading-relaxed">
+            Comparing letterform anatomy across 5 leading typefaces for geometry, character rhythm (d-a-g-r), and visual harmony with the Tri-Node DAG mark.
+        </p>
+    </section>
+
+    <!-- 5 Candidates Comparison Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- 1. GEIST (RECOMMENDED) -->
+        <div class="titanium-glass p-8 space-y-6 border-white/30 relative overflow-hidden">
+            <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-white text-black">1. RECOMMENDED</span>
+                <span class="text-xs font-mono text-zinc-400">Vercel / Dinamo</span>
+            </div>
+            
+            <div class="p-6 bg-black rounded-2xl border border-white/15 flex items-center space-x-4 shadow-inner">
+                <div class="w-12 h-12 rounded-xl bg-white text-black flex items-center justify-center p-2 shrink-0">
+                    <svg width="28" height="28" viewBox="0 0 16 16" fill="none">
+                        <line x1="3" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                        <line x1="13" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                        <circle cx="3" cy="3" r="2" fill="#000000" />
+                        <circle cx="13" cy="3" r="2" fill="#000000" />
+                        <circle cx="8" cy="12" r="2.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <span class="font-geist font-black text-4xl sm:text-5xl text-white tracking-[-0.04em]">dagr</span>
+            </div>
+
+            <div class="space-y-2 text-xs text-zinc-300 font-sans leading-relaxed">
+                <div class="font-bold text-white">Why It Wins:</div>
+                <p>• <strong>Double-story 'a':</strong> Communicates compiler engineering rigor.</p>
+                <p>• <strong>Symmetrical 'd' and 'g' bowls:</strong> Circular squircle geometry that balances the 60° vector beams of the logo mark.</p>
+                <p>• <strong>100% Typographic Unity:</strong> Matches the entire UI system without introducing third-party brand discord.</p>
+            </div>
+        </div>
+
+        <!-- 2. SF PRO DISPLAY / NEUE HAAS GROTESK -->
+        <div class="titanium-glass p-8 space-y-6 border-white/10">
+            <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-white/10 text-white">2. APPLE PRO SWISS</span>
+                <span class="text-xs font-mono text-zinc-400">Apple / Max Miedinger</span>
+            </div>
+            
+            <div class="p-6 bg-black rounded-2xl border border-white/15 flex items-center space-x-4 shadow-inner">
+                <div class="w-12 h-12 rounded-xl bg-white text-black flex items-center justify-center p-2 shrink-0">
+                    <svg width="28" height="28" viewBox="0 0 16 16" fill="none">
+                        <line x1="3" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                        <line x1="13" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                        <circle cx="3" cy="3" r="2" fill="#000000" />
+                        <circle cx="13" cy="3" r="2" fill="#000000" />
+                        <circle cx="8" cy="12" r="2.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <span class="font-sf font-black text-4xl sm:text-5xl text-white tracking-[-0.035em]">dagr</span>
+            </div>
+
+            <div class="space-y-2 text-xs text-zinc-300 font-sans leading-relaxed">
+                <div class="font-bold text-white">Characteristics:</div>
+                <p>• <strong>Horizontal Terminal Cuts:</strong> Strict horizontal knife cuts on 'a', 'g', and 'r'.</p>
+                <p>• <strong>Timeless Luxury:</strong> The gold standard of Apple hardware and Leica precision.</p>
+                <p>• <strong>Zero Trendy Distortion:</strong> Unshakable, corporate authority.</p>
+            </div>
+        </div>
+
+        <!-- 3. GEIST MONO (CLI BINARY NATIVE) -->
+        <div class="titanium-glass p-8 space-y-6 border-white/10">
+            <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-white/10 text-white">3. PURE TERMINAL MONO</span>
+                <span class="text-xs font-mono text-zinc-400">Fixed Width Grid</span>
+            </div>
+            
+            <div class="p-6 bg-black rounded-2xl border border-white/15 flex items-center space-x-4 shadow-inner">
+                <div class="w-12 h-12 rounded-xl bg-white text-black flex items-center justify-center p-2 shrink-0">
+                    <svg width="28" height="28" viewBox="0 0 16 16" fill="none">
+                        <line x1="3" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                        <line x1="13" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                        <circle cx="3" cy="3" r="2" fill="#000000" />
+                        <circle cx="13" cy="3" r="2" fill="#000000" />
+                        <circle cx="8" cy="12" r="2.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <span class="font-geist-mono font-bold text-4xl sm:text-5xl text-white tracking-[-0.02em]">dagr</span>
+            </div>
+
+            <div class="space-y-2 text-xs text-zinc-300 font-sans leading-relaxed">
+                <div class="font-bold text-white">Characteristics:</div>
+                <p>• <strong>1:1 Shell Equivalence:</strong> Looks exactly like typing into iTerm2 or VS Code.</p>
+                <p>• <strong>Tabular Alignment:</strong> Exact fixed-pitch character cells.</p>
+                <p>• <strong>Raw Engineering Vibe:</strong> Resonates deeply with low-level systems hackers.</p>
+            </div>
+        </div>
+
+        <!-- 4. SPACE GROTESK (BRUTALIST TECH) -->
+        <div class="titanium-glass p-8 space-y-6 border-white/10">
+            <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-white/10 text-white">4. SPACE GROTESK</span>
+                <span class="text-xs font-mono text-zinc-400">Florian Karsten</span>
+            </div>
+            
+            <div class="p-6 bg-black rounded-2xl border border-white/15 flex items-center space-x-4 shadow-inner">
+                <div class="w-12 h-12 rounded-xl bg-white text-black flex items-center justify-center p-2 shrink-0">
+                    <svg width="28" height="28" viewBox="0 0 16 16" fill="none">
+                        <line x1="3" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                        <line x1="13" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                        <circle cx="3" cy="3" r="2" fill="#000000" />
+                        <circle cx="13" cy="3" r="2" fill="#000000" />
+                        <circle cx="8" cy="12" r="2.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <span class="font-space font-bold text-4xl sm:text-5xl text-white tracking-[-0.03em]">dagr</span>
+            </div>
+
+            <div class="space-y-2 text-xs text-zinc-300 font-sans leading-relaxed">
+                <div class="font-bold text-white">Characteristics:</div>
+                <p>• <strong>Wide Stance:</strong> Expanded proportional geometry.</p>
+                <p>• <strong>Idiosyncratic Terminals:</strong> Distinctive angled features.</p>
+                <p>• <strong>Trade-off:</strong> Can feel too stylized compared to pure Apple luxury.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Final Verdict Card -->
+    <section class="titanium-glass p-8 sm:p-10 space-y-4 border-white/20 text-center">
+        <h3 class="text-2xl font-bold text-white font-geist">The Strategic Verdict: Geist Black / Bold (`-0.035em`)</h3>
+        <p class="text-sm text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+            For <strong>dagr</strong>, <strong>Geist Black with tight optical tracking</strong> is the undisputed champion. It bridges the mathematical precision of the AST compiler engine, creates 1:1 harmony with the Tri-Node Euclidean logo, and gives the wordmark an unmistakable luxury presence.
+        </p>
+    </section>
+
+</body>
+</html>

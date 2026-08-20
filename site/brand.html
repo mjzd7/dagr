@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dagr — Official Brand Trademark & Design System</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+    <!-- Google Fonts: Space Grotesk (Brand Wordmark), Geist & Geist Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Geist', -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            letter-spacing: -0.02em;
+        }
+        .titanium-glass {
+            background: rgba(18, 18, 22, 0.85);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .titanium-glass:hover {
+            border-color: rgba(255, 255, 255, 0.22);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.85), inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+        }
+        .apple-spring {
+            transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-spring:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6 sm:p-12 space-y-16 max-w-6xl mx-auto selection:bg-white selection:text-black">
+
+    <!-- Top Nav Header -->
+    <header class="flex items-center justify-between border-b border-white/10 pb-6">
+        <a href="index.html" class="flex items-center space-x-3 group">
+            <div class="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center p-1.5 shadow-lg group-hover:scale-105 transition-transform">
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                    <line x1="3" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                    <line x1="13" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                    <circle cx="3" cy="3" r="2" fill="#000000" />
+                    <circle cx="13" cy="3" r="2" fill="#000000" />
+                    <circle cx="8" cy="12" r="2.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+                </svg>
+            </div>
+                <div class="flex items-center space-x-2">
+                    <span class="font-brand font-bold text-xl tracking-[-0.03em] text-white">dagr</span>
+                    <span class="text-xs text-zinc-500 font-mono ml-2">Brand Standards</span>
+                </div>
+            </a>
+
+        <div class="flex items-center space-x-4 text-xs font-mono text-zinc-400">
+            <a href="index.html" class="text-white hover:underline font-semibold">← Main Overview</a>
+            <a href="tech.html" class="hover:text-white">Technical Deep-Dive</a>
+        </div>
+    </header>
+
+    <!-- 1. The Official Trademark Hero Section -->
+    <section class="text-center space-y-6 max-w-3xl mx-auto">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-white/10 text-white border border-white/20">
+            <span>Official Brand Trademark</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
+            The Tri-Node Euclidean DAG
+        </h1>
+
+        <p class="text-base sm:text-lg text-zinc-300 font-sans leading-relaxed">
+            The canonical trademark mark of DAGR. Formed by two upstream contract satellite nodes funneling through 60° heavy vector rails into an illuminated target execution apex.
+        </p>
+
+        <!-- Master Display & Multi-Scale Suite -->
+        <div class="titanium-glass p-8 sm:p-12 max-w-xl mx-auto flex flex-col items-center justify-center space-y-8">
+            <!-- Full Master Mark -->
+            <div class="w-36 h-36 flex items-center justify-center">
+                <svg width="130" height="130" viewBox="0 0 100 100" fill="none">
+                    <path d="M 22 28 L 50 78 L 78 28" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    <line x1="26" y1="28" x2="74" y2="28" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="3 3" opacity="0.45" />
+                    <circle cx="22" cy="28" r="6" fill="#FFFFFF" />
+                    <circle cx="78" cy="28" r="6" fill="#FFFFFF" />
+                    <circle cx="50" cy="78" r="9" fill="#000000" stroke="#FFFFFF" stroke-width="4" />
+                    <circle cx="50" cy="78" r="2.5" fill="#FFFFFF" />
+                </svg>
+            </div>
+
+            <!-- Optical Scale Bar (16px to 64px) -->
+            <div class="flex items-center justify-center space-x-6 pt-2 border-t border-white/10 w-full font-mono text-xs text-zinc-400">
+                <div class="text-center space-y-2">
+                    <span class="text-[10px] text-zinc-500 block">16px Favicon</span>
+                    <div class="w-8 h-8 mx-auto bg-black rounded-lg border border-white/10 flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <line x1="3" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                            <line x1="13" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                            <circle cx="3" cy="3" r="2" fill="#FFFFFF" />
+                            <circle cx="13" cy="3" r="2" fill="#FFFFFF" />
+                            <circle cx="8" cy="12" r="2.5" fill="#000000" stroke="#FFFFFF" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="text-center space-y-2">
+                    <span class="text-[10px] text-zinc-500 block">24px CLI</span>
+                    <div class="w-10 h-10 mx-auto bg-black rounded-xl border border-white/10 flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
+                            <line x1="3" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                            <line x1="13" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                            <circle cx="3" cy="3" r="2" fill="#FFFFFF" />
+                            <circle cx="13" cy="3" r="2" fill="#FFFFFF" />
+                            <circle cx="8" cy="12" r="2.5" fill="#000000" stroke="#FFFFFF" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="text-center space-y-2">
+                    <span class="text-[10px] text-zinc-500 block">32px App</span>
+                    <div class="w-12 h-12 mx-auto bg-black rounded-xl border border-white/10 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+                            <path d="M 22 28 L 50 78 L 78 28" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="22" cy="28" r="7" fill="#FFFFFF" />
+                            <circle cx="78" cy="28" r="7" fill="#FFFFFF" />
+                            <circle cx="50" cy="78" r="9" fill="#000000" stroke="#FFFFFF" stroke-width="4" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap gap-3 w-full justify-center pt-2 font-mono text-xs">
+                <button onclick="copyMasterSvg()" id="copy-svg-btn" class="px-5 py-2.5 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-all apple-spring">
+                    Copy Master SVG
+                </button>
+                <button onclick="copyFaviconSvg()" id="copy-fav-btn" class="px-5 py-2.5 rounded-xl bg-white/10 text-white font-bold border border-white/15 hover:bg-white/20 transition-all apple-spring">
+                    Copy 16px Favicon SVG
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Official Color Tokens: Monochrome Titanium -->
+    <section class="space-y-6">
+        <div class="text-left font-mono border-b border-white/10 pb-3">
+            <h2 class="text-lg font-bold text-white">Official Palette: Monochrome Titanium</h2>
+            <p class="text-xs text-zinc-400 font-sans">Pure OLED black, stark white specular highlights, and liquid platinum.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 font-mono text-xs">
+            <div class="titanium-glass p-5 space-y-3">
+                <div class="h-16 bg-black rounded-xl border border-white/20"></div>
+                <div class="font-bold text-white">Canvas Black</div>
+                <div class="text-zinc-500"><code>#000000</code></div>
+            </div>
+
+            <div class="titanium-glass p-5 space-y-3">
+                <div class="h-16 bg-white rounded-xl"></div>
+                <div class="font-bold text-white">Specular White</div>
+                <div class="text-zinc-500"><code>#FFFFFF</code></div>
+            </div>
+
+            <div class="titanium-glass p-5 space-y-3">
+                <div class="h-16 bg-zinc-300 rounded-xl"></div>
+                <div class="font-bold text-white">Liquid Platinum</div>
+                <div class="text-zinc-500"><code>#E4E4E7</code></div>
+            </div>
+
+            <div class="titanium-glass p-5 space-y-3">
+                <div class="h-16 rounded-xl border border-white/15" style="background: rgba(18, 18, 22, 0.85);"></div>
+                <div class="font-bold text-white">Titanium Glass</div>
+                <div class="text-zinc-500"><code>rgba(18,18,22,0.85)</code></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Official Brand Typography Stack -->
+    <section class="space-y-6">
+        <div class="text-left font-mono border-b border-white/10 pb-3 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-white">Official Typography Standards</h2>
+                <p class="text-xs text-zinc-400 font-sans">Space Grotesk (Brand Wordmark) + Geist &amp; Geist Mono (UI &amp; Telemetry)</p>
+            </div>
+            <a href="typography-lab.html" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-mono text-white transition-all">
+                🔬 Typography Lab →
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+            <!-- Brand Wordmark -->
+            <div class="titanium-glass p-6 space-y-3 border-white/20">
+                <div class="text-[10px] text-zinc-400 uppercase tracking-wider">Brand Wordmark</div>
+                <div class="text-3xl font-bold text-white font-['Space_Grotesk'] tracking-[-0.03em]">dagr</div>
+                <div class="text-zinc-400 font-sans text-xs pt-2 border-t border-white/10">
+                    <strong>Space Grotesk</strong> (700 Bold, -0.03em tracking). Distinctive deep-tech geometric character with angular terminals.
+                </div>
+            </div>
+
+            <!-- UI & Display -->
+            <div class="titanium-glass p-6 space-y-3">
+                <div class="text-[10px] text-zinc-400 uppercase tracking-wider">UI &amp; Display Headings</div>
+                <div class="text-2xl font-black text-white font-['Geist'] tracking-[-0.035em]">Precision AST</div>
+                <div class="text-zinc-400 font-sans text-xs pt-2 border-t border-white/10">
+                    <strong>Geist</strong> (Weights 400 to 900). Neo-Swiss precision typeface engineered for high-density developer interfaces.
+                </div>
+            </div>
+
+            <!-- Code & Telemetry -->
+            <div class="titanium-glass p-6 space-y-3">
+                <div class="text-[10px] text-zinc-400 uppercase tracking-wider">Code &amp; Metrics</div>
+                <div class="text-2xl font-bold text-white font-['Geist_Mono']">&lt;0.18ms 95%</div>
+                <div class="text-zinc-400 font-sans text-xs pt-2 border-t border-white/10">
+                    <strong>Geist Mono</strong> (500 Medium). Tabular numerals (<code>tnum</code>) and slashed zeros for telemetry.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Prototype Exploration Archive -->
+    <section class="space-y-6">
+        <div class="text-left font-mono border-b border-white/10 pb-3">
+            <h2 class="text-lg font-bold text-white">🗄️ Prototype Exploration Archive</h2>
+            <p class="text-xs text-zinc-400 font-sans">All design iterations and historical explorations permanently cataloged.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
+            <a href="favicon-lab.html" class="titanium-glass p-5 space-y-2 block group">
+                <div class="text-white font-bold group-hover:underline">16x16 Favicon Lab →</div>
+                <p class="text-zinc-400 font-sans text-[11px]">6 pixel-grid-aligned sub-pixel icon tests.</p>
+            </a>
+
+            <a href="pure-vertex.html" class="titanium-glass p-5 space-y-2 block group">
+                <div class="text-white font-bold group-hover:underline">The Pure Vertex Master →</div>
+                <p class="text-zinc-400 font-sans text-[11px]">6 Euclidean master refinements.</p>
+            </a>
+
+            <a href="evergreen-logos.html" class="titanium-glass p-5 space-y-2 block group">
+                <div class="text-white font-bold group-hover:underline">20 Evergreen Logos →</div>
+                <p class="text-zinc-400 font-sans text-[11px]">20 minimalist concepts across 4 archetypes.</p>
+            </a>
+
+            <a href="kukri-logos.html" class="titanium-glass p-5 space-y-2 block group">
+                <div class="text-white font-bold group-hover:underline">Gurkha Kukri Suite →</div>
+                <p class="text-zinc-400 font-sans text-[11px]">10 monochrome recurve blade vector marks.</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center pt-12 border-t border-white/10 text-xs font-mono text-zinc-500 space-y-2">
+        <div>DAGR Brand Specification System • Official Trademark Document</div>
+        <div>Maintained in <a href="https://github.com/mjzd7/dagr/blob/main/BRAND.md" target="_blank" class="text-zinc-300 hover:underline">BRAND.md</a></div>
+    </footer>
+
+    <script>
+        const MASTER_SVG = `<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M 22 28 L 50 78 L 78 28" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <line x1="26" y1="28" x2="74" y2="28" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3" opacity="0.45" />
+  <circle cx="22" cy="28" r="6" fill="currentColor" />
+  <circle cx="78" cy="28" r="6" fill="currentColor" />
+  <circle cx="50" cy="78" r="9" fill="#000000" stroke="currentColor" stroke-width="4" />
+  <circle cx="50" cy="78" r="2.5" fill="currentColor" />
+</svg>`;
+
+        const FAVICON_SVG = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <line x1="3" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="13" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+  <circle cx="3" cy="3" r="2" fill="#FFFFFF" />
+  <circle cx="13" cy="3" r="2" fill="#FFFFFF" />
+  <circle cx="8" cy="12" r="2.5" fill="#000000" stroke="#FFFFFF" stroke-width="1.5" />
+</svg>`;
+
+        function copyMasterSvg() {
+            navigator.clipboard.writeText(MASTER_SVG);
+            const btn = document.getElementById('copy-svg-btn');
+            btn.innerText = '✓ Copied Master SVG!';
+            setTimeout(() => { btn.innerText = 'Copy Master SVG'; }, 2000);
+        }
+
+        function copyFaviconSvg() {
+            navigator.clipboard.writeText(FAVICON_SVG);
+            const btn = document.getElementById('copy-fav-btn');
+            btn.innerText = '✓ Copied 16px Favicon SVG!';
+            setTimeout(() => { btn.innerText = 'Copy 16px Favicon SVG'; }, 2000);
+        }
+    </script>
+
+</body>
+</html>

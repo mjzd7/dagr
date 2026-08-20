@@ -1,33 +1,35 @@
 <!DOCTYPE html>
 <html lang="en" class="dark scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAGR ⚡ The DAG-Native Symbolic AST Slicing Hypervisor & Safety Sandbox</title>
-    <meta name="description" content="Cut 95% AI token bloat, prevent architectural boundary violations, and sandbox autonomous AI coding agents with 10ms Copy-on-Write rollback.">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dagr — Stop Wasting 95% of Your AI Coding Budget</title>
+    <meta name="description" content="DAGR trims 95% of the clutter before your AI reads your files. Fast, cheap, and safe AI coding across Cursor, Claude, and 30+ AI tools." />
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+    <!-- Google Fonts: Space Grotesk (Brand Wordmark), Geist & Geist Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        void: '#090b10',
-                        surface: '#11141c',
-                        card: 'rgba(20, 24, 34, 0.75)',
-                        borderGlow: 'rgba(255, 255, 255, 0.08)',
-                        brand: {
-                            emerald: '#10b981',
-                            indigo: '#6366f1',
-                            amber: '#f59e0b',
-                            cyan: '#06b6d4'
-                        }
+                        void: '#000000',
+                        obsidian: '#05060a',
+                        surface: '#0d0e12',
+                        platinum: '#e4e4e7',
+                        steel: '#a1a1aa',
                     },
                     fontFamily: {
-                        mono: ['JetBrains Mono', 'Menlo', 'monospace'],
-                        sans: ['Inter', '-apple-system', 'system-ui', 'sans-serif']
+                        brand: ['Space Grotesk', 'sans-serif'],
+                        sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Inter', 'sans-serif'],
+                        mono: ['Geist Mono', 'JetBrains Mono', 'SF Mono', 'monospace']
                     }
                 }
             }
@@ -35,732 +37,601 @@
     </script>
     <style>
         body {
-            background-color: #090b10;
+            background-color: #000000;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.14) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.14) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.08) 0px, transparent 50%);
+                radial-gradient(at 50% -10%, rgba(255, 255, 255, 0.14) 0px, transparent 65%),
+                radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.04) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(255, 255, 255, 0.03) 0px, transparent 40%);
             background-attachment: fixed;
+            letter-spacing: -0.025em;
         }
-        .glass-card {
-            background: rgba(17, 20, 28, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+
+        /* 1. Metallic Gradient Display Typography */
+        .metallic-text {
+            background: linear-gradient(180deg, #FFFFFF 25%, rgba(255, 255, 255, 0.60) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .glass-card:hover {
-            border-color: rgba(255, 255, 255, 0.15);
+        .metallic-subtext {
+            background: linear-gradient(180deg, #FFFFFF 30%, #A1A1AA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .glow-emerald {
-            box-shadow: 0 0 25px -4px rgba(16, 185, 129, 0.4);
+
+        /* 2. Machined Titanium Glass (Luminance Level 1) */
+        .titanium-card {
+            background: rgba(16, 17, 22, 0.75);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.20);
+            box-shadow: 
+                0 16px 40px -8px rgba(0, 0, 0, 0.85),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+            border-radius: 26px;
+            transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .glow-cyan {
-            box-shadow: 0 0 25px -4px rgba(6, 182, 212, 0.4);
+        .titanium-card:hover {
+            border-color: rgba(255, 255, 255, 0.20);
+            border-top-color: rgba(255, 255, 255, 0.36);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 24px 56px -8px rgba(0, 0, 0, 0.95),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
         }
-        .pulse-live {
-            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+        /* 3. Elevated Hero Feature Card (Luminance Level 2 + Spotlight) */
+        .titanium-hero-card {
+            background: rgba(24, 25, 32, 0.90);
+            backdrop-filter: blur(32px) saturate(200%);
+            -webkit-backdrop-filter: blur(32px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-top: 1px solid rgba(255, 255, 255, 0.36);
+            box-shadow: 
+                0 24px 64px -12px rgba(0, 0, 0, 0.95),
+                0 0 45px -5px rgba(255, 255, 255, 0.10),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.24);
+            border-radius: 28px;
+            position: relative;
         }
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.95); }
+        .titanium-hero-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+            pointer-events: none;
         }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
+        /* 4. Inverted Solid 21:1 Conversion Anchor Button */
+        .apple-cta-btn {
+            background: #FFFFFF;
+            color: #000000;
+            font-weight: 700;
+            border-radius: 14px;
+            box-shadow: 
+                0 4px 20px rgba(255, 255, 255, 0.25),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.80);
+            transition: all 0.20s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-cta-btn:hover {
+            background: #F4F4F5;
+            box-shadow: 
+                0 8px 30px rgba(255, 255, 255, 0.40),
+                inset 0 1px 0 0 #FFFFFF;
+            transform: translateY(-1px);
+        }
+        .apple-cta-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 5. Inset Well for Code & Terminals */
+        .inset-well {
+            background: #000000;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
+            border-radius: 18px;
+        }
+
+        /* Tabular numbers for alignment */
+        .tabular-nums {
+            font-feature-settings: 'tnum' 1, 'zero' 1;
+        }
     </style>
 </head>
-<body class="text-zinc-100 font-sans min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
+<body class="text-zinc-100 font-sans min-h-screen flex flex-col selection:bg-white selection:text-black">
 
-    <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-40 glass-card border-b border-white/10 px-6 py-3.5 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 via-emerald-400 to-cyan-400 flex items-center justify-center font-mono font-bold text-black text-lg shadow-lg">
-                ⚡
-            </div>
-            <div>
-                <div class="flex items-center space-x-2">
-                    <span class="font-bold text-base tracking-tight text-white">DAGR</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">v0.1.0</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">BSL-1.1</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Navigation Links -->
-        <nav class="hidden md:flex items-center space-x-6 text-xs font-mono text-zinc-400 font-medium">
-            <a href="#simulator" class="hover:text-emerald-400 transition-colors">Slicer Simulator</a>
-            <a href="#codebase-ingest" class="hover:text-emerald-400 transition-colors">Codebase Importer</a>
-            <a href="#visual-graph" class="hover:text-emerald-400 transition-colors">2D/3D Graph</a>
-            <a href="gallery-3d.html" class="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors flex items-center space-x-1"><span>🪐 3D Style Lab</span></a>
-            <a href="#history-ledger" class="hover:text-emerald-400 transition-colors">Live Iterations</a>
-            <a href="#features" class="hover:text-emerald-400 transition-colors">Core Superpowers</a>
-            <a href="#calculator" class="hover:text-emerald-400 transition-colors">ROI Calculator</a>
-            <a href="#clients" class="hover:text-emerald-400 transition-colors">31 Supported IDEs</a>
-        </nav>
-
-        <!-- Right Utilities -->
-        <div class="flex items-center space-x-3">
-            <a href="https://github.com/mjzd7/dagr" target="_blank" class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/10 transition-all flex items-center space-x-2">
-                <span>⭐ Star on GitHub</span>
-            </a>
-        </div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-12 space-y-24">
-
-        <!-- 1. HERO SECTION -->
-        <section class="text-center space-y-8 max-w-4xl mx-auto pt-6">
-            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span>
-                <span>The DAG-Native Context Slicer & Safety Hypervisor</span>
+    <!-- Top Navigation Bar (Floating Island with Persistent Top Viewport Margin) -->
+    <div class="sticky top-3 sm:top-4 z-50 px-4 sm:px-6 w-full max-w-6xl mx-auto pointer-events-none">
+        <header class="pointer-events-auto titanium-card border border-white/15 px-5 sm:px-6 py-3 flex items-center justify-between rounded-2xl shadow-2xl backdrop-blur-2xl">
+            <div class="flex items-center space-x-3">
+                <a href="index.html" class="flex items-center space-x-3 group">
+                    <div class="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center p-1.5 shadow-lg group-hover:scale-105 transition-transform">
+                        <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                            <line x1="3" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                            <line x1="13" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                            <circle cx="3" cy="3" r="2" fill="#000000" />
+                            <circle cx="13" cy="3" r="2" fill="#000000" />
+                            <circle cx="8" cy="12" r="2.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-brand font-bold text-xl tracking-[-0.03em] text-white">dagr</span>
+                    </div>
+                </a>
             </div>
 
-            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
-                Cut <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400">95% AI Token Bloat</span> & Sandbox Coding Agents
+            <!-- Audience Switcher & Navigation Links -->
+            <nav class="flex items-center space-x-3 sm:space-x-5 text-xs font-mono">
+                <a href="#how-it-works" class="hidden md:inline-block text-zinc-400 hover:text-white transition-colors">How It Works</a>
+                <a href="#analogy" class="hidden md:inline-block text-zinc-400 hover:text-white transition-colors">The Analogy</a>
+                <a href="#benefits" class="hidden md:inline-block text-zinc-400 hover:text-white transition-colors">Why You Need It</a>
+                <a href="#try-it" class="hidden md:inline-block text-zinc-400 hover:text-white transition-colors">Interactive Demo</a>
+
+                <!-- SWITCH TO TECHNICAL DEEP-DIVE -->
+                <a href="tech.html" class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/20 transition-all flex items-center space-x-1.5 font-semibold">
+                    <span>⚡ Technical Deep-Dive</span>
+                    <span>→</span>
+                </a>
+            </nav>
+
+            <!-- Right Utilities & High-Converting CTA -->
+            <div class="flex items-center space-x-2.5 font-mono text-xs">
+                <a href="https://github.com/mjzd7/dagr" target="_blank" class="hidden sm:flex px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-all items-center space-x-1.5">
+                    <span>⭐ Star</span>
+                </a>
+                <a href="#install" class="px-4 py-1.5 rounded-xl apple-cta-btn text-black font-bold text-xs transition-all shadow-md">
+                    <span>⚡ Get Started</span>
+                </a>
+            </div>
+        </header>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-6 py-12 space-y-28">
+
+        <!-- 1. HERO: PLAIN ENGLISH & LUXURY DISPLAY -->
+        <section class="text-center space-y-7 pt-8">
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mono bg-white/10 text-white border border-white/20 shadow-inner">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                <span>The Precision Context Hypervisor</span>
+            </div>
+
+            <h1 class="text-5xl sm:text-7xl font-black tracking-tight metallic-text leading-[1.08] max-w-4xl mx-auto">
+                Give your AI assistant laser focus — not your whole codebase.
             </h1>
 
-            <p class="text-base sm:text-lg text-zinc-400 font-normal max-w-2xl mx-auto">
-                Sub-millisecond AST context pruning, in-memory architectural guardrails (<0.1ms), and 10ms Copy-on-Write shadow rollback across <strong class="text-white">31+ AI IDEs</strong> and multi-agent swarms.
+            <p class="text-base sm:text-xl text-zinc-300 max-w-2xl mx-auto leading-relaxed font-normal">
+                When you ask an AI to fix one function, your IDE dumps thousands of lines of noise. 
+                <strong class="text-white font-semibold">DAGR trims 95% of the bloat in &lt;0.3ms</strong> — making answers instant, slashing token bills, and locking down your files in a zero-trust sandbox.
             </p>
 
-            <!-- 1-Click Interactive Terminal Install Box -->
-            <div class="max-w-xl mx-auto glass-card rounded-2xl p-4 space-y-3 text-left">
-                <div class="flex items-center justify-between text-xs font-mono text-zinc-400 border-b border-white/5 pb-2">
-                    <span>1-Line Multi-OS Installer</span>
-                    <span class="text-emerald-400">Automated Binary + MCP</span>
-                </div>
-                <div class="flex items-center justify-between bg-zinc-950/80 rounded-xl p-3 border border-white/5 font-mono text-xs text-zinc-200">
-                    <span class="truncate mr-2"><span class="text-emerald-400">$</span> curl -fsSL https://raw.githubusercontent.com/mjzd7/dagr/main/scripts/install.sh | bash</span>
-                    <button onclick="copyToClipboard('curl -fsSL https://raw.githubusercontent.com/mjzd7/dagr/main/scripts/install.sh | bash', this)" class="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-[11px] font-semibold text-white transition-colors shrink-0">
-                        Copy
-                    </button>
-                </div>
-                <div class="flex items-center justify-between text-[11px] font-mono text-zinc-500 pt-1">
-                    <span>Also supports: <code class="text-zinc-400">brew install mjzd7/dagr/dagr</code> • <code class="text-zinc-400">npm i -g @mjzd7/dagr</code></span>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. INTERACTIVE AST SLICING SIMULATOR & CUSTOM CODE LAB -->
-        <section id="simulator" class="space-y-6">
-            <div class="text-center space-y-2 max-w-2xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Interactive AST Slicing Simulator & Custom Code Lab</h2>
-                <p class="text-xs sm:text-sm text-zinc-400 font-mono">Test pre-built examples, <strong class="text-emerald-400">paste your own code</strong>, or ingest a GitHub repo to test AST contract hoisting</p>
-            </div>
-
-            <!-- Scenario Switcher Buttons -->
-            <div class="flex flex-wrap justify-center gap-2">
-                <button onclick="selectScenario('typescript')" id="sim-btn-typescript" class="px-4 py-2 rounded-xl bg-white/10 text-white font-semibold text-xs border border-white/20 shadow-sm transition-all flex items-center space-x-1.5">
-                    <span>TypeScript (Stripe Payment)</span>
-                </button>
-                <button onclick="selectScenario('python')" id="sim-btn-python" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all flex items-center space-x-1.5">
-                    <span>Python (JWT Auth)</span>
-                </button>
-                <button onclick="selectScenario('rust')" id="sim-btn-rust" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all flex items-center space-x-1.5">
-                    <span>Rust (SQLite Storage)</span>
-                </button>
-                <button onclick="selectScenario('custom')" id="sim-btn-custom" class="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 font-semibold text-xs border border-emerald-500/30 shadow-sm transition-all flex items-center space-x-1.5 glow-emerald">
-                    <span>🧪 Paste Your Own Code</span>
-                </button>
-            </div>
-
-            <!-- Custom Code Input Panel -->
-            <div id="custom-code-panel" class="hidden glass-card rounded-3xl p-6 space-y-4 border-emerald-500/30">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+            <!-- Quick 1-Line Install Box (2010s Vintage Terminal Aesthetic) -->
+            <div id="install" class="max-w-xl mx-auto titanium-hero-card overflow-hidden shadow-2xl text-left font-mono">
+                <!-- 2010s iTerm2 Window Chrome Header -->
+                <div class="bg-zinc-950 px-4 py-3 border-b border-white/10 flex items-center justify-between">
                     <div class="flex items-center space-x-2">
-                        <span class="w-3 h-3 rounded-full bg-emerald-400 pulse-live"></span>
-                        <span class="text-sm font-bold text-white">Custom Code AST Slicer Lab</span>
-                        <span class="text-xs text-zinc-400 font-mono">(Simulate live LLM context pruning)</span>
+                        <span class="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] inline-block shadow-sm"></span>
+                        <span class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] inline-block shadow-sm"></span>
+                        <span class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] inline-block shadow-sm"></span>
+                        <span class="text-[11px] text-zinc-400 font-semibold ml-2 font-mono">dagr-installer — zsh — 80×24</span>
                     </div>
-
-                    <div class="flex items-center space-x-3">
-                        <select id="custom-lang-select" class="bg-zinc-900 border border-white/10 rounded-xl px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500">
-                            <option value="typescript">TypeScript / JavaScript</option>
-                            <option value="python">Python</option>
-                            <option value="rust">Rust</option>
-                            <option value="go">Go</option>
-                        </select>
-                    </div>
+                    <span class="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">100% Rust</span>
                 </div>
-
-                <!-- Target Symbol & Auto-detection -->
-                <div class="space-y-2">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <label class="text-xs font-mono text-zinc-400">Target Function / Symbol to Query:</label>
-                        <div id="detected-symbols-badges" class="flex flex-wrap items-center gap-1.5">
-                            <!-- Populated dynamically -->
-                        </div>
+                <!-- Terminal Body -->
+                <div class="p-5 space-y-3 bg-black/95">
+                    <div class="flex items-center justify-between text-xs text-zinc-400">
+                        <span class="flex items-center space-x-1.5">
+                            <span class="text-emerald-400">⚡</span>
+                            <span class="text-zinc-300">Run in your terminal:</span>
+                        </span>
+                        <span class="text-zinc-500 text-[11px]">Zero Telemetry</span>
                     </div>
-                    <div class="flex gap-2">
-                        <input type="text" id="custom-symbol-input" placeholder="e.g. processPayment or calculateTotal" value="processPayment" class="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500" />
-                        <button onclick="executeCustomSlice()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-bold font-mono text-xs shadow-lg transition-all flex items-center space-x-2">
-                            <span>⚡ Slice with DAGR</span>
+                    <div class="inset-well p-3.5 flex items-center justify-between bg-black border border-white/15">
+                        <div class="font-mono text-xs truncate mr-3 text-zinc-200">
+                            <span class="text-zinc-500 font-bold">~ $ </span><span class="text-white font-medium">curl -fsSL https://dagr.dev/install.sh | bash</span><span class="animate-pulse text-zinc-400">▋</span>
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/mjzd7/dagr/main/scripts/install.sh | bash'); this.innerText = 'Copied!'; setTimeout(() => this.innerText = 'Copy', 2000);" class="px-3.5 py-1.5 rounded-xl apple-cta-btn text-black font-bold text-xs transition-all shrink-0">
+                            Copy
                         </button>
                     </div>
-                </div>
-
-                <!-- Large Code Input Area -->
-                <div class="space-y-1.5">
-                    <label class="text-xs font-mono text-zinc-400">Paste Raw Monolithic Source Code (any classes, helpers, types):</label>
-                    <textarea id="custom-code-input" rows="8" class="w-full bg-zinc-950/90 border border-white/10 rounded-2xl p-4 font-mono text-xs text-zinc-300 focus:outline-none focus:border-emerald-500 leading-relaxed" placeholder="Paste your code here...">// Paste your entire monolithic file here!
-import { Database } from "@/db/client";
-import { MetricsCollector } from "@/telemetry";
-import { EmailService } from "@/notify/email";
-
-export interface PaymentRequest {
-  userId: string;
-  amount: number;
-  currency: string;
-}
-
-export interface PaymentResponse {
-  success: boolean;
-  transactionId: string;
-}
-
-export async function processPayment(req: PaymentRequest, db: Database): Promise<PaymentResponse> {
-  console.log("Processing payment for user", req.userId);
-  const tx = await db.transactions.create({ amount: req.amount });
-  return { success: true, transactionId: tx.id };
-}
-
-export async function sendReceiptEmail(email: string, amount: number) {
-  // ... 200 more lines of unrelated email formatting ...
-}</textarea>
+                    <div class="text-[11px] text-zinc-500 flex items-center justify-between pt-1">
+                        <span>Also: <code class="text-zinc-400">brew install mjzd7/dagr/dagr</code></span>
+                        <span class="text-zinc-500">BSL-1.1 Open Source</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Side-by-Side Slicing Playground Card -->
-            <div class="glass-card rounded-3xl p-6 space-y-6">
-                <!-- Target Header -->
-                <div class="flex items-center justify-between border-b border-white/5 pb-4">
-                    <div class="flex items-center space-x-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                        <span class="text-xs font-mono text-zinc-400">TARGET SYMBOL:</span>
-                        <span class="text-xs font-mono font-bold text-white" id="sim-target-label">src/billing/charge.ts:processPayment</span>
-                    </div>
-                    <div class="flex items-center space-x-3 text-xs font-mono">
-                        <span class="text-zinc-400">Parse Latency: <strong class="text-cyan-400" id="sim-latency">0.24ms</strong></span>
-                    </div>
+            <!-- Audience Banner: Looking for Compiler & AST Math? -->
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left text-xs font-mono titanium-card">
+                <div class="flex items-center space-x-2 text-zinc-300">
+                    <span>🔬 Are you a compiler engineer or researcher?</span>
                 </div>
-
-                <!-- Code Comparison Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Left: Raw Monolith (Bloat) -->
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between text-xs font-mono">
-                            <span class="text-red-400 font-semibold">❌ Without DAGR (Raw File Dump)</span>
-                            <span class="text-zinc-500" id="sim-raw-tokens">11,840 tokens</span>
-                        </div>
-                        <div class="bg-zinc-950/90 rounded-2xl p-4 border border-red-500/20 font-mono text-xs text-zinc-400 h-96 overflow-y-auto whitespace-pre leading-relaxed" id="sim-raw-code">Loading...</div>
-                    </div>
-
-                    <!-- Right: DAGR Minimal AST Slice -->
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between text-xs font-mono">
-                            <span class="text-emerald-400 font-semibold">⚡ With DAGR (Hoisted AST Slice)</span>
-                            <span class="text-emerald-400 font-bold" id="sim-sliced-tokens">285 tokens</span>
-                        </div>
-                        <div class="bg-zinc-950/90 rounded-2xl p-4 border border-emerald-500/30 font-mono text-xs text-emerald-300 h-96 overflow-y-auto whitespace-pre leading-relaxed shadow-lg glow-emerald" id="sim-sliced-code">Loading...</div>
-                    </div>
-                </div>
-
-                <!-- Visual Explanation Banner -->
-                <div class="p-3.5 rounded-xl bg-zinc-900/80 border border-white/10 flex items-center space-x-3 text-xs font-mono">
-                    <span class="text-emerald-400 font-bold text-sm">💡</span>
-                    <span class="text-zinc-300" id="sim-explanation-text">Pruned monolithic dependencies & hoisted exact AST type signatures in 0.24ms. Zero token waste.</span>
-                </div>
-
-                <!-- Metric Savings Summary Bar -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 text-center">
-                        <div class="text-[11px] font-mono text-zinc-400">TOKENS SAVED PER PROMPT</div>
-                        <div class="text-2xl font-extrabold font-mono text-emerald-400" id="sim-saved-tokens">+11,555 tokens</div>
-                    </div>
-                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 text-center">
-                        <div class="text-[11px] font-mono text-zinc-400">TOKEN COMPRESSION RATIO</div>
-                        <div class="text-2xl font-extrabold font-mono text-cyan-400" id="sim-compression-pct">-97.6%</div>
-                    </div>
-                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 text-center">
-                        <div class="text-[11px] font-mono text-zinc-400">ESTIMATED DIRECT SAVINGS</div>
-                        <div class="text-2xl font-extrabold font-mono text-indigo-400" id="sim-usd-saved">$0.035 / prompt</div>
-                    </div>
-                </div>
+                <a href="tech.html" class="text-white hover:underline font-bold flex items-center space-x-1 shrink-0">
+                    <span>Technical Deep-Dive &amp; 3D AST Lab →</span>
+                </a>
             </div>
         </section>
 
-        <!-- 3. CODEBASE INGESTION LAB (GITHUB, GITLAB, ZIP, FOLDER) -->
-        <section id="codebase-ingest" class="space-y-6">
+        <!-- 2. THE SIMPLE ANALOGY: WHY THIS MATTERS -->
+        <section id="analogy" class="space-y-8">
             <div class="text-center space-y-2 max-w-2xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Multi-File Codebase Ingestion & Symbol Explorer</h2>
-                <p class="text-xs sm:text-sm text-zinc-400 font-mono">Ingest a complete public GitHub/GitLab repository, upload a <strong class="text-cyan-400">.ZIP archive</strong>, or select a local folder to slice any symbol across your project</p>
+                <h2 class="text-3xl sm:text-4xl font-extrabold metallic-text tracking-tight">The 500-Page Blueprint Analogy</h2>
+                <p class="text-sm text-zinc-400">Why current AI coding tools get confused and cost so much</p>
             </div>
 
-            <div class="glass-card rounded-3xl p-6 space-y-6">
-                <!-- Source Tabs -->
-                <div class="flex flex-wrap gap-2 border-b border-white/5 pb-4">
-                    <button onclick="switchIngestMode('github')" id="ingest-tab-github" class="px-4 py-2 rounded-xl bg-white/10 text-white font-semibold text-xs border border-white/20 transition-all flex items-center space-x-2">
-                        <span>📦 GitHub / GitLab URL</span>
-                    </button>
-                    <button onclick="switchIngestMode('zip')" id="ingest-tab-zip" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all flex items-center space-x-2">
-                        <span>📁 Upload .ZIP Archive</span>
-                    </button>
-                    <button onclick="switchIngestMode('folder')" id="ingest-tab-folder" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all flex items-center space-x-2">
-                        <span>🗂️ Select Local Folder</span>
-                    </button>
-                </div>
-
-                <!-- GitHub URL Ingestion Form -->
-                <div id="ingest-panel-github" class="space-y-3">
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="github-url-input" placeholder="e.g. https://github.com/expressjs/express or https://github.com/mjzd7/dagr" value="https://github.com/mjzd7/dagr" class="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500" />
-                        <button onclick="importFromGitHubUrl()" id="github-import-btn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-black font-bold font-mono text-xs shadow-lg transition-all flex items-center space-x-2 shrink-0">
-                            <span>⚡ Ingest & Index Repo</span>
-                        </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                <!-- Without DAGR (Luminance Level 1 - Passive) -->
+                <div class="titanium-card p-8 space-y-4 text-left flex flex-col justify-between opacity-80 hover:opacity-100 transition-opacity">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">😫</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-white/10 text-zinc-400">WITHOUT DAGR</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Mailing the Whole Apartment Blueprint</h3>
+                        <p class="text-sm text-zinc-400 leading-relaxed font-normal mt-2">
+                            Imagine hiring an electrician to fix a blown fuse in your bedroom. But to explain the problem, you mail them the <strong class="text-zinc-200">500-page structural blueprint of your entire building</strong>, the plumbing schematics, and the neighborhood grid.
+                        </p>
                     </div>
-                    
-                    <!-- Quick-Pick Random Codebases -->
-                    <div class="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-mono">
-                        <span class="text-zinc-500">Quick-Pick Samples:</span>
-                        <button onclick="quickLoadRepo('expressjs/express')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-cyan-400 border border-cyan-500/30 transition-all">
-                            ⚡ Express.js (Router)
-                        </button>
-                        <button onclick="quickLoadRepo('tiangolo/fastapi')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-emerald-400 border border-emerald-500/30 transition-all">
-                            ⚡ FastAPI (OAuth2)
-                        </button>
-                        <button onclick="quickLoadRepo('tokio-rs/tokio')" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-indigo-400 border border-indigo-500/30 transition-all">
-                            ⚡ Tokio (WorkerPool)
-                        </button>
-                        <button onclick="quickLoadRandomRepo()" id="btn-random-repo" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold border border-emerald-500/40 transition-all">
-                            🎲 Pick Random Codebase
-                        </button>
-                    </div>
-
-                    <div class="text-[11px] font-mono text-zinc-500 flex justify-between pt-1">
-                        <span>Supported: Public repos & single file links in TypeScript, Python, Rust, Go</span>
-                        <span id="ingest-status-label" class="text-cyan-400 font-semibold"></span>
+                    <div class="space-y-2.5 pt-3 text-xs font-mono text-zinc-400 border-t border-white/5">
+                        <div class="flex items-center space-x-2"><span>💸</span><span>Costs a fortune in postage ($$$ token fees).</span></div>
+                        <div class="flex items-center space-x-2"><span>⌛</span><span>Takes 20 seconds to read it all.</span></div>
+                        <div class="flex items-center space-x-2"><span>❌</span><span>Gets lost in the noise and cuts the wrong wire.</span></div>
                     </div>
                 </div>
 
-                <!-- Zip Upload Panel -->
-                <div id="ingest-panel-zip" class="hidden space-y-3">
-                    <div class="border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-2xl p-6 text-center cursor-pointer transition-colors" onclick="document.getElementById('zip-file-input').click()">
-                        <input type="file" id="zip-file-input" accept=".zip" class="hidden" onchange="handleZipUpload(event)" />
-                        <div class="text-2xl mb-1">📦</div>
-                        <div class="text-xs font-mono font-bold text-white">Click or Drag & Drop a .ZIP Codebase Archive</div>
-                        <div class="text-[11px] font-mono text-zinc-500 mt-1">Extracts & indexes all .ts, .py, .rs, .go files client-side in memory</div>
+                <!-- With DAGR (Luminance Level 2 - Dominant Hero) -->
+                <div class="titanium-hero-card p-8 space-y-4 text-left flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl">✂️</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-white text-black">WITH DAGR</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">The 1-Page Sticky Note</h3>
+                        <p class="text-sm text-zinc-200 leading-relaxed font-normal mt-2">
+                            DAGR is like taking smart scissors and cutting out <strong class="text-white font-semibold">only the 1 page with the bedroom fuse box</strong>, handing it to the electrician in 0.2 milliseconds.
+                        </p>
                     </div>
-                </div>
-
-                <!-- Local Folder Panel -->
-                <div id="ingest-panel-folder" class="hidden space-y-3">
-                    <div class="border-2 border-dashed border-white/10 hover:border-emerald-500/50 rounded-2xl p-6 text-center cursor-pointer transition-colors" onclick="document.getElementById('folder-dir-input').click()">
-                        <input type="file" id="folder-dir-input" webkitdirectory directory multiple class="hidden" onchange="handleFolderUpload(event)" />
-                        <div class="text-2xl mb-1">🗂️</div>
-                        <div class="text-xs font-mono font-bold text-white">Select a Local Project Directory</div>
-                        <div class="text-[11px] font-mono text-zinc-500 mt-1">Reads folder structure client-side with zero data leaving your machine</div>
-                    </div>
-                </div>
-
-                <!-- Cross-Codebase Symbol Search, AI Chatbox & Suggestions -->
-                <div id="codebase-results-container" class="hidden space-y-4 pt-4 border-t border-white/5">
-                    <!-- Interactive Codebase Chatbox & Tailored Prompt Suggestions -->
-                    <div class="p-4 sm:p-5 rounded-2xl bg-zinc-950/90 border border-emerald-500/40 space-y-3 shadow-xl">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                                <span class="text-xs font-mono font-bold text-white">Ask DAGR About Ingested Codebase</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-emerald-400/90 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">AST Context Slicer Assistant</span>
-                        </div>
-                        
-                        <!-- Chat Prompt Input -->
-                        <div class="flex gap-2">
-                            <input type="text" id="codebase-chat-input" placeholder="Ask anything about this repo (e.g. 'How does processPayment handle errors?')..." class="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500" onkeydown="if (event.key === 'Enter') submitCodebaseChat();" />
-                            <button onclick="submitCodebaseChat()" id="btn-chat-submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-bold font-mono text-xs transition-all flex items-center space-x-1.5 shrink-0">
-                                <span>Ask ⚡</span>
-                            </button>
-                        </div>
-                        
-                        <!-- Dynamic AI Suggestions (What you can ask about this codebase) -->
-                        <div class="space-y-1.5 pt-1">
-                            <div class="text-[11px] font-mono text-zinc-400 flex items-center space-x-1.5">
-                                <span>💡</span>
-                                <span>Suggested questions for this codebase (click to slice & answer):</span>
-                            </div>
-                            <div id="chat-suggestions-container" class="flex flex-wrap gap-2">
-                                <!-- Dynamically populated chips with questions based on indexed symbols -->
-                            </div>
-                        </div>
-
-                        <!-- Chat Response Output Card -->
-                        <div id="chat-response-card" class="hidden p-4 rounded-xl bg-zinc-900/95 border border-emerald-500/30 space-y-2 text-xs font-mono">
-                            <div class="flex items-center justify-between text-zinc-400 border-b border-white/10 pb-2">
-                                <span id="chat-response-query" class="text-white font-bold truncate">Query</span>
-                                <span class="text-emerald-400 text-[10px] shrink-0 font-bold ml-2" id="chat-response-stats">280 tokens (-96% bloat pruned)</span>
-                            </div>
-                            <div id="chat-response-text" class="text-zinc-300 leading-relaxed whitespace-pre-wrap"></div>
-                        </div>
-                    </div>
-
-                    <!-- Filtered Symbols Header -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
-                        <div class="text-xs font-mono text-zinc-400">
-                            Loaded Codebase: <strong class="text-white" id="ingested-repo-title">mjzd7/dagr</strong>
-                            <span class="text-emerald-400 ml-2" id="ingested-counts-badge">(12 files, 48 symbols)</span>
-                        </div>
-                        <div class="w-full sm:w-80">
-                            <input type="text" id="symbol-search-input" placeholder="Search symbols (e.g. processPayment, Token)..." class="w-full bg-zinc-900 border border-white/10 rounded-xl px-3.5 py-1.5 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500" oninput="handleSymbolSearch(event)" />
-                        </div>
-                    </div>
-
-                    <!-- Filtered Symbols Grid -->
-                    <div id="codebase-symbols-grid" class="max-h-48 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pr-1">
-                        <!-- Populated dynamically -->
+                    <div class="space-y-2.5 pt-3 text-xs font-mono text-zinc-200 border-t border-white/10">
+                        <div class="flex items-center space-x-2"><span>💰</span><span>95% less data sent = pennies instead of dollars.</span></div>
+                        <div class="flex items-center space-x-2"><span>⚡</span><span>Instant sub-second response from your AI.</span></div>
+                        <div class="flex items-center space-x-2"><span>🎯</span><span>Zero hallucinations — 100% focused, clean answers.</span></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 4. VISUAL AST DEPENDENCY & PRUNING GRAPH (2D / 3D SWITCHER & FULLSCREEN) -->
-        <section id="visual-graph" class="space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Interactive AST Dependency & Pruning Visual Graph</h2>
-                    <p class="text-xs sm:text-sm text-zinc-400 font-mono">Visualize in planar 2D or <strong class="text-cyan-400">3D WebGL Orbit</strong> how DAGR cuts token bloat with 3D billboard labels</p>
-                </div>
-
-                <!-- 2D / 3D & Fullscreen Controls -->
-                <div class="flex items-center space-x-2">
-                    <div class="flex items-center space-x-1 glass-card p-1 rounded-xl border border-white/10">
-                        <button onclick="switchGraphMode('2d')" id="graph-view-btn-2d" class="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all">
-                            2D Planar
-                        </button>
-                        <button onclick="switchGraphMode('3d')" id="graph-view-btn-3d" class="px-3 py-1 rounded-lg text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
-                            🪐 3D WebGL Orbit
-                        </button>
-                    </div>
-                    <button onclick="toggleGraphFullscreen()" id="graph-fullscreen-btn" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300 hover:text-white transition-all flex items-center space-x-1.5 shadow-sm">
-                        <span>⛶ Fullscreen</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Visualizer Card Container -->
-            <div class="glass-card rounded-3xl p-6 space-y-4 relative transition-all" id="graph-visualizer-card">
-                <!-- Fullscreen Top HUD Bar (Visible only when Fullscreen) -->
-                <div id="fullscreen-hud-bar" class="hidden flex items-center justify-between border-b border-white/10 pb-3">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-sm font-bold text-white font-mono">🪐 DAGR 3D/2D Immersive Graph Inspection</span>
-                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono border border-emerald-500/30">Live Context Model</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="if (global3DVisualizer) global3DVisualizer.resetCamera()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
-                            🔄 Reset Camera
-                        </button>
-                        <button onclick="if (global3DVisualizer) global3DVisualizer.zoomIn()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
-                            🔍 Zoom +
-                        </button>
-                        <button onclick="if (global3DVisualizer) global3DVisualizer.zoomOut()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
-                            🔍 Zoom -
-                        </button>
-                        <button onclick="if (global3DVisualizer) global3DVisualizer.toggleAutoOrbit()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-cyan-400">
-                            🌀 Auto-Orbit
-                        </button>
-                        <button onclick="toggleGraphFullscreen()" class="px-4 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-xs font-mono text-red-400 font-bold transition-all">
-                            ✕ Exit Fullscreen
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Legend Strip -->
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4 text-xs font-mono">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400 inline-block shadow-sm"></span> <span class="text-white font-semibold">🎯 Target Function Core</span></span>
-                        <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-cyan-400 inline-block shadow-sm"></span> <span class="text-cyan-300">🏗️ Hoisted Contracts (Type Safe)</span></span>
-                        <span class="flex items-center space-x-1.5"><span class="w-3 h-3 rounded-full bg-red-500/50 inline-block border border-red-500/80"></span> <span class="text-red-400/80">✂️ Pruned Monolith Debris (-95%)</span></span>
-                    </div>
-                    <div class="text-zinc-500 text-[11px]">
-                        💡 Drag to orbit in 3D • Scroll to zoom • Billboard labels identify all symbols
-                    </div>
-                </div>
-
-                <!-- 2D / 3D Canvas Host Container -->
-                <div id="graph2dWrapper" class="relative w-full rounded-2xl bg-zinc-950/90 border border-white/5 overflow-hidden flex items-center justify-center h-[480px] flex-1">
-                    <canvas id="astGraphCanvas" class="cursor-grab active:cursor-grabbing w-full h-full"></canvas>
-                    
-                    <!-- 3D WebGL Container -->
-                    <div id="graph3dContainer" class="hidden w-full h-full cursor-grab active:cursor-grabbing"></div>
-
-                    <!-- Dynamic Tooltip -->
-                    <div id="graphTooltip" class="hidden absolute glass-card p-3 rounded-xl border border-white/20 shadow-2xl z-50 pointer-events-none transition-all">
-                        <!-- Populated dynamically -->
-                    </div>
-                </div>
-
-                <!-- HOW TO READ THIS CODE GRAPH (EXPLICIT ANATOMY GUIDE) -->
-                <div class="pt-4 border-t border-white/5 space-y-3">
-                    <div class="text-xs font-bold font-mono text-zinc-300 uppercase tracking-wider flex items-center space-x-2">
-                        <span>📖 How to Read This Code Graph (Graph Anatomy Guide)</span>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs font-mono">
-                        <div class="p-3 rounded-xl bg-zinc-900/70 border border-emerald-500/20 space-y-1">
-                            <div class="font-bold text-emerald-400 flex items-center space-x-1">
-                                <span>🟢</span>
-                                <span>1. The Green Core</span>
-                            </div>
-                            <p class="text-[11px] text-zinc-400 leading-relaxed">
-                                The exact target function requested by your prompt. It sits in the center of the LLM context sphere.
-                            </p>
-                        </div>
-                        <div class="p-3 rounded-xl bg-zinc-900/70 border border-cyan-500/20 space-y-1">
-                            <div class="font-bold text-cyan-400 flex items-center space-x-1">
-                                <span>🔵</span>
-                                <span>2. Cyan Satellites</span>
-                            </div>
-                            <p class="text-[11px] text-zinc-400 leading-relaxed">
-                                Upstream interfaces & structs automatically hoisted by DAGR so the AI writes bug-free, type-safe code.
-                            </p>
-                        </div>
-                        <div class="p-3 rounded-xl bg-zinc-900/70 border border-emerald-500/10 space-y-1">
-                            <div class="font-bold text-emerald-300 flex items-center space-x-1">
-                                <span>🌐</span>
-                                <span>3. Emerald Sphere</span>
-                            </div>
-                            <p class="text-[11px] text-zinc-400 leading-relaxed">
-                                The strict LLM Prompt Boundary. Only nodes inside this sphere (~280 tokens) are sent to the AI model.
-                            </p>
-                        </div>
-                        <div class="p-3 rounded-xl bg-zinc-900/70 border border-red-500/20 space-y-1">
-                            <div class="font-bold text-red-400 flex items-center space-x-1">
-                                <span>🔴</span>
-                                <span>4. Red Outer Debris</span>
-                            </div>
-                            <p class="text-[11px] text-zinc-400 leading-relaxed">
-                                800+ lines of unrelated DB pools and logging pruned away, eliminating token waste & hallucinations.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 5. LIVE ITERATIONS & TELEMETRY LEDGER -->
-        <section id="history-ledger" class="space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Live Slicing Iterations & Telemetry History</h2>
-                    <p class="text-xs sm:text-sm text-zinc-400 font-mono">Persistent client-side ledger tracking token cuts and cumulative ROI across all your test iterations</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="clearSlicingHistory()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-400 hover:text-red-400 transition-colors">
-                        Clear History
-                    </button>
-                </div>
-            </div>
-
-            <!-- Cumulative Telemetry Metric Cards -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass-card rounded-2xl p-4 text-center">
-                    <div class="text-[11px] font-mono text-zinc-400">SLICES TESTED</div>
-                    <div class="text-2xl font-bold font-mono text-white mt-1" id="history-total-slices">0</div>
-                </div>
-                <div class="glass-card rounded-2xl p-4 text-center">
-                    <div class="text-[11px] font-mono text-zinc-400">CUMULATIVE TOKENS SAVED</div>
-                    <div class="text-2xl font-bold font-mono text-emerald-400 mt-1" id="history-tokens-saved">0k</div>
-                </div>
-                <div class="glass-card rounded-2xl p-4 text-center">
-                    <div class="text-[11px] font-mono text-zinc-400">AVG COMPRESSION RATIO</div>
-                    <div class="text-2xl font-bold font-mono text-cyan-400 mt-1" id="history-avg-compression">0.0%</div>
-                </div>
-                <div class="glass-card rounded-2xl p-4 text-center">
-                    <div class="text-[11px] font-mono text-zinc-400">CUMULATIVE DOLLAR ROI</div>
-                    <div class="text-2xl font-bold font-mono text-indigo-400 mt-1" id="history-usd-saved">$0.00</div>
-                </div>
-            </div>
-
-            <!-- Iterations Table -->
-            <div class="glass-card rounded-2xl overflow-hidden border border-white/5">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs font-mono">
-                        <thead class="bg-zinc-900/90 text-zinc-400 border-b border-white/10 uppercase tracking-wider">
-                            <tr>
-                                <th class="py-3 px-4">#</th>
-                                <th class="py-3 px-4">Time</th>
-                                <th class="py-3 px-4">Language & Target</th>
-                                <th class="py-3 px-4">Token Footprint</th>
-                                <th class="py-3 px-4">Compression</th>
-                                <th class="py-3 px-4">USD Saved</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-ledger-body" class="divide-y divide-white/5 text-zinc-300">
-                            <!-- Injected dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- 6. CORE SUPERPOWERS -->
-        <section id="features" class="space-y-12">
+        <!-- 3. THE 3 BIG PROBLEMS DAGR SOLVES -->
+        <section id="benefits" class="space-y-8">
             <div class="text-center space-y-2 max-w-2xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">The 4 Architectural Superpowers</h2>
-                <p class="text-xs sm:text-sm text-zinc-400 font-mono">Engineered in native Rust for sub-millisecond execution and zero-cloud dependency</p>
+                <h2 class="text-3xl sm:text-4xl font-extrabold metallic-text tracking-tight">3 Things DAGR Does For You</h2>
+                <p class="text-sm text-zinc-400">Simple benefits that change how you code with AI</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Power 1: AST Slicer -->
-                <div class="glass-card rounded-3xl p-6 space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl">
-                        ✂️
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                <!-- Benefit 1 -->
+                <div class="titanium-card p-7 space-y-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl shadow-inner">
+                        💰
                     </div>
-                    <h3 class="text-lg font-bold text-white">Surgical AST Slicer & Contract Hoister</h3>
-                    <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                        Traverses TypeScript, Python, Rust, and Go ASTs in &lt;0.3ms. Hoists only upstream interfaces and called functions while pruning 95% of irrelevant monolithic code.
+                    <h3 class="text-lg font-bold text-white">1. Slashes AI Bills by 95%</h3>
+                    <p class="text-sm text-zinc-400 leading-relaxed font-normal">
+                        Instead of sending 15,000 tokens of boilerplate every time you press Enter, DAGR trims it down to ~300 tokens. Your daily bill drops from $10/day to $0.50/day.
                     </p>
-                    <div class="text-xs font-mono text-emerald-400 pt-2">✓ Eliminates "Lost-in-the-Middle" hallucinations</div>
                 </div>
 
-                <!-- Power 2: CoW Sandbox -->
-                <div class="glass-card rounded-3xl p-6 space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-2xl">
+                <!-- Benefit 2 -->
+                <div class="titanium-card p-7 space-y-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl shadow-inner">
                         🛡️
                     </div>
-                    <h3 class="text-lg font-bold text-white">Copy-on-Write (CoW) Shadow Sandbox</h3>
-                    <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                        Executes agent tool builds and test commands inside an ephemeral OS shadow filesystem (APFS <code class="text-indigo-300">clonefile(2)</code> on macOS, <code class="text-indigo-300">reflink</code> on Linux) with instant <strong>&lt;10ms atomic rollback</strong> on failure.
+                    <h3 class="text-lg font-bold text-white">2. Safe Zero-Trust Sandbox</h3>
+                    <p class="text-sm text-zinc-400 leading-relaxed font-normal">
+                        Ever had an AI rewrite your code and break your tests? DAGR tests changes in an invisible playground first. If tests fail, it rolls back in 10ms with zero mess.
                     </p>
-                    <div class="text-xs font-mono text-indigo-400 pt-2">✓ Real disk stays 100% clean with zero dirty git resets</div>
                 </div>
 
-                <!-- Power 3: Architecture Guard -->
-                <div class="glass-card rounded-3xl p-6 space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-2xl">
+                <!-- Benefit 3 -->
+                <div class="titanium-card p-7 space-y-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl shadow-inner">
                         📏
                     </div>
-                    <h3 class="text-lg font-bold text-white">In-Memory Architectural Layer Guard</h3>
-                    <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                        Evaluates proposed imports against clean architecture rules in <code class="text-amber-300">.dagr/rules.yaml</code> in &lt;0.1ms. Blocks UI components from directly importing DB connections and sanitizes context injections.
+                    <h3 class="text-lg font-bold text-white">3. Stops Spaghetti Architecture</h3>
+                    <p class="text-sm text-zinc-400 leading-relaxed font-normal">
+                        AI agents often get lazy and import secret database passwords directly into frontend buttons. DAGR blocks these layer violations automatically.
                     </p>
-                    <div class="text-xs font-mono text-amber-400 pt-2">✓ Stops architectural drift before pull requests are created</div>
-                </div>
-
-                <!-- Power 4: Dual Protocol MCP + A2A -->
-                <div class="glass-card rounded-3xl p-6 space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-2xl">
-                        🤝
-                    </div>
-                    <h3 class="text-lg font-bold text-white">Dual Protocol: MCP + A2A Swarm Bus</h3>
-                    <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                        Exposes standard JSON-RPC 2.0 tools for IDEs (Cursor, Claude Desktop) while facilitating peer-to-peer transaction handoffs and synchronized file locking for multi-agent autonomous swarms.
-                    </p>
-                    <div class="text-xs font-mono text-cyan-400 pt-2">✓ Prevents multi-agent write collisions & race conditions</div>
                 </div>
             </div>
         </section>
 
-        <!-- 7. DYNAMIC TOKEN ROI CALCULATOR -->
-        <section id="calculator" class="space-y-8">
+        <!-- 4. INTERACTIVE DEMO: SEE THE DIGITAL SCISSORS IN ACTION -->
+        <section id="try-it" class="space-y-6">
             <div class="text-center space-y-2 max-w-2xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Dynamic Token ROI Financial Calculator</h2>
-                <p class="text-xs sm:text-sm text-zinc-400 font-mono">Calculate your team's exact monthly cash savings on AI token consumption</p>
+                <h2 class="text-3xl sm:text-4xl font-extrabold metallic-text tracking-tight">See The "Scissors" in Action</h2>
+                <p class="text-sm text-zinc-400">Click a scenario to see how DAGR trims 1,200 lines down to the exact 25 lines needed</p>
             </div>
 
-            <div class="glass-card rounded-3xl p-8 max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                <!-- Sliders -->
-                <div class="space-y-6">
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs font-mono">
-                            <span class="text-zinc-400">Engineering Team Size:</span>
-                            <span class="text-emerald-400 font-bold" id="calc-team-val">25 engineers</span>
-                        </div>
-                        <input type="range" id="calc-team-size" min="1" max="250" value="25" class="w-full accent-emerald-400 cursor-pointer" />
+            <!-- Interactive Mini Sandbox (2010s iTerm2 Split Terminal Aesthetic) -->
+            <div class="titanium-hero-card overflow-hidden shadow-2xl text-left font-mono">
+                <!-- iTerm2 Window Chrome Bar -->
+                <div class="bg-zinc-950 px-4 py-3 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] inline-block shadow-sm"></span>
+                        <span class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] inline-block shadow-sm"></span>
+                        <span class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] inline-block shadow-sm"></span>
+                        <span class="text-[11px] text-zinc-400 font-semibold ml-2 font-mono">dagr slice-lab — 2-pane split</span>
                     </div>
 
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs font-mono">
-                            <span class="text-zinc-400">Avg AI Prompts per Dev / Day:</span>
-                            <span class="text-cyan-400 font-bold" id="calc-prompts-val">30 prompts / dev / day</span>
-                        </div>
-                        <input type="range" id="calc-prompts-day" min="5" max="100" value="30" class="w-full accent-cyan-400 cursor-pointer" />
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-mono text-zinc-400 block">Primary AI Coding Model:</label>
-                        <select id="calc-model-pricing" class="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500">
-                            <option value="3.00">Claude 3.5 Sonnet ($3.00 / 1M tokens)</option>
-                            <option value="5.00">GPT-4o ($5.00 / 1M tokens)</option>
-                            <option value="0.55">DeepSeek-R1 ($0.55 / 1M tokens)</option>
-                            <option value="15.00">Claude 3 Opus ($15.00 / 1M tokens)</option>
-                        </select>
+                    <!-- Scenario Buttons -->
+                    <div class="flex flex-wrap gap-1.5 text-xs bg-zinc-900/90 p-1 rounded-xl border border-white/10">
+                        <button onclick="setSimpleDemo('payment')" id="demo-btn-payment" class="px-3.5 py-1.5 rounded-lg bg-white text-black font-bold transition-all shadow-md">
+                            💳 Payment
+                        </button>
+                        <button onclick="setSimpleDemo('auth')" id="demo-btn-auth" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white border border-transparent transition-all">
+                            🔑 Auth
+                        </button>
+                        <button onclick="setSimpleDemo('db')" id="demo-btn-db" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white border border-transparent transition-all">
+                            📦 DB Query
+                        </button>
                     </div>
                 </div>
 
-                <!-- ROI Display Outputs -->
-                <div class="p-6 rounded-2xl bg-zinc-950/80 border border-white/5 space-y-6 text-center">
-                    <div>
-                        <div class="text-xs font-mono text-zinc-400 mb-1">ESTIMATED MONTHLY SAVINGS</div>
-                        <div class="text-4xl font-extrabold font-mono text-emerald-400" id="calc-usd-monthly">$4,489</div>
-                        <div class="text-xs font-mono text-zinc-500 mt-1">Direct cash saved on AI API billing</div>
+                <div class="p-6 space-y-6 bg-black/95">
+                    <!-- Comparison Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                        <!-- What the AI usually sees -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-zinc-400 text-[11px]">
+                                <span class="text-red-400 font-semibold">❌ Raw Monolithic File Dump</span>
+                                <span class="text-zinc-500 font-mono tabular-nums" id="demo-raw-tokens">14,200 tokens ($0.043)</span>
+                            </div>
+                            <div class="inset-well p-4 text-zinc-500 overflow-x-auto h-56 leading-relaxed font-mono bg-black" id="demo-raw-box">
+                                <span>// 1,200 lines of unrelated accounting, taxes, logging...</span><br/>
+                                <span>// ... 400 lines of analytics helpers ...</span><br/>
+                                <span class="text-zinc-300">export function processPayment(payload: PaymentPayload) {</span><br/>
+                                <span class="text-zinc-300">&nbsp;&nbsp;return stripe.charges.create(payload);</span><br/>
+                                <span class="text-zinc-300">}</span><br/>
+                                <span>// ... 600 lines of refund processing ...</span>
+                            </div>
+                        </div>
+
+                        <!-- What DAGR gives the AI -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-zinc-300 text-[11px]">
+                                <span class="text-emerald-400 font-semibold flex items-center space-x-1"><span>⚡</span><span>dagr AST Sliced Contract</span></span>
+                                <span class="text-emerald-400 font-bold font-mono tabular-nums" id="demo-trimmed-tokens">240 tokens ($0.0007)</span>
+                            </div>
+                            <div class="inset-well p-4 border border-white/20 text-zinc-200 overflow-x-auto h-56 leading-relaxed font-mono bg-black shadow-inner" id="demo-trimmed-box">
+                                <span class="text-zinc-500">// ⚡ Exactly the type definition:</span><br/>
+                                <span class="text-zinc-300 font-semibold">interface PaymentPayload { amountCents: number; }</span><br/><br/>
+                                <span class="text-zinc-500">// ⚡ Exactly the function to edit:</span><br/>
+                                <span class="text-white font-bold">export function processPayment(payload: PaymentPayload) {</span><br/>
+                                <span class="text-white font-bold">&nbsp;&nbsp;return stripe.charges.create(payload);</span><br/>
+                                <span class="text-white font-bold">}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-                        <div>
-                            <div class="text-[11px] font-mono text-zinc-400">MONTHLY TOKENS SAVED</div>
-                            <div class="text-lg font-bold font-mono text-white" id="calc-tokens-monthly">149.6M</div>
-                        </div>
-                        <div>
-                            <div class="text-[11px] font-mono text-zinc-400">ENG HOURS SAVED / YR</div>
-                            <div class="text-lg font-bold font-mono text-indigo-400" id="calc-hours-annual">750 hrs</div>
-                        </div>
+                    <!-- Savings Banner -->
+                    <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white">
+                        <span id="demo-savings-text">✨ <strong>98.3% token savings:</strong> Trimmed 1,175 lines of noise in 0.18ms.</span>
+                        <a href="tech.html#simulator" class="text-zinc-300 hover:text-white underline font-bold">Launch Full AST Lab →</a>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 8. 31 SUPPORTED AI IDES HUB -->
-        <section id="clients" class="space-y-8">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">31+ Supported AI Coding Assistants</h2>
-                    <p class="text-xs sm:text-sm text-zinc-400 font-mono">Auto-configure MCP across all detected environments with a single command</p>
-                </div>
-                <div class="w-full sm:w-72">
-                    <input type="text" id="clients-search-input" placeholder="Search IDE (e.g. Cursor, Claude)..." class="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-4 py-2 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500" />
-                </div>
+        <!-- 5. HOW IT WORKS IN 3 SIMPLE STEPS -->
+        <section id="how-it-works" class="space-y-8">
+            <div class="text-center space-y-2 max-w-2xl mx-auto">
+                <h2 class="text-3xl sm:text-4xl font-extrabold metallic-text tracking-tight">How It Works in 3 Steps</h2>
+                <p class="text-sm text-zinc-400">Runs locally on your laptop. Zero configuration required.</p>
             </div>
 
-            <!-- Searchable Cards Grid -->
-            <div id="clients-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Dynamically injected by clients-data.js & app.js -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                <!-- Step 1 -->
+                <div class="titanium-card p-7 space-y-3 font-mono">
+                    <div class="text-2xl font-black text-white">01</div>
+                    <h3 class="text-lg font-bold text-white font-sans">You type a prompt</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed font-sans font-normal">
+                        You ask your IDE (Cursor, Claude, Zed): <em>"Add Apple Pay to processPayment"</em>.
+                    </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="titanium-card p-7 space-y-3 font-mono">
+                    <div class="text-2xl font-black text-white">02</div>
+                    <h3 class="text-lg font-bold text-white font-sans">DAGR trims the fat</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed font-sans font-normal">
+                        In &lt;0.3ms, DAGR snips out only the exact function and its type signatures. The other 95% of the file is dropped.
+                    </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="titanium-card p-7 space-y-3 font-mono">
+                    <div class="text-2xl font-black text-white">03</div>
+                    <h3 class="text-lg font-bold text-white font-sans">Safe test &amp; merge</h3>
+                    <p class="text-xs text-zinc-400 leading-relaxed font-sans font-normal">
+                        The AI generates the fix inside a safe temporary sandbox. If tests pass, it merges smoothly. If tests fail, it rolls back in 10ms.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. BOTTOM HIGH-CONVERTING CTA -->
+        <section class="titanium-hero-card p-8 sm:p-14 text-center space-y-7 border border-white/20">
+            <h2 class="text-4xl sm:text-5xl font-black tracking-tight metallic-text">
+                Ready to stop burning tokens?
+            </h2>
+            <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto font-normal">
+                Install DAGR in 5 seconds. Connects automatically to your favorite editor via Model Context Protocol.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto font-mono text-xs">
+                <div class="w-full sm:w-auto flex-1 inset-well p-4 text-white font-mono truncate">
+                    $ curl -fsSL https://dagr.dev/install.sh | bash
+                </div>
+                <button onclick="navigator.clipboard.writeText('curl -fsSL https://raw.githubusercontent.com/mjzd7/dagr/main/scripts/install.sh | bash'); this.innerText = 'Copied!'; setTimeout(() => this.innerText = 'Copy Command', 2000);" class="w-full sm:w-auto px-6 py-4 rounded-2xl apple-cta-btn text-black font-bold transition-all shadow-lg">
+                    Copy 1-Line Install
+                </button>
+            </div>
+
+            <div class="flex items-center justify-center space-x-6 pt-4 text-xs font-mono text-zinc-400">
+                <a href="tech.html" class="text-white hover:underline font-bold">Explore Technical Deep-Dive &amp; Papers →</a>
+                <span>•</span>
+                <a href="https://github.com/mjzd7/dagr" target="_blank" class="text-zinc-300 hover:text-white">⭐ Star on GitHub</a>
             </div>
         </section>
 
     </main>
 
     <!-- Footer -->
-    <footer class="glass-card border-t border-white/5 py-8 px-6 text-center text-xs font-mono text-zinc-500 space-y-2">
-        <div class="flex justify-center space-x-6 text-zinc-400">
+    <footer class="titanium-card border-t border-white/10 py-8 px-6 text-center text-xs font-mono text-zinc-500 space-y-2.5 max-w-6xl mx-auto mb-6 rounded-2xl">
+        <div class="flex flex-wrap justify-center items-center gap-6 text-zinc-400">
+            <a href="index.html" class="text-white font-semibold hover:underline">Simple Overview</a>
+            <a href="tech.html" class="hover:text-white transition-colors">Technical Deep-Dive</a>
+            <a href="brand.html" class="hover:text-white transition-colors">Brand Guidelines</a>
             <a href="https://github.com/mjzd7/dagr" target="_blank" class="hover:text-white transition-colors">GitHub</a>
             <a href="https://github.com/mjzd7/dagr/blob/main/LICENSE" target="_blank" class="hover:text-white transition-colors">BSL-1.1 License</a>
-            <a href="https://github.com/mjzd7/dagr/blob/main/CONTRIBUTING.md" target="_blank" class="hover:text-white transition-colors">Contributing & CLA</a>
+            <a href="docs/RESEARCH_PAPERS.md" class="hover:text-white transition-colors">Research Papers</a>
         </div>
-        <div>⚡ DAGR Native Hypervisor • Architected by <a href="https://github.com/mjzd7" target="_blank" class="text-zinc-300 hover:text-white font-semibold underline">Mohit Dagar</a></div>
-        <div>Zero-Cloud • Local-First • 100% Deterministic</div>
+        <div class="flex flex-wrap justify-center items-center gap-2 pt-1 text-zinc-400">
+            <span class="font-bold text-white font-brand">dagr</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-zinc-300 border border-white/20">v0.1.0</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-white/5 text-zinc-400 border border-white/10">BSL-1.1 Open Source</span>
+            <span>•</span>
+            <span>Architected by <a href="https://github.com/mjzd7" target="_blank" class="text-zinc-300 hover:text-white font-semibold underline">Mohit Dagar</a></span>
+        </div>
+        <div class="text-[11px] text-zinc-600">Zero-Cloud • 100% Local-First • APFS CoW Sandboxed</div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="js/clients-data.js"></script>
-    <script src="js/simulator.js"></script>
-    <script src="js/slicer-engine.js"></script>
-    <script src="js/codebase-importer.js"></script>
-    <script src="js/history-store.js"></script>
-    <script src="js/graph-visualizer.js"></script>
-    <script src="js/graph-3d.js"></script>
-    <script src="js/app.js"></script>
+    <!-- Interactive Simple Demo Script with VS Code Editor Aesthetics -->
+    <script>
+        const DEMO_SCENARIOS = {
+            payment: {
+                lang: 'typescript',
+                file: 'src/billing/processor.ts',
+                rawTokens: '14,200 tokens ($0.043)',
+                trimmedTokens: '240 tokens ($0.0007)',
+                savings: '✨ 98.3% token savings: Trimmed 1,175 lines of noise in 0.18ms.',
+                rawCode: `// 1,200 lines of unrelated accounting, taxes, logging...
+// ... 400 lines of analytics helpers ...
+export function processPayment(payload: PaymentPayload) {
+  return stripe.charges.create(payload);
+}
+// ... 600 lines of refund processing ...`,
+                trimmedCode: `// ⚡ Exactly the type definition:
+interface PaymentPayload {
+  amountCents: number;
+}
+
+// ⚡ Exactly the function to edit:
+export function processPayment(payload: PaymentPayload) {
+  return stripe.charges.create(payload);
+}`
+            },
+            auth: {
+                lang: 'python',
+                file: 'auth/verifier.py',
+                rawTokens: '9,800 tokens ($0.029)',
+                trimmedTokens: '180 tokens ($0.0005)',
+                savings: '✨ 98.1% token savings: Pruned 850 lines of unrelated session tables in 0.14ms.',
+                rawCode: `# 900 lines of database models, password hashing, cookies...
+# ... 300 lines of OAuth connectors ...
+def verifyToken(token: str) -> UserSession:
+    return jwt.verify(token, SECRET_KEY)
+# ... 400 lines of user signup logic ...`,
+                trimmedCode: `# ⚡ Exactly the return contract:
+class UserSession:
+    userId: str
+    role: str
+
+# ⚡ Exactly the auth verifier:
+def verifyToken(token: str) -> UserSession:
+    return jwt.verify(token, SECRET_KEY)`
+            },
+            db: {
+                lang: 'rust',
+                file: 'storage/sqlite.rs',
+                rawTokens: '18,500 tokens ($0.055)',
+                trimmedTokens: '310 tokens ($0.0009)',
+                savings: '✨ 98.3% token savings: Removed 1,600 lines of raw SQL migrations in 0.22ms.',
+                rawCode: `// 1,800 lines of SQLite connection pools, migrations...
+// ... 500 lines of connection metrics ...
+pub fn get_user_by_id(pool: &DbPool, id: u64) -> Option<User> {
+  pool.query_row("SELECT * FROM users WHERE id = ?", [id])
+}
+// ... 900 lines of table creation scripts ...`,
+                trimmedCode: `// ⚡ Exactly the User struct:
+pub struct User {
+  pub id: u64,
+  pub username: String,
+}
+
+// ⚡ Exactly the query function:
+pub fn get_user_by_id(pool: &DbPool, id: u64) -> Option<User> {
+  pool.query_row("SELECT * FROM users WHERE id = ?", [id])
+}`
+            }
+        };
+
+        function highlightLine(line) {
+            if (!line) return '&nbsp;';
+            let escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            if (escaped.trim().startsWith('//') || escaped.trim().startsWith('#')) {
+                return `<span class="text-zinc-500 italic">${escaped}</span>`;
+            }
+            escaped = escaped.replace(/(["'`])(.*?)\1/g, '<span class="text-[#a5d6ff]">$1$2$1</span>');
+            const keywords = ['export', 'import', 'function', 'return', 'interface', 'type', 'pub', 'fn', 'struct', 'def', 'class', 'let', 'const'];
+            const kwRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'g');
+            escaped = escaped.replace(kwRegex, '<span class="text-[#ff7b72] font-semibold">$1</span>');
+            const types = ['PaymentPayload', 'UserSession', 'DbPool', 'User', 'String', 'Option', 'number', 'str', 'u64'];
+            const typeRegex = new RegExp(`\\b(${types.join('|')})\\b`, 'g');
+            escaped = escaped.replace(typeRegex, '<span class="text-[#ffa657]">$1</span>');
+            escaped = escaped.replace(/\b([a-zA-Z0-9_$]+)\s*\(/g, '<span class="text-[#d2a8ff]">$1</span>(');
+            return escaped;
+        }
+
+        function renderEditor(code) {
+            const lines = code.split('\n');
+            return lines.map((line, i) => {
+                const lineNum = i + 1;
+                const highlighted = highlightLine(line);
+                return `<div class="flex items-start hover:bg-white/[0.04] px-1 py-0.5 rounded transition-colors group">
+                    <span class="select-none text-zinc-600 group-hover:text-zinc-400 font-mono text-[11px] w-7 text-right pr-2.5 shrink-0 tabular-nums">${lineNum}</span>
+                    <span class="font-mono text-xs text-zinc-200 whitespace-pre flex-1 leading-relaxed">${highlighted}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function setSimpleDemo(key) {
+            const data = DEMO_SCENARIOS[key];
+            if (!data) return;
+
+            ['payment', 'auth', 'db'].forEach(k => {
+                const btn = document.getElementById(`demo-btn-${k}`);
+                if (btn) {
+                    if (k === key) {
+                        btn.className = 'px-3.5 py-1.5 rounded-lg bg-white text-black font-bold transition-all shadow-md';
+                    } else {
+                        btn.className = 'px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white border border-transparent transition-all';
+                    }
+                }
+            });
+
+            document.getElementById('demo-raw-tokens').innerText = data.rawTokens;
+            document.getElementById('demo-trimmed-tokens').innerText = data.trimmedTokens;
+            document.getElementById('demo-raw-box').innerHTML = renderEditor(data.rawCode);
+            document.getElementById('demo-trimmed-box').innerHTML = renderEditor(data.trimmedCode);
+            document.getElementById('demo-savings-text').innerHTML = `<strong>${data.savings}</strong>`;
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setSimpleDemo('payment');
+        });
+    </script>
 </body>
 </html>

@@ -6,6 +6,8 @@
 [![Rust 2021](https://img.shields.io/badge/Rust-2021_Edition-orange.svg)](https://www.rust-lang.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-JSON--RPC_2.0-blue.svg)](https://modelcontextprotocol.io/)
 [![A2A Swarm Protocol](https://img.shields.io/badge/A2A-Swarm_Bus-9cf.svg)](#-dual-protocol-gateway-mcp--a2a)
+[![Research Roadmap](https://img.shields.io/badge/Roadmap-Living_Agent_Ledger-purple.svg)](./RESEARCH_ROADMAP.md)
+[![Academic Research](https://img.shields.io/badge/arXiv-2026_Foundations-indigo.svg)](./docs/RESEARCH_PAPERS.md)
 [![Architecture](https://img.shields.io/badge/Architecture-Ponytail_Minimal-success.svg)](./.ponytail.md)
 [![Lead Architect](https://img.shields.io/badge/Creator-Mohit_Dagar-purple.svg)](https://github.com/mjzd7)
 
@@ -13,7 +15,7 @@
 
 *Sub-5ms context pruning, 95% token compression, zero-trust Copy-on-Write (CoW) sandboxing, and peer-to-peer Agent-to-Agent (A2A) coordination.*
 
-[Executive Summary](#-executive-summary-crisp-overview) • [Why Developers Need DAGR](#-why-developers-need-dagr-in-simple-terms) • [Dual Protocol](#-dual-protocol-gateway-mcp--a2a) • [Visual Architecture](#-visual-architecture--mechanics) • [Audited Metrics](#-transparent-metrics--mathematical-formulas) • [Terminal UI](#-terminal-ui--token-gauges) • [Quickstart](#-quickstart--ide-setup) • [Nomenclature](#-nomenclature--etymology)
+[Executive Summary](#-executive-summary-crisp-overview) • [Research Roadmap](./RESEARCH_ROADMAP.md) • [Research Papers](./docs/RESEARCH_PAPERS.md) • [Why Developers Need DAGR](#-why-developers-need-dagr-in-simple-terms) • [Dual Protocol](#-dual-protocol-gateway-mcp--a2a) • [Visual Architecture](#-visual-architecture--mechanics) • [Audited Metrics](#-transparent-metrics--mathematical-formulas) • [Terminal UI](#-terminal-ui--token-gauges) • [Quickstart](#-quickstart--ide-setup) • [Nomenclature](#-nomenclature--etymology)
 
 </div>
 

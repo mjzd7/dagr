@@ -8,4 +8,4 @@ pub use checker::{ArchitectureGuard, Violation};
 pub use ci::CiGuardReport;
 pub use infer::ArchitectureInferrer;
 pub use rules::{BoundaryRule, LimitsConfig, RuleConfig, SecurityConfig};
-pub use sanitizer::ZeroTrustSanitizer;
+pub use sanitizer::{MutationRiskLevel, ProgressivePermissionGate, ZeroTrustSanitizer};

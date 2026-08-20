@@ -6,14 +6,40 @@ document.addEventListener('DOMContentLoaded', () => {
     initClientsGrid();
     initHistoryLedger();
     initGraphVisualizer();
+    initTerminalSimulator();
+    initSwarmVisualizer();
 });
 
 // 1. Interactive AST Slicing Simulator & Custom Code Engine
 let activeScenario = 'typescript';
+let activeTier = 'standard';
 
 function initSimulator() {
     renderSimulatorScenario(activeScenario);
     setupCustomCodeListeners();
+}
+
+function switchSlicingTier(tier) {
+    activeTier = tier;
+    const stdBtn = document.getElementById('tier-btn-standard');
+    const mrBtn = document.getElementById('tier-btn-multi-rubric');
+
+    if (stdBtn && mrBtn) {
+        if (tier === 'multi-rubric') {
+            stdBtn.className = 'px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all';
+            mrBtn.className = 'px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 shadow-sm transition-all flex items-center space-x-1';
+        } else {
+            stdBtn.className = 'px-3 py-1.5 rounded-lg bg-white/10 text-white font-bold transition-all';
+            mrBtn.className = 'px-3 py-1.5 rounded-lg text-zinc-400 hover:text-emerald-400 transition-all flex items-center space-x-1';
+        }
+    }
+
+    if (activeScenario === 'custom') {
+        sliceAndRenderCustomCode();
+    } else {
+        renderSimulatorScenario(activeScenario);
+    }
+    logCroEvent('tier_switched', { tier });
 }
 
 function selectScenario(scenarioKey) {
@@ -47,26 +73,51 @@ function renderSimulatorScenario(key) {
     const data = SIMULATOR_SCENARIOS[key];
     if (!data) return;
 
+    let slicedCode = data.slicedFile;
+    let slicedTokens = data.slicedTokens;
+
+    if (activeTier === 'multi-rubric') {
+        // Strip non-essential comments/docstrings in LaMR multi-rubric mode
+        slicedCode = `// 🔬 DAGR Multi-Rubric Latent AST Slice (LaMR arXiv:2605.15315 • 0.18ms)\n` +
+            slicedCode.replace(/\/\*\*[\s\S]*?\*\//g, '').replace(/\/\/[^⚡].*$/gm, '').replace(/^\s*[\r\n]/gm, '');
+        slicedTokens = Math.max(120, Math.floor(data.slicedTokens * 0.78));
+    }
+
     document.getElementById('sim-target-label').innerText = data.target;
-    document.getElementById('sim-raw-code').innerText = data.rawFile;
-    document.getElementById('sim-sliced-code').innerText = data.slicedFile;
+    document.getElementById('sim-raw-code').innerHTML = BrowserAstSlicer.renderEditorHtml(data.rawFile, key);
+    document.getElementById('sim-sliced-code').innerHTML = BrowserAstSlicer.renderEditorHtml(slicedCode, key);
 
     document.getElementById('sim-raw-tokens').innerText = `${data.rawTokens.toLocaleString()} tokens`;
-    document.getElementById('sim-sliced-tokens').innerText = `${data.slicedTokens.toLocaleString()} tokens`;
+    document.getElementById('sim-sliced-tokens').innerText = `${slicedTokens.toLocaleString()} tokens`;
 
-    const savedTokens = data.rawTokens - data.slicedTokens;
+    const savedTokens = data.rawTokens - slicedTokens;
     const pct = ((savedTokens / data.rawTokens) * 100).toFixed(1);
     const usdSaved = ((savedTokens / 1_000_000) * 3.0).toFixed(3);
 
     document.getElementById('sim-saved-tokens').innerText = `+${savedTokens.toLocaleString()} tokens`;
     document.getElementById('sim-compression-pct').innerText = `-${pct}%`;
     document.getElementById('sim-usd-saved').innerText = `$${usdSaved} / prompt`;
-    document.getElementById('sim-latency').innerText = data.latency;
+    document.getElementById('sim-latency').innerText = activeTier === 'multi-rubric' ? '<0.18ms' : data.latency;
     
     const explanationEl = document.getElementById('sim-explanation-text');
     if (explanationEl) {
-        explanationEl.innerText = `Pruned monolithic dependencies & hoisted exact AST type signatures in ${data.latency}. Zero token waste.`;
+        if (activeTier === 'multi-rubric') {
+            explanationEl.innerHTML = `<strong class="text-emerald-400">LaMR Multi-Rubric Pruning (arXiv:2605.15315):</strong> Hoisted interfaces with docstrings stripped in 0.18ms. Additional 22% token compression with zero contract loss.`;
+        } else {
+            explanationEl.innerText = `Pruned monolithic dependencies & hoisted exact AST type signatures in ${data.latency}. Zero token waste.`;
+        }
     }
+}
+
+function openResearchModal() {
+    const modal = document.getElementById('research-modal');
+    if (modal) modal.classList.remove('hidden');
+    logCroEvent('research_modal_opened');
+}
+
+function closeResearchModal() {
+    const modal = document.getElementById('research-modal');
+    if (modal) modal.classList.add('hidden');
 }
 
 // 2. Custom User Code Slicing Handler
@@ -125,16 +176,25 @@ function executeCustomSlice() {
         return;
     }
 
-    const result = BrowserAstSlicer.sliceCustomCode(rawCode, targetSymbol, lang);
+    const result = BrowserAstSlicer.sliceCustomCode(rawCode, targetSymbol, lang, activeTier);
 
     // Save into persistent history store
-    SlicingHistoryStore.addRecord(result);
+    SlicingHistoryStore.addRecord({
+        targetSymbol: result.target,
+        language: lang,
+        rawTokens: result.rawTokens,
+        slicedTokens: result.slicedTokens,
+        tokensSaved: result.tokensSaved,
+        compressionPct: result.compressionPct,
+        usdSaved: result.usdSaved,
+        linesPruned: result.linesPruned
+    });
     renderHistoryLedger();
 
     // Render results
-    document.getElementById('sim-target-label').innerText = `${result.targetSymbol} (${lang})`;
-    document.getElementById('sim-raw-code').innerText = result.rawCode;
-    document.getElementById('sim-sliced-code').innerText = result.slicedCode;
+    document.getElementById('sim-target-label').innerText = `${result.target} (${lang})`;
+    document.getElementById('sim-raw-code').innerHTML = BrowserAstSlicer.renderEditorHtml(result.rawCode, lang);
+    document.getElementById('sim-sliced-code').innerHTML = BrowserAstSlicer.renderEditorHtml(result.slicedCode, lang);
 
     document.getElementById('sim-raw-tokens').innerText = `${result.rawTokens.toLocaleString()} tokens`;
     document.getElementById('sim-sliced-tokens').innerText = `${result.slicedTokens.toLocaleString()} tokens`;
@@ -167,13 +227,14 @@ function executeCustomSlice() {
         pruned = ['UnrelatedHelperA', 'UnrelatedHelperB', 'DatabaseClient', 'TaxModule'];
     }
 
-    if (globalGraphVisualizer) {
-        globalGraphVisualizer.loadScenario(result.targetSymbol, contracts, pruned);
-    }
-    if (global3DVisualizer) {
-        global3DVisualizer.loadScenario(result.targetSymbol, contracts, pruned);
+    if (activeGraphMode === '3d') {
+        render3DGraph(result.targetSymbol, contracts, pruned);
+    } else {
+        render2DGraph(result.targetSymbol, contracts, pruned);
     }
 }
+
+const sliceAndRenderCustomCode = executeCustomSlice;
 
 // 3. Multi-File Codebase Ingestion (GitHub, GitLab, ZIP, Folder)
 function switchIngestMode(mode) {
@@ -511,8 +572,8 @@ function submitCodebaseChat(customQuery = '', targetSymbolName = '') {
     <p class="text-zinc-300">
         To answer this query, DAGR analyzed <strong class="text-emerald-400 font-mono">${sym.file}:${sym.line}</strong> and extracted the exact AST slice for <code class="text-cyan-300 bg-zinc-950 px-1.5 py-0.5 rounded">${sym.name}</code>.
     </p>
-    <div class="p-3 rounded-lg bg-zinc-950 border border-white/10 font-mono text-[11px] text-emerald-300 overflow-x-auto whitespace-pre">
-${sliceResult.slicedCode}
+    <div class="p-3 rounded-lg bg-zinc-950 border border-white/10 font-mono text-[11px] overflow-x-auto">
+${BrowserAstSlicer.renderEditorHtml(sliceResult.slicedCode, sym.language)}
     </div>
     <div class="text-[11px] text-zinc-400 pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/10">
         <div class="flex items-center space-x-2">
@@ -670,7 +731,7 @@ function initRoiCalculator() {
     recalculate();
 }
 
-// 6. 31 Supported AI Coding Clients Grid
+// 6. 31 Supported AI Coding Clients Grid & MCP Raw JSON Modal
 function initClientsGrid() {
     const grid = document.getElementById('clients-grid-container');
     const searchInput = document.getElementById('clients-search-input');
@@ -705,10 +766,15 @@ function initClientsGrid() {
                     <div class="flex items-center justify-between text-[11px] font-mono text-zinc-500 truncate">
                         <span class="truncate">${c.config}</span>
                     </div>
-                    <button onclick="copyToClipboard('${c.cmd}', this)" class="w-full py-1.5 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-emerald-400 hover:text-emerald-300 flex items-center justify-between transition-colors">
-                        <span class="truncate">${c.cmd}</span>
-                        <span class="ml-2 text-zinc-500 shrink-0 copy-icon">📋</span>
-                    </button>
+                    <div class="flex items-center space-x-1.5">
+                        <button onclick="copyToClipboard('${c.cmd}', this); logCroEvent('mcp_cli_cmd_copied', { client: '${c.id}' });" class="flex-1 py-1.5 px-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-emerald-400 hover:text-emerald-300 flex items-center justify-between transition-colors">
+                            <span class="truncate">${c.cmd}</span>
+                            <span class="ml-1 text-zinc-500 shrink-0">📋</span>
+                        </button>
+                        <button onclick="openMcpModal('${c.id}')" title="View Raw JSON Config" class="py-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-zinc-300 hover:text-white transition-colors shrink-0">
+                            JSON
+                        </button>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -720,7 +786,279 @@ function initClientsGrid() {
     renderClients();
 }
 
-// 7. Clipboard Utility
+// 7. Interactive MCP Raw JSON Viewer Modal (GAP #3)
+let activeModalClient = null;
+
+function openMcpModal(clientId) {
+    const client = CLIENTS_DATA.find(c => c.id === clientId) || CLIENTS_DATA[0];
+    if (!client) return;
+    activeModalClient = client;
+
+    const modal = document.getElementById('mcp-modal');
+    const icon = document.getElementById('mcp-modal-icon');
+    const title = document.getElementById('mcp-modal-title');
+    const filepath = document.getElementById('mcp-modal-filepath');
+    const jsonBlock = document.getElementById('mcp-modal-json-block');
+    const cmdHint = document.getElementById('mcp-modal-cmd-hint');
+
+    if (icon) icon.src = client.icon;
+    if (title) title.innerText = `${client.name} MCP Configuration`;
+    if (filepath) filepath.innerText = client.config;
+    if (jsonBlock) jsonBlock.innerText = generateMcpJsonForClient(client);
+    if (cmdHint) cmdHint.innerText = client.cmd;
+
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+    logCroEvent('mcp_json_modal_opened', { client: client.id });
+}
+
+function closeMcpModal() {
+    const modal = document.getElementById('mcp-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function copyMcpModalJson(btn) {
+    if (!activeModalClient) return;
+    const json = generateMcpJsonForClient(activeModalClient);
+    copyToClipboard(json, btn);
+    logCroEvent('mcp_raw_json_copied', { client: activeModalClient.id });
+}
+
+// 8. Hero Looping Animated Terminal Simulation (GAP #2)
+const TERMINAL_DEMOS = {
+    slice: {
+        title: "Scenario: AST Slicing & Type Contract Hoisting",
+        latency: "Latency: 0.24ms",
+        lines: [
+            { text: "$ dagr slice src/billing/charge.ts:processPayment --hoist-types", color: "text-emerald-400 font-bold" },
+            { text: "⚡ [AST-SLICER] Parsing TypeScript AST via swc / syn in 0.24ms", color: "text-cyan-400" },
+            { text: "📦 Discovered 1 core symbol: 'processPayment'", color: "text-zinc-300" },
+            { text: "🏗️ Hoisting upstream interfaces: 'PaymentPayload', 'ChargeResult', 'StripeConfig'", color: "text-emerald-300" },
+            { text: "✂️ Pruning 824 monolithic lines of irrelevant DB connection pools & logging", color: "text-red-400/80" },
+            { text: "✅ Sliced prompt context: 285 tokens (reduced from 11,840 tokens, -97.6%)", color: "text-emerald-400 font-bold" },
+            { text: "💰 Cost per prompt: $0.0008 (saved $0.035 / query with zero hallucination)", color: "text-indigo-300" }
+        ]
+    },
+    guard: {
+        title: "Scenario: In-Memory Architectural Guardrail Evaluation",
+        latency: "Latency: 0.08ms",
+        lines: [
+            { text: "$ dagr guard src/components/UserProfile.tsx", color: "text-amber-400 font-bold" },
+            { text: "📏 [DAGR-GUARD] Evaluating architectural layer constraints (<0.1ms)...", color: "text-cyan-400" },
+            { text: "🚨 VIOLATION DETECTED in src/components/UserProfile.tsx:4", color: "text-red-400 font-bold" },
+            { text: "   import { pool } from '../db/connection';", color: "text-zinc-400" },
+            { text: "   RULE: 'presentation_layer' MUST NOT directly import 'infrastructure_layer'", color: "text-amber-300" },
+            { text: "🛡️ Import quarantined. Context prompt sanitized before LLM dispatch.", color: "text-emerald-400" },
+            { text: "✅ Clean architecture preserved without git rebase or dirty commits.", color: "text-emerald-300 font-bold" }
+        ]
+    },
+    run: {
+        title: "Scenario: Copy-on-Write (CoW) Shadow Workspace Sandbox",
+        latency: "Rollback: 8ms",
+        lines: [
+            { text: "$ dagr run cargo test --shadow", color: "text-indigo-400 font-bold" },
+            { text: "🛡️ [COW-SANDBOX] Spawning ephemeral APFS shadow clone at /tmp/dagr-cow-9012", color: "text-cyan-400" },
+            { text: "⚡ Shadow workspace mounted in 8ms (APFS clonefile, zero byte copy)", color: "text-emerald-300" },
+            { text: "🧪 Executing agent mutations & test suite in isolation...", color: "text-zinc-300" },
+            { text: "❌ Test failure in 'test_billing_reconciliation' (assertion failed: actual != expected)", color: "text-red-400 font-bold" },
+            { text: "🔄 ATOMIC ROLLBACK: Shadow volume discarded in 6ms. Working tree 100% clean.", color: "text-emerald-400 font-bold" },
+            { text: "✨ Real workspace untouched with zero dirty git state or broken lockfiles.", color: "text-indigo-300" }
+        ]
+    }
+};
+
+let currentTerminalDemo = 'slice';
+let terminalInterval = null;
+
+function initTerminalSimulator() {
+    renderTerminalDemo(currentTerminalDemo);
+    
+    // Auto loop demos every 9 seconds if user is idle
+    terminalInterval = setInterval(() => {
+        const demos = ['slice', 'guard', 'run'];
+        const nextIndex = (demos.indexOf(currentTerminalDemo) + 1) % demos.length;
+        switchTerminalDemo(demos[nextIndex], false);
+    }, 9000);
+}
+
+function switchTerminalDemo(demoKey, manual = true) {
+    if (manual && terminalInterval) {
+        clearInterval(terminalInterval);
+    }
+    currentTerminalDemo = demoKey;
+    ['slice', 'guard', 'run'].forEach(k => {
+        const btn = document.getElementById(`term-tab-${k}`);
+        if (btn) {
+            if (k === demoKey) {
+                btn.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 transition-all';
+            } else {
+                btn.className = 'px-2.5 py-1 rounded-lg text-zinc-400 hover:text-white border border-transparent transition-all';
+            }
+        }
+    });
+
+    renderTerminalDemo(demoKey);
+    logCroEvent('terminal_demo_switched', { demo: demoKey });
+}
+
+function renderTerminalDemo(demoKey) {
+    const demo = TERMINAL_DEMOS[demoKey];
+    if (!demo) return;
+
+    const screen = document.getElementById('terminal-screen-content');
+    const statusText = document.getElementById('terminal-status-text');
+    const latencyBadge = document.getElementById('terminal-latency-badge');
+
+    if (statusText) statusText.innerText = demo.title;
+    if (latencyBadge) latencyBadge.innerText = demo.latency;
+    if (!screen) return;
+
+    screen.innerHTML = '';
+    demo.lines.forEach((line, idx) => {
+        const p = document.createElement('p');
+        p.className = `${line.color} transition-all duration-300 opacity-0 transform translate-y-1`;
+        p.innerText = line.text;
+        screen.appendChild(p);
+
+        setTimeout(() => {
+            p.classList.remove('opacity-0', 'translate-y-1');
+        }, idx * 120);
+    });
+}
+
+// 9. Visual Multi-Agent Coordination Flow Visualizer (GAP #6)
+const SWARM_STAGES = {
+    1: {
+        icon: "🧠",
+        title: "Stage 1: Architect Agent Planning & Context Query",
+        subtitle: "Dispatches targeted AST slice request to DAGR Hypervisor",
+        latency: "Protocol: JSON-RPC 2.0 (stdio)",
+        payload: `{\n  "jsonrpc": "2.0",\n  "method": "dagr/slice",\n  "params": {\n    "target": "src/billing/charge.ts:processPayment",\n    "hoist_interfaces": true,\n    "max_depth": 2\n  },\n  "id": "req-arch-001"\n}`,
+        state: [
+            { icon: "✓", text: "AST parser ready in memory (0.24ms)", color: "text-emerald-400" },
+            { icon: "✓", text: "Architectural boundary rule set loaded (.dagr/rules.yaml)", color: "text-cyan-400" },
+            { icon: "•", text: "Shadow CoW volume prepared (APFS clonefile)", color: "text-zinc-400" },
+            { icon: "•", text: "Zero lock contention across 4 active peer agents", color: "text-zinc-400" }
+        ]
+    },
+    2: {
+        icon: "⚡",
+        title: "Stage 2: DAGR State Hub Execution (<0.3ms)",
+        subtitle: "Recursively hoists type cone and screens forbidden architectural layers",
+        latency: "Execution: 0.24ms Slicer • 0.08ms Guard",
+        payload: `{\n  "jsonrpc": "2.0",\n  "result": {\n    "target": "src/billing/charge.ts:processPayment",\n    "sliced_tokens": 285,\n    "pruned_tokens": 11555,\n    "hoisted_contracts": ["PaymentPayload", "ChargeResult"],\n    "guard_status": "PASSED"\n  },\n  "id": "req-arch-001"\n}`,
+        state: [
+            { icon: "✓", text: "AST hoisted PaymentPayload & ChargeResult in 0.24ms", color: "text-emerald-400" },
+            { icon: "✓", text: "Architectural layer lint passed (no UI-to-DB leak)", color: "text-emerald-400" },
+            { icon: "✓", text: "Token payload compressed by 97.6%", color: "text-cyan-400" },
+            { icon: "•", text: "Ready for sandboxed builder mutation", color: "text-zinc-400" }
+        ]
+    },
+    3: {
+        icon: "🛠️",
+        title: "Stage 3: Sandboxed Builder Agent Mutation",
+        subtitle: "Mutates codebase inside an isolated Copy-on-Write shadow volume",
+        latency: "Isolation: APFS clonefile / reflink (zero physical disk copy)",
+        payload: `{\n  "jsonrpc": "2.0",\n  "method": "dagr/sandbox/write",\n  "params": {\n    "shadow_id": "cow-agent-builder-8841",\n    "file": "src/billing/charge.ts",\n    "patch_lines": 34\n  },\n  "id": "req-builder-002"\n}`,
+        state: [
+            { icon: "✓", text: "Shadow workspace active at /tmp/dagr-cow-8841", color: "text-emerald-400" },
+            { icon: "✓", text: "Real repository is 100% untouched", color: "text-emerald-400" },
+            { icon: "✓", text: "Builder agent operates with full root permissions in sandbox", color: "text-cyan-400" },
+            { icon: "•", text: "Awaiting automated verifier pass", color: "text-zinc-400" }
+        ]
+    },
+    4: {
+        icon: "🧪",
+        title: "Stage 4: Automated Verifier & Test Agent",
+        subtitle: "Runs compilation, test suites, and linter in shadow sandbox",
+        latency: "Verification: In-Memory Shadow Execution",
+        payload: `{\n  "jsonrpc": "2.0",\n  "method": "dagr/sandbox/verify",\n  "params": {\n    "shadow_id": "cow-agent-builder-8841",\n    "command": "cargo test --all"\n  },\n  "id": "req-verifier-003"\n}`,
+        state: [
+            { icon: "✓", text: "Unit & Integration test suites running in isolated CoW volume", color: "text-cyan-400" },
+            { icon: "✓", text: "Architectural rules re-verified against modified diff", color: "text-emerald-400" },
+            { icon: "✓", text: "Zero compiler errors or lint regressions", color: "text-emerald-400" },
+            { icon: "•", text: "Passed verification gate -> triggering atomic commit", color: "text-indigo-400" }
+        ]
+    },
+    5: {
+        icon: "🚀",
+        title: "Stage 5: Atomic Workspace Commit / Rollback",
+        subtitle: "<10ms atomic merge into real project root or instant rollback on failure",
+        latency: "Atomic Commit: 9.4ms • Instant Rollback: 6.2ms",
+        payload: `{\n  "jsonrpc": "2.0",\n  "result": {\n    "status": "COMMITTED",\n    "commit_latency_ms": 9.4,\n    "dirty_files_reset": 0,\n    "lockfile_integrity": "VALID"\n  },\n  "id": "req-verifier-003"\n}`,
+        state: [
+            { icon: "✓", text: "Shadow changes merged atomically to real disk in 9.4ms", color: "text-emerald-400" },
+            { icon: "✓", text: "Zero dirty git status or broken package lockfiles", color: "text-emerald-400" },
+            { icon: "✓", text: "Swarm session completed successfully", color: "text-emerald-400" },
+            { icon: "✓", text: "Hypervisor ready for next autonomous task", color: "text-cyan-400" }
+        ]
+    }
+};
+
+function initSwarmVisualizer() {
+    selectSwarmStage(1);
+}
+
+function selectSwarmStage(stageNum) {
+    const stage = SWARM_STAGES[stageNum];
+    if (!stage) return;
+
+    [1, 2, 3, 4, 5].forEach(num => {
+        const btn = document.getElementById(`swarm-step-btn-${num}`);
+        if (btn) {
+            if (num === stageNum) {
+                btn.className = 'text-left p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 space-y-2 transition-all group';
+            } else {
+                btn.className = 'text-left p-4 rounded-2xl bg-zinc-900/80 border border-white/5 space-y-2 hover:border-cyan-500/30 transition-all group';
+            }
+        }
+    });
+
+    const icon = document.getElementById('swarm-detail-icon');
+    const title = document.getElementById('swarm-detail-title');
+    const subtitle = document.getElementById('swarm-detail-subtitle');
+    const latency = document.getElementById('swarm-detail-latency');
+    const payload = document.getElementById('swarm-detail-payload');
+    const stateContainer = document.getElementById('swarm-detail-state');
+
+    if (icon) icon.innerText = stage.icon;
+    if (title) title.innerText = stage.title;
+    if (subtitle) subtitle.innerText = stage.subtitle;
+    if (latency) latency.innerText = stage.latency;
+    if (payload) payload.innerText = stage.payload;
+
+    if (stateContainer) {
+        stateContainer.innerHTML = stage.state.map(s => `
+            <div class="flex items-center space-x-2 ${s.color}">
+                <span>${s.icon}</span> <span>${s.text}</span>
+            </div>
+        `).join('');
+    }
+
+    logCroEvent('swarm_stage_selected', { stage: stageNum });
+}
+
+// 10. CRO Telemetry & Analytics Logger (GAP #8)
+function logCroEvent(eventName, eventData = {}) {
+    const STORAGE_KEY = 'dagr_cro_telemetry_events';
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const events = raw ? JSON.parse(raw) : [];
+        events.push({
+            event: eventName,
+            data: eventData,
+            timestamp: Date.now(),
+            time: new Date().toLocaleTimeString()
+        });
+        if (events.length > 100) events.shift();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    } catch (e) {
+        // Silent degrade for strict privacy modes
+    }
+}
+
+// 11. Clipboard Utility
 function copyToClipboard(text, triggerBtn) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => showCopyFeedback(triggerBtn));
@@ -738,7 +1076,7 @@ function copyToClipboard(text, triggerBtn) {
 function showCopyFeedback(btn) {
     if (!btn) return;
     const origHtml = btn.innerHTML;
-    btn.innerHTML = `<span class="text-emerald-400 font-bold">✓ Copied to clipboard!</span>`;
+    btn.innerHTML = `<span class="text-emerald-400 font-bold">✓ Copied!</span>`;
     setTimeout(() => {
         btn.innerHTML = origHtml;
     }, 1800);

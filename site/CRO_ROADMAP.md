@@ -53,24 +53,23 @@ From testing and deploying the **Custom Code AST Slicer Lab** (`site/js/slicer-e
 ## 📊 The 8 High-Conversion Gaps & Strategic Roadmap
 
 ### 1. ⚔️ The "Why Not Just Vector RAG / 1M Context Windows?" Objection Killer
-* **The Problem:** Technical buyers ask: *"Why do I need AST slicing if Gemini/Claude have huge context windows, or if I use vector embeddings?"*
-* **The Strategy:** Add an explicit **Mechanism Comparison Matrix** directly contrasting:
-  1. **Monolithic Raw Dump:** 15,000 tokens, $0.05/prompt, high hallucination rate, slow TTFT.
-  2. **Vector Embeddings (RAG):** Chunky fuzzy text splits, misses type definitions and call-chains, breaks syntax boundaries.
-  3. **Symbolic AST Slicing (DAGR):** <0.3ms deterministic extraction of target function + hoisted type contracts, 95% token compression, zero syntax hallucinations.
+* **Status:** **✅ 100% BUILT & LIVE** in `site/index.html` (`#matrix`).
+* **The Strategy:** Added an explicit **Mechanism Comparison Matrix** directly contrasting Monolithic Raw Dump (1M Context), Vector Embeddings (RAG), and DAGR Symbolic AST Slicing across latency, token bloat, upstream contract hoisting, layer guardrails, mutation safety, and monthly FinOps cost.
 
 ---
 
 ### 2. ⚡ Live Animated Terminal Demo ("Asciinema / SVG Visual Proof")
-* **The Strategy:** Embed a realistic, lightweight, looping CSS/SVG Terminal recording right in the Hero showcasing:
+* **Status:** **✅ 100% BUILT & LIVE** in `site/index.html` + `site/js/app.js` (`#hero-terminal`).
+* **The Strategy:** Embedded a realistic, looping terminal simulation in the Hero showcasing:
   * `dagr slice src/billing/charge.ts:processPayment` $\rightarrow$ instant hoisted contract output in 0.24ms.
   * `dagr guard` $\rightarrow$ catching an unauthorized DB import inside a React UI component in 0.08ms.
-  * `dagr run cargo test` $\rightarrow$ 10ms atomic shadow rollback on failure.
+  * `dagr run cargo test` $\rightarrow$ 8ms atomic shadow rollback on failure.
 
 ---
 
 ### 3. 📋 1-Click Interactive MCP Config Modal & JSON Generator
-* **The Strategy:** In the 31+ IDE grid, offer both the 1-click CLI copy (`dagr mcp install --client <id>`) and a **"View Raw JSON"** popup for developers who prefer manual configuration in `settings.json`.
+* **Status:** **✅ 100% BUILT & LIVE** in `site/index.html` + `site/js/clients-data.js` + `site/js/app.js` (`#mcp-modal`).
+* **The Strategy:** In the 31+ IDE grid, added both 1-click CLI copy (`dagr mcp install --client <id>`) and a **"JSON" modal popup** generating exact JSON-RPC 2.0 configurations (`mcpServers` / `servers` / `context_servers`) for developers who prefer manual configuration.
 
 ---
 
@@ -81,7 +80,8 @@ From testing and deploying the **Custom Code AST Slicer Lab** (`site/js/slicer-e
 ---
 
 ### 5. 📈 Live Developer Trust Strip & SLA Metrics Banner
-* **The Strategy:** Place a high-impact metric ribbon immediately below the 1-Line Installer:
+* **Status:** **✅ 100% BUILT & LIVE** in `site/index.html` (Hero SLA Strip).
+* **The Strategy:** Placed a high-impact metric ribbon immediately below the 1-Line Installer:
   * ⚡ **`< 0.3ms`** AST Slicing Engine
   * 📉 **`95%`** Average Token Reduction
   * 🛡️ **`< 10ms`** CoW Atomic Shadow Rollback
@@ -91,24 +91,31 @@ From testing and deploying the **Custom Code AST Slicer Lab** (`site/js/slicer-e
 ---
 
 ### 6. 🤝 Visual Multi-Agent Coordination Flow (A2A Swarm Bus)
-* **The Strategy:** Interactive 3-step swarm visualizer showing **Architect Agent $\rightarrow$ DAGR State Hub $\rightarrow$ Builder Agent (Shadow Sandboxed) $\rightarrow$ Tester Agent (Verification) $\rightarrow$ Atomic Disk Commit**.
+* **Status:** **✅ 100% BUILT & LIVE** in `site/index.html` + `site/js/app.js` (`#swarm`).
+* **The Strategy:** Interactive 5-step swarm visualizer showing **Architect Agent $\rightarrow$ DAGR State Hub $\rightarrow$ Builder Agent (Shadow Sandboxed) $\rightarrow$ Verifier Agent $\rightarrow$ Atomic Commit**, with live JSON-RPC payload and hypervisor state inspection.
 
 ---
 
 ### 7. 🎯 Clear Dual-Funnel Call to Action (CTA) & Exit Intent
+* **Status:** **✅ 100% BUILT & LIVE** in `site/index.html` (`#cta-banner`).
 * **Primary CTA:** Quick Copy 1-Line Install (`curl -fsSL ... | bash`).
-* **Secondary CTA:** Read Architecture Whitepaper / GitHub Repository.
-* **Tertiary CTA:** "Add to Cursor / Claude in 30 Seconds".
+* **Secondary CTA:** GitHub Repository Star & Source Code.
+* **Tertiary CTA:** 30-Second MCP Client Setup.
 
 ---
 
 ### 8. 📊 CRO Event Telemetry & Analytics Instrumentation
-* **Status:** **✅ Initialized with Local Client-Side Telemetry Store**.
+* **Status:** **✅ 100% BUILT & LIVE** in `site/js/history-store.js` + `site/js/app.js`.
 * **Metrics Tracked:**
   * `custom_code_slices_count`
   * `cumulative_tokens_saved`
-  * `ide_mcp_command_copied`
-  * `language_preference_selected`
+  * `mcp_cli_cmd_copied`
+  * `mcp_json_modal_opened`
+  * `mcp_raw_json_copied`
+  * `terminal_demo_switched`
+  * `swarm_stage_selected`
+  * `cta_bottom_copy_install`
+  * `cta_github_star_clicked`
 
 ---
 
@@ -120,6 +127,10 @@ From testing and deploying the **Custom Code AST Slicer Lab** (`site/js/slicer-e
 | **Phase 1** | **Live Iterations & Telemetry History Ledger** | ✅ **LIVE** | [`site/js/history-store.js`](file:///Users/mm/orca/projects/ME/DAGR/site/js/history-store.js) |
 | **Phase 2** | **Dynamic Symbol Auto-Detection Pills** | ✅ **LIVE** | [`site/js/app.js`](file:///Users/mm/orca/projects/ME/DAGR/site/js/app.js) |
 | **Phase 2** | **31 Supported AI IDEs Hub & Clipboard Tooling** | ✅ **LIVE** | [`site/js/clients-data.js`](file:///Users/mm/orca/projects/ME/DAGR/site/js/clients-data.js) |
-| **Phase 3** | **Mechanism Comparison Matrix (RAG vs AST)** | 🟡 Next | Architecture vs Vector Embeddings Table |
-| **Phase 3** | **Looping Terminal Visual Simulation** | 🟡 Next | Hero animated SVG command runner |
-| **Phase 4** | **Automated GitHub Pages Deployment CI/CD** | ✅ **LIVE** | [`.github/workflows/deploy-pages.yml`](file:///Users/mm/orca/projects/ME/DAGR/.github/workflows/deploy-pages.yml) |
+| **Phase 3** | **Mechanism Comparison Matrix (RAG vs AST)** | ✅ **LIVE** | [`site/index.html#matrix`](file:///Users/mm/orca/projects/ME/DAGR/site/index.html#matrix) |
+| **Phase 3** | **Looping Terminal Visual Simulation & SLA Ribbon** | ✅ **LIVE** | [`site/index.html#hero-terminal`](file:///Users/mm/orca/projects/ME/DAGR/site/index.html) |
+| **Phase 4** | **Interactive MCP Raw JSON Modal & Generator** | ✅ **LIVE** | [`site/js/clients-data.js`](file:///Users/mm/orca/projects/ME/DAGR/site/js/clients-data.js) & [`site/js/app.js`](file:///Users/mm/orca/projects/ME/DAGR/site/js/app.js) |
+| **Phase 4** | **Visual Multi-Agent Coordination Flow (A2A Swarm)**| ✅ **LIVE** | [`site/index.html#swarm`](file:///Users/mm/orca/projects/ME/DAGR/site/index.html#swarm) |
+| **Phase 5** | **Dual-Funnel Conversion CTA & Bottom Exit Anchor** | ✅ **LIVE** | [`site/index.html#cta-banner`](file:///Users/mm/orca/projects/ME/DAGR/site/index.html#cta-banner) |
+| **Phase 5** | **Full CRO Event Telemetry Instrumentation** | ✅ **LIVE** | [`site/js/app.js`](file:///Users/mm/orca/projects/ME/DAGR/site/js/app.js) |
+| **Phase 6** | **Automated GitHub Pages Deployment CI/CD** | ✅ **LIVE** | [`.github/workflows/deploy-pages.yml`](file:///Users/mm/orca/projects/ME/DAGR/.github/workflows/deploy-pages.yml) |

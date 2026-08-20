@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dagr — The Pure Vertex: Master Refinements</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist", "Inter", sans-serif;
+            letter-spacing: -0.015em;
+        }
+        .apple-card {
+            background: #090a0d;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-card:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(255, 255, 255, 0.06);
+        }
+        .preview-canvas {
+            background: #040507;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+        }
+        .light-mode {
+            background-color: #f6f7f9 !important;
+            color: #000000 !important;
+        }
+        .light-mode .apple-card {
+            background: #ffffff !important;
+            border-color: #e5e7eb !important;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04) !important;
+        }
+        .light-mode .apple-card:hover {
+            border-color: #d1d5db !important;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.08) !important;
+        }
+        .light-mode .preview-canvas {
+            background: #f0f2f5 !important;
+            border-color: #e5e7eb !important;
+        }
+        .light-mode svg path,
+        .light-mode svg line,
+        .light-mode svg polygon,
+        .light-mode svg rect,
+        .light-mode svg circle {
+            stroke: #000000 !important;
+        }
+        .light-mode svg [fill="#FFFFFF"],
+        .light-mode svg [fill="#fff"] {
+            fill: #000000 !important;
+        }
+        .light-mode svg [fill="#000000"],
+        .light-mode svg [fill="#040507"],
+        .light-mode svg [fill="#090a0d"] {
+            fill: #FFFFFF !important;
+        }
+        .light-mode .text-white { color: #000000 !important; }
+        .light-mode .text-zinc-400 { color: #4b5563 !important; }
+        .light-mode .text-zinc-500 { color: #6b7280 !important; }
+    </style>
+</head>
+<body class="min-h-screen p-6 sm:p-12 space-y-12 max-w-7xl mx-auto">
+
+    <!-- Header -->
+    <div class="text-center space-y-4 max-w-2xl mx-auto">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-white/10 text-white border border-white/20">
+            <span>💎 The Pure Vertex Master Iterations</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight">
+            The Pure Vertex
+        </h1>
+        <p class="text-sm text-zinc-400 leading-relaxed font-sans">
+            6 master refinements built on the convergence of <strong>DAG dependency vectors</strong> into a <strong>razor-sharp surgical apex</strong>. Timeless, irreducible, and iconic.
+        </p>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-center gap-3 pt-2 text-xs font-mono">
+            <button onclick="toggleInvert()" id="invert-btn" class="px-4 py-2 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-all">
+                🔄 Invert (Dark / Light)
+            </button>
+            <a href="#mockups" class="px-4 py-2 rounded-xl bg-white/10 text-white font-semibold hover:bg-white/20 border border-white/15 transition-all">
+                🖥️ Real-World Mockups
+            </a>
+        </div>
+    </div>
+
+    <!-- 6 Master Refinements Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left font-mono">
+
+        <!-- 1. The Monolithic Slit Vertex (Flagship #1) -->
+        <div class="apple-card p-7 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>FLAGSHIP 01</span>
+                    <span class="text-white font-bold">SOLID &amp; SLIT</span>
+                </div>
+                <h3 class="text-lg font-bold text-white font-sans">The Monolithic Slit Vertex</h3>
+                <p class="text-xs text-zinc-400 font-sans leading-relaxed">
+                    A solid, bold equilateral chevron with an ultra-thin 2px hairline laser slit through the center spine, terminating at a razor-sharp apex.
+                </p>
+            </div>
+            
+            <div class="h-48 preview-canvas flex items-center justify-center group">
+                <svg width="110" height="110" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- Left Wing Solid -->
+                    <polygon points="20,26 48,26 48,74 20,26" fill="#FFFFFF" />
+                    <!-- Right Wing Solid -->
+                    <polygon points="80,26 52,26 52,74 80,26" fill="#FFFFFF" />
+                    <!-- Slicing Apex Node -->
+                    <circle cx="50" cy="84" r="5" fill="#FFFFFF" />
+                </svg>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Vercel / Linear Power</span>
+                <span class="text-white">Clean Solid Mass</span>
+            </div>
+        </div>
+
+        <!-- 2. The Floating Rail Vertex (Flagship #2) -->
+        <div class="apple-card p-7 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>FLAGSHIP 02</span>
+                    <span class="text-white font-bold">FLOATING RAILS</span>
+                </div>
+                <h3 class="text-lg font-bold text-white font-sans">The Floating Rail Vertex</h3>
+                <p class="text-xs text-zinc-400 font-sans leading-relaxed">
+                    Two thick Euclidean vector rails converging toward a floating focal node. Minimal, open, and breathing with balanced negative space.
+                </p>
+            </div>
+            
+            <div class="h-48 preview-canvas flex items-center justify-center group">
+                <svg width="110" height="110" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- Top Contract Bridge (Subtle) -->
+                    <line x1="24" y1="24" x2="76" y2="24" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round" opacity="0.4" />
+                    <!-- Left Converging Rail -->
+                    <line x1="24" y1="24" x2="44" y2="68" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round" />
+                    <!-- Right Converging Rail -->
+                    <line x1="76" y1="24" x2="56" y2="68" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round" />
+                    <!-- Top Satellite Nodes -->
+                    <circle cx="24" cy="24" r="5" fill="#FFFFFF" />
+                    <circle cx="76" cy="24" r="5" fill="#FFFFFF" />
+                    <!-- Floating Apex Node -->
+                    <circle cx="50" cy="82" r="7.5" fill="#000000" stroke="#FFFFFF" stroke-width="4" />
+                </svg>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Apple Pro / Native App</span>
+                <span class="text-white">Negative Space Balance</span>
+            </div>
+        </div>
+
+        <!-- 3. The Continuous Euler Ribbon (Flagship #3) -->
+        <div class="apple-card p-7 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>FLAGSHIP 03</span>
+                    <span class="text-white font-bold">SINGLE STROKE</span>
+                </div>
+                <h3 class="text-lg font-bold text-white font-sans">Continuous Euler Vertex</h3>
+                <p class="text-xs text-zinc-400 font-sans leading-relaxed">
+                    A single unbreaking geometric ribbon that draws the contract bridge and plunges down to the cutting apex in one continuous loop.
+                </p>
+            </div>
+            
+            <div class="h-48 preview-canvas flex items-center justify-center group">
+                <svg width="110" height="110" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <path d="M 22 28 L 78 28 L 50 82 Z" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" fill="none" />
+                    <!-- Internal Intersecting Center Node -->
+                    <circle cx="50" cy="46" r="6" fill="#000000" stroke="#FFFFFF" stroke-width="3" />
+                </svg>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Git / Delta Precision</span>
+                <span class="text-white">1-Stroke Reducible</span>
+            </div>
+        </div>
+
+        <!-- 4. The Funnel Slicer (Flagship #4) -->
+        <div class="apple-card p-7 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>FLAGSHIP 04</span>
+                    <span class="text-white font-bold">TOKEN PRUNING</span>
+                </div>
+                <h3 class="text-lg font-bold text-white font-sans">The Funnel Slicer</h3>
+                <p class="text-xs text-zinc-400 font-sans leading-relaxed">
+                    Three stepped horizontal vector tiers condensing 15,000 tokens of noise down into a single razor-sharp execution point.
+                </p>
+            </div>
+            
+            <div class="h-48 preview-canvas flex items-center justify-center group">
+                <svg width="110" height="110" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- Tier 1 (Wide Raw Code) -->
+                    <line x1="20" y1="26" x2="80" y2="26" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.35" />
+                    <!-- Tier 2 (Hoisted Contracts) -->
+                    <line x1="32" y1="48" x2="68" y2="48" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.7" />
+                    <!-- Tier 3 (Focal Sliced Apex) -->
+                    <line x1="44" y1="70" x2="56" y2="70" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" />
+                    <!-- Final Sharp Apex Dot -->
+                    <circle cx="50" cy="86" r="4.5" fill="#FFFFFF" />
+                </svg>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Direct 95% Savings Metaphor</span>
+                <span class="text-white">Stepped Condensation</span>
+            </div>
+        </div>
+
+        <!-- 5. The Chiseled Bevel Vertex (Flagship #5) -->
+        <div class="apple-card p-7 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>FLAGSHIP 05</span>
+                    <span class="text-white font-bold">ISOMETRIC BEVEL</span>
+                </div>
+                <h3 class="text-lg font-bold text-white font-sans">Chiseled Bevel Vertex</h3>
+                <p class="text-xs text-zinc-400 font-sans leading-relaxed">
+                    A chiseled triangular dagger facet where the left blade is pure solid white and the right blade is a dark specular rim.
+                </p>
+            </div>
+            
+            <div class="h-48 preview-canvas flex items-center justify-center group">
+                <svg width="110" height="110" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- Left Facet Solid -->
+                    <polygon points="50,18 20,38 50,86" fill="#FFFFFF" />
+                    <!-- Right Facet Bevel Outline -->
+                    <polygon points="50,18 80,38 50,86" stroke="#FFFFFF" stroke-width="2.5" fill="none" />
+                    <!-- Center Razor Ridge Line -->
+                    <line x1="50" y1="18" x2="50" y2="86" stroke="#000000" stroke-width="2" />
+                </svg>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Raycast / Hardware Badge</span>
+                <span class="text-white">3D Chiseled Depth</span>
+            </div>
+        </div>
+
+        <!-- 6. The Pure Euclidean DAG (Flagship #6) -->
+        <div class="apple-card p-7 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>FLAGSHIP 06</span>
+                    <span class="text-white font-bold">HERO PERFECTION</span>
+                </div>
+                <h3 class="text-lg font-bold text-white font-sans">The Pure Euclidean DAG</h3>
+                <p class="text-xs text-zinc-400 font-sans leading-relaxed">
+                    The golden standard: 2 solid contract satellite nodes connected by heavy 60° vector beams into an illuminated apex target ring.
+                </p>
+            </div>
+            
+            <div class="h-48 preview-canvas flex items-center justify-center group">
+                <svg width="110" height="110" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- 60-degree V Rails -->
+                    <path d="M 22 28 L 50 78 L 78 28" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    <!-- Top Horizontal Dependency Dash -->
+                    <line x1="26" y1="28" x2="74" y2="28" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="3 3" opacity="0.5" />
+                    <!-- Satellites -->
+                    <circle cx="22" cy="28" r="6" fill="#FFFFFF" />
+                    <circle cx="78" cy="28" r="6" fill="#FFFFFF" />
+                    <!-- Slicing Apex Node Ring -->
+                    <circle cx="50" cy="78" r="9" fill="#000000" stroke="#FFFFFF" stroke-width="4" />
+                    <circle cx="50" cy="78" r="2.5" fill="#FFFFFF" />
+                </svg>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: The Definitive Mark</span>
+                <span class="text-white">Flawless at All Scales</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= REAL-WORLD MOCKUPS SECTION ================= -->
+    <div id="mockups" class="space-y-6 pt-6">
+        <div class="border-b border-white/10 pb-3 flex items-center justify-between font-mono">
+            <h2 class="text-base font-bold text-white font-sans">Real-World Environmental Mockups (Testing Flagship 01 &amp; Flagship 06)</h2>
+            <span class="text-xs text-zinc-500">macOS Dock • Terminal CLI • Browser Favicon • Header</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+            
+            <!-- Mockup 1: macOS App Dock Icon -->
+            <div class="apple-card p-6 space-y-4 text-center">
+                <span class="text-zinc-500">macOS Pro Dock Icon</span>
+                <div class="w-24 h-24 mx-auto rounded-[22px] bg-gradient-to-b from-zinc-800 to-zinc-950 border border-white/15 p-4 flex items-center justify-center shadow-2xl">
+                    <svg width="56" height="56" viewBox="0 0 100 100" fill="none">
+                        <polygon points="20,26 48,26 48,74 20,26" fill="#FFFFFF" />
+                        <polygon points="80,26 52,26 52,74 80,26" fill="#FFFFFF" />
+                        <circle cx="50" cy="84" r="5" fill="#FFFFFF" />
+                    </svg>
+                </div>
+                <span class="text-zinc-400 font-sans text-[11px]">Sub-pixel crisp on Retina displays</span>
+            </div>
+
+            <!-- Mockup 2: CLI Terminal Prompt -->
+            <div class="apple-card p-6 space-y-4">
+                <div class="flex items-center justify-between text-zinc-500">
+                    <span>Terminal Shell</span>
+                    <span>zsh / bash</span>
+                </div>
+                <div class="bg-zinc-950 rounded-2xl p-4 border border-white/10 space-y-2 text-[11px]">
+                    <div class="flex items-center space-x-2 text-zinc-300">
+                        <svg width="14" height="14" viewBox="0 0 100 100" fill="none" class="inline shrink-0">
+                            <path d="M 22 28 L 50 78 L 78 28" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="50" cy="78" r="10" fill="#FFFFFF" />
+                        </svg>
+                        <span class="text-emerald-400 font-bold">dagr</span>
+                        <span class="text-zinc-400">slice --target processPayment</span>
+                    </div>
+                    <div class="text-zinc-500 pl-4 border-l border-white/10 space-y-0.5">
+                        <div>✓ AST graph pruned: 1,200 → 24 lines</div>
+                        <div class="text-emerald-400">✓ 98.3% token savings in 0.18ms</div>
+                    </div>
+                </div>
+                <span class="text-zinc-400 font-sans text-[11px]">Distinctive inline terminal glyph</span>
+            </div>
+
+            <!-- Mockup 3: Top Navigation Bar Header -->
+            <div class="apple-card p-6 space-y-4">
+                <span class="text-zinc-500">Website Header Brand Mark</span>
+                <div class="p-3 bg-zinc-950 rounded-2xl border border-white/10 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center">
+                            <svg width="18" height="18" viewBox="0 0 100 100" fill="none">
+                                <polygon points="20,26 48,26 48,74 20,26" fill="#000000" />
+                                <polygon points="80,26 52,26 52,74 80,26" fill="#000000" />
+                                <circle cx="50" cy="84" r="5" fill="#000000" />
+                            </svg>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="font-bold text-white font-sans text-sm">DAGR</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-zinc-300">v0.1.0</span>
+                        </div>
+                    </div>
+                    <button class="px-3 py-1 rounded-lg bg-white text-black font-bold text-[10px]">Get Started</button>
+                </div>
+                <span class="text-zinc-400 font-sans text-[11px]">Instant brand authority</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="text-center pt-8 text-xs font-mono text-zinc-400 space-x-4 border-t border-white/10">
+        <a href="index.html" class="text-white hover:underline">← Main Overview</a>
+        <span>•</span>
+        <a href="evergreen-logos.html" class="text-zinc-400 hover:text-white">20 Evergreen Logos</a>
+        <span>•</span>
+        <a href="tech.html" class="text-zinc-400 hover:text-white">Technical Deep-Dive</a>
+    </div>
+
+    <script>
+        let isInverted = false;
+        function toggleInvert() {
+            isInverted = !isInverted;
+            document.body.classList.toggle('light-mode', isInverted);
+            document.getElementById('invert-btn').innerText = isInverted ? '🌙 Switch to Dark' : '🔄 Invert (Dark / Light)';
+        }
+    </script>
+
+</body>
+</html>

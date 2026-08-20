@@ -5,10 +5,11 @@
 
 ---
 
-## 🧭 Repository Context & Ubiquitous Language
+## 🧭 Repository Context, Ubiquitous Language & Living Roadmap
 
-Before editing or analyzing code, consult [CONTEXT.md](file:///Users/mm/orca/projects/ME/DAGR/CONTEXT.md) and respect [ADR 0001](file:///Users/mm/orca/projects/ME/DAGR/.agents/adr/0001-deep-module-workspace-architecture.md).
+Before editing or analyzing code, consult [CONTEXT.md](file:///Users/mm/orca/projects/ME/DAGR/CONTEXT.md), review the living [RESEARCH_ROADMAP.md](file:///Users/mm/orca/projects/ME/DAGR/RESEARCH_ROADMAP.md) for pending architecture initiatives, inspect [docs/RESEARCH_PAPERS.md](file:///Users/mm/orca/projects/ME/DAGR/docs/RESEARCH_PAPERS.md), and respect [ADR 0001](file:///Users/mm/orca/projects/ME/DAGR/.agents/adr/0001-deep-module-workspace-architecture.md).
 
+- **`RESEARCH_ROADMAP.md`**: Canonical living task ledger for research-backed features. Always read before starting work and update task checkboxes upon completion.
 - **`MinimalContextSlice`**: The minimal subset of lines + hoisted type contracts computed via backwards data-flow slicing.
 - **`ShadowTransaction`**: An isolated Copy-on-Write overlay (`.dagr/shadow/<tx_id>`) for dry-running tool mutations.
 - **`stdout` Isolation Invariant**: `stdout` is strictly reserved for MCP JSON-RPC 2.0 frames; all diagnostics must route to `stderr`.

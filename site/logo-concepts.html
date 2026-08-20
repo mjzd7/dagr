@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dagr — Complete 12-Logo Brand Identity Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #07080b;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(48, 209, 88, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(10, 132, 255, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(191, 90, 242, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist", "Inter", sans-serif;
+        }
+        .apple-glass {
+            background: rgba(16, 18, 26, 0.72);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+            transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .apple-glass:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px -2px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+        }
+        .glow-mint { filter: drop-shadow(0 0 12px rgba(48, 209, 88, 0.45)); }
+        .glow-cyan { filter: drop-shadow(0 0 12px rgba(100, 210, 255, 0.45)); }
+        .glow-purple { filter: drop-shadow(0 0 12px rgba(191, 90, 242, 0.45)); }
+        .tab-btn.active {
+            background: rgba(48, 209, 88, 0.15);
+            border-color: rgba(48, 209, 88, 0.4);
+            color: #30D158;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-zinc-100 p-6 sm:p-12 space-y-12 max-w-7xl mx-auto">
+
+    <!-- Header -->
+    <div class="text-center space-y-4 max-w-2xl mx-auto">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span>🗡️ 12 Vector Logo Explorations</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+            DAGR Brand Identity Suite
+        </h1>
+        <p class="text-sm sm:text-base text-zinc-400 leading-relaxed">
+            Choose across 3 distinct archetypes with 4 vector variations each. Designed for Apple HIG aesthetics and sub-millisecond precision.
+        </p>
+
+        <!-- Category Selector Tabs -->
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-2 font-mono text-xs">
+            <button onclick="switchTab('concept1')" id="tab-concept1" class="tab-btn active px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white transition-all">
+                🗡️ Concept 1: The Faceted Dagger Vertex (4)
+            </button>
+            <button onclick="switchTab('concept2')" id="tab-concept2" class="tab-btn px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white transition-all">
+                ⬡ Concept 2: The DAG Mesh &amp; Monogram (4)
+            </button>
+            <button onclick="switchTab('concept3')" id="tab-concept3" class="tab-btn px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-zinc-300 hover:text-white transition-all">
+                ⚡ Concept 3: The Lightning Hypervisor (4)
+            </button>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 1: CONCEPT 1 (FACETED DAGGER VERTEX) -->
+    <!-- ======================================================== -->
+    <div id="panel-concept1" class="space-y-6">
+        <div class="border-b border-white/10 pb-3 flex items-center justify-between font-mono">
+            <h2 class="text-lg font-bold text-emerald-400">Concept 1: The Faceted Dagger Vertex</h2>
+            <span class="text-xs text-zinc-500">DAG Topology + Surgical Precision Blade</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left font-mono">
+            
+            <!-- 1A -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-emerald-400">Variant 1A</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">The Cyber-Stiletto</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">Tri-vertex monoline. Two cyan contract nodes tapering into a glowing mint cutting apex.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-mint group-hover:scale-105 transition-transform">
+                        <line x1="30" y1="28" x2="60" y2="98" stroke="url(#c1a-g1)" stroke-width="3" stroke-linecap="round" />
+                        <line x1="90" y1="28" x2="60" y2="98" stroke="url(#c1a-g2)" stroke-width="3" stroke-linecap="round" />
+                        <line x1="30" y1="28" x2="90" y2="28" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-dasharray="4 4" />
+                        <circle cx="60" cy="50" r="3.5" fill="#64D2FF" opacity="0.8" />
+                        <line x1="60" y1="50" x2="60" y2="98" stroke="#30D158" stroke-width="2" />
+                        <circle cx="30" cy="28" r="8" fill="#10121A" stroke="#64D2FF" stroke-width="3" />
+                        <circle cx="30" cy="28" r="3" fill="#64D2FF" />
+                        <circle cx="90" cy="28" r="8" fill="#10121A" stroke="#64D2FF" stroke-width="3" />
+                        <circle cx="90" cy="28" r="3" fill="#64D2FF" />
+                        <circle cx="60" cy="98" r="10" fill="#10121A" stroke="#30D158" stroke-width="3.5" />
+                        <circle cx="60" cy="98" r="4.5" fill="#30D158" />
+                        <defs>
+                            <linearGradient id="c1a-g1" x1="30" y1="28" x2="60" y2="98" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#64D2FF" /><stop offset="1" stop-color="#30D158" />
+                            </linearGradient>
+                            <linearGradient id="c1a-g2" x1="90" y1="28" x2="60" y2="98" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#64D2FF" /><stop offset="1" stop-color="#30D158" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Clean CLI &amp; Favicon</div>
+            </div>
+
+            <!-- 1B -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-cyan-400">Variant 1B</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">Obsidian Prism</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">3D faceted glass planes with white spine and glowing cyan/mint refractions.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-cyan group-hover:scale-105 transition-transform">
+                        <polygon points="60,20 28,48 60,102" fill="url(#c1b-fl)" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" />
+                        <polygon points="60,20 92,48 60,102" fill="url(#c1b-fr)" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" />
+                        <line x1="60" y1="20" x2="60" y2="102" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" />
+                        <circle cx="60" cy="20" r="5" fill="#10121A" stroke="#64D2FF" stroke-width="2.5" />
+                        <circle cx="28" cy="48" r="4.5" fill="#10121A" stroke="#0A84FF" stroke-width="2" />
+                        <circle cx="92" cy="48" r="4.5" fill="#10121A" stroke="#64D2FF" stroke-width="2" />
+                        <circle cx="60" cy="102" r="6" fill="#30D158" stroke="#FFFFFF" stroke-width="1.5" />
+                        <defs>
+                            <linearGradient id="c1b-fl" x1="28" y1="48" x2="60" y2="102" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#1A1F2C" stop-opacity="0.9" /><stop offset="1" stop-color="#0E121A" stop-opacity="0.95" />
+                            </linearGradient>
+                            <linearGradient id="c1b-fr" x1="92" y1="48" x2="60" y2="102" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#0A84FF" stop-opacity="0.4" /><stop offset="1" stop-color="#30D158" stop-opacity="0.4" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Native App Icon</div>
+            </div>
+
+            <!-- 1C -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-400">Variant 1C</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">Arrow Penetrator</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">Directional DAG arrowhead piercing through a circular dashed prompt boundary.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-mint group-hover:scale-105 transition-transform">
+                        <circle cx="60" cy="60" r="40" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-dasharray="5 5" />
+                        <path d="M 38 68 Q 60 48 82 68" stroke="#64D2FF" stroke-width="2" fill="none" opacity="0.7" />
+                        <path d="M 60 18 L 84 64 L 60 52 L 36 64 Z" fill="url(#c1c-g)" stroke="#30D158" stroke-width="2" />
+                        <line x1="60" y1="52" x2="60" y2="96" stroke="#64D2FF" stroke-width="2.5" stroke-linecap="round" />
+                        <circle cx="60" cy="96" r="4" fill="#64D2FF" />
+                        <circle cx="60" cy="18" r="5" fill="#30D158" stroke="#FFFFFF" stroke-width="2" />
+                        <defs>
+                            <linearGradient id="c1c-g" x1="60" y1="18" x2="60" y2="64" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#30D158" /><stop offset="1" stop-color="#10121A" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Systems &amp; Compilers</div>
+            </div>
+
+            <!-- 1D -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-purple-400">Variant 1D</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">The "D"-Blade</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">Geometric 'D' where the spine forms a surgical blade and the curve orbits DAG nodes.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-purple group-hover:scale-105 transition-transform">
+                        <line x1="38" y1="22" x2="38" y2="98" stroke="url(#c1d-edge)" stroke-width="4.5" stroke-linecap="round" />
+                        <path d="M 38 24 C 76 24, 94 42, 94 60 C 94 78, 76 96, 38 96" stroke="rgba(255,255,255,0.18)" stroke-width="2.5" fill="none" />
+                        <circle cx="38" cy="24" r="5" fill="#10121A" stroke="#64D2FF" stroke-width="2.5" />
+                        <circle cx="94" cy="60" r="7" fill="#10121A" stroke="#BF5AF2" stroke-width="3" />
+                        <circle cx="94" cy="60" r="3" fill="#BF5AF2" />
+                        <circle cx="38" cy="98" r="8" fill="#10121A" stroke="#30D158" stroke-width="3.5" />
+                        <circle cx="38" cy="98" r="3.5" fill="#30D158" />
+                        <line x1="38" y1="24" x2="94" y2="60" stroke="#64D2FF" stroke-width="2" stroke-dasharray="3 3" opacity="0.6" />
+                        <line x1="94" y1="60" x2="38" y2="98" stroke="#30D158" stroke-width="2" opacity="0.8" />
+                        <defs>
+                            <linearGradient id="c1d-edge" x1="38" y1="22" x2="38" y2="98" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#64D2FF" /><stop offset="0.6" stop-color="#30D158" /><stop offset="1" stop-color="#FFFFFF" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Wordmark Lettermark</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 2: CONCEPT 2 (DAG MESH & MONOGRAM) -->
+    <!-- ======================================================== -->
+    <div id="panel-concept2" class="space-y-6">
+        <div class="border-b border-white/10 pb-3 flex items-center justify-between font-mono">
+            <h2 class="text-lg font-bold text-cyan-400">Concept 2: The DAG Mesh &amp; Monogram</h2>
+            <span class="text-xs text-zinc-500">Network Graph Topology &amp; Clean Structural Geometry</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left font-mono">
+            
+            <!-- 2A -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-cyan-400">Variant 2A</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">Hex-DAG Monogram</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">A precision hexagon composed of 6 directional DAG nodes forming an inner 'D'.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-cyan group-hover:scale-105 transition-transform">
+                        <!-- Hexagon outer links -->
+                        <polygon points="60,18 96,38 96,82 60,102 24,82 24,38" stroke="rgba(255,255,255,0.15)" stroke-width="2" fill="none" />
+                        <!-- Internal DAG 'D' links -->
+                        <line x1="24" y1="38" x2="24" y2="82" stroke="#30D158" stroke-width="3.5" />
+                        <line x1="24" y1="38" x2="60" y2="18" stroke="#64D2FF" stroke-width="2.5" />
+                        <line x1="60" y1="18" x2="96" y2="60" stroke="#64D2FF" stroke-width="2" />
+                        <line x1="96" y1="60" x2="60" y2="102" stroke="#30D158" stroke-width="2" />
+                        <line x1="60" y1="102" x2="24" y2="82" stroke="#30D158" stroke-width="2.5" />
+                        <line x1="24" y1="60" x2="96" y2="60" stroke="rgba(100,210,255,0.4)" stroke-width="1.5" stroke-dasharray="3 3" />
+                        <!-- Vertex Nodes -->
+                        <circle cx="24" cy="38" r="6" fill="#10121A" stroke="#64D2FF" stroke-width="2.5" />
+                        <circle cx="24" cy="82" r="7" fill="#10121A" stroke="#30D158" stroke-width="3" />
+                        <circle cx="60" cy="18" r="5" fill="#10121A" stroke="#64D2FF" stroke-width="2" />
+                        <circle cx="96" cy="60" r="6" fill="#10121A" stroke="#BF5AF2" stroke-width="2.5" />
+                        <circle cx="60" cy="102" r="5" fill="#10121A" stroke="#30D158" stroke-width="2" />
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Architectural &amp; Enterprise</div>
+            </div>
+
+            <!-- 2B -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-emerald-400">Variant 2B</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">Isometric Cube DAG</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">3D wireframe box where top contract vertices collapse into a single merged target node.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-mint group-hover:scale-105 transition-transform">
+                        <!-- Top Cube Diamond (Contracts) -->
+                        <polygon points="60,20 90,36 60,52 30,36" fill="rgba(100,210,255,0.12)" stroke="#64D2FF" stroke-width="2" />
+                        <!-- Converging Slicing Edges -->
+                        <line x1="30" y1="36" x2="60" y2="98" stroke="url(#c2b-g1)" stroke-width="2.5" />
+                        <line x1="90" y1="36" x2="60" y2="98" stroke="url(#c2b-g2)" stroke-width="2.5" />
+                        <line x1="60" y1="52" x2="60" y2="98" stroke="#30D158" stroke-width="3" />
+                        <!-- Nodes -->
+                        <circle cx="60" cy="20" r="4.5" fill="#64D2FF" />
+                        <circle cx="30" cy="36" r="4.5" fill="#64D2FF" />
+                        <circle cx="90" cy="36" r="4.5" fill="#64D2FF" />
+                        <circle cx="60" cy="52" r="5" fill="#10121A" stroke="#64D2FF" stroke-width="2" />
+                        <!-- Merged Apex Target -->
+                        <circle cx="60" cy="98" r="9" fill="#10121A" stroke="#30D158" stroke-width="3.5" />
+                        <circle cx="60" cy="98" r="4" fill="#30D158" />
+                        <defs>
+                            <linearGradient id="c2b-g1" x1="30" y1="36" x2="60" y2="98" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#64D2FF" /><stop offset="1" stop-color="#30D158" />
+                            </linearGradient>
+                            <linearGradient id="c2b-g2" x1="90" y1="36" x2="60" y2="98" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#64D2FF" /><stop offset="1" stop-color="#30D158" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: 3D Data-Flow &amp; Slicing</div>
+            </div>
+
+            <!-- 2C -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-400">Variant 2C</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">Orbital Hypervisor</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">Concentric elliptical rings with satellite contract nodes rotating around a hypervisor core.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-cyan group-hover:scale-105 transition-transform">
+                        <!-- Outer Orbit Ellipse -->
+                        <ellipse cx="60" cy="60" rx="46" ry="20" stroke="rgba(255,255,255,0.15)" stroke-width="2" transform="rotate(-25 60 60)" />
+                        <!-- Inner Orbit Ellipse -->
+                        <ellipse cx="60" cy="60" rx="46" ry="20" stroke="rgba(100,210,255,0.3)" stroke-width="2" transform="rotate(35 60 60)" />
+                        <!-- Core Nucleus -->
+                        <circle cx="60" cy="60" r="12" fill="#10121A" stroke="#30D158" stroke-width="3" />
+                        <circle cx="60" cy="60" r="6" fill="#30D158" />
+                        <!-- Orbiting Satellite Nodes -->
+                        <circle cx="26" cy="44" r="5" fill="#64D2FF" stroke="#FFFFFF" stroke-width="1.5" />
+                        <circle cx="94" cy="76" r="5" fill="#64D2FF" stroke="#FFFFFF" stroke-width="1.5" />
+                        <circle cx="86" cy="38" r="4.5" fill="#BF5AF2" />
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Swarm &amp; Coordination</div>
+            </div>
+
+            <!-- 2D -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-purple-400">Variant 2D</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">Infinite DAG Knot</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">A continuous, cycle-free infinity ribbon formed by 4 interlocking vertex arcs.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-purple group-hover:scale-105 transition-transform">
+                        <!-- Infinity Loop Path -->
+                        <path d="M 34 60 C 34 44, 48 44, 60 60 C 72 76, 86 76, 86 60 C 86 44, 72 44, 60 60 C 48 76, 34 76, 34 60 Z" stroke="url(#c2d-grad)" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                        <!-- DAG Anchor Nodes -->
+                        <circle cx="34" cy="60" r="6" fill="#10121A" stroke="#64D2FF" stroke-width="2.5" />
+                        <circle cx="86" cy="60" r="6" fill="#10121A" stroke="#BF5AF2" stroke-width="2.5" />
+                        <circle cx="60" cy="60" r="7" fill="#10121A" stroke="#30D158" stroke-width="3" />
+                        <circle cx="60" cy="60" r="3" fill="#30D158" />
+                        <defs>
+                            <linearGradient id="c2d-grad" x1="30" y1="40" x2="90" y2="80" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#64D2FF" /><stop offset="0.5" stop-color="#30D158" /><stop offset="1" stop-color="#BF5AF2" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Autonomous Workflows</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 3: CONCEPT 3 (LIGHTNING HYPERVISOR / SPLIT) -->
+    <!-- ======================================================== -->
+    <div id="panel-concept3" class="space-y-6">
+        <div class="border-b border-white/10 pb-3 flex items-center justify-between font-mono">
+            <h2 class="text-lg font-bold text-indigo-400">Concept 3: The Lightning Hypervisor</h2>
+            <span class="text-xs text-zinc-500">Sub-Millisecond Energy, Laser Shears &amp; Prism Slicing</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left font-mono">
+            
+            <!-- 3A -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-emerald-400">Variant 3A</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">Faceted Hyper-Bolt</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">Two interlocking faceted glass shards forming a razor-sharp lightning bolt with a neon core.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-mint group-hover:scale-105 transition-transform">
+                        <!-- Top Shard -->
+                        <polygon points="68,16 38,58 62,58 52,72 78,38 56,38" fill="url(#c3a-top)" stroke="#64D2FF" stroke-width="1.5" />
+                        <!-- Bottom Shard / Cutting Spike -->
+                        <polygon points="52,64 36,104 74,54 54,54 68,36" fill="url(#c3a-bot)" stroke="#30D158" stroke-width="2" />
+                        <circle cx="68" cy="16" r="3.5" fill="#64D2FF" />
+                        <circle cx="36" cy="104" r="5" fill="#30D158" stroke="#FFFFFF" stroke-width="1.5" />
+                        <defs>
+                            <linearGradient id="c3a-top" x1="68" y1="16" x2="38" y2="58" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#64D2FF" stop-opacity="0.8" /><stop offset="1" stop-color="#10121A" />
+                            </linearGradient>
+                            <linearGradient id="c3a-bot" x1="52" y1="64" x2="36" y2="104" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#30D158" /><stop offset="1" stop-color="#0E121A" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Fast Performance Branding</div>
+            </div>
+
+            <!-- 3B -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-cyan-400">Variant 3B</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">The Laser Seam</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">Two converging obsidian planes snipping through an active token beam like digital shears.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-cyan group-hover:scale-105 transition-transform">
+                        <!-- Upper Shear Blade -->
+                        <polygon points="24,28 96,52 60,60" fill="rgba(100,210,255,0.2)" stroke="#64D2FF" stroke-width="2" />
+                        <!-- Lower Shear Blade -->
+                        <polygon points="24,92 96,68 60,60" fill="rgba(48,209,88,0.2)" stroke="#30D158" stroke-width="2" />
+                        <!-- Slicing Fulcrum Pivot Node -->
+                        <circle cx="60" cy="60" r="9" fill="#10121A" stroke="#FFFFFF" stroke-width="2.5" />
+                        <circle cx="60" cy="60" r="4" fill="#30D158" />
+                        <!-- Laser Snip Sparks -->
+                        <line x1="96" y1="52" x2="108" y2="48" stroke="#64D2FF" stroke-width="2" stroke-linecap="round" />
+                        <line x1="96" y1="68" x2="108" y2="72" stroke="#30D158" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Digital Scissors Analogy</div>
+            </div>
+
+            <!-- 3C -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-400">Variant 3C</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">Quantum Delta Pulse</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">A continuous baseline vector spiking into a sharp surgical delta frequency waveform.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-mint group-hover:scale-105 transition-transform">
+                        <!-- Frequency Pulse Baseline -->
+                        <path d="M 18 60 L 42 60 L 52 30 L 68 90 L 78 60 L 102 60" stroke="url(#c3c-wave)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                        <!-- Peak Nodes -->
+                        <circle cx="52" cy="30" r="6" fill="#10121A" stroke="#64D2FF" stroke-width="2.5" />
+                        <circle cx="52" cy="30" r="2.5" fill="#64D2FF" />
+                        <circle cx="68" cy="90" r="7" fill="#10121A" stroke="#30D158" stroke-width="3" />
+                        <circle cx="68" cy="90" r="3" fill="#30D158" />
+                        <defs>
+                            <linearGradient id="c3c-wave" x1="18" y1="60" x2="102" y2="60" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="rgba(255,255,255,0.2)" />
+                                <stop offset="0.4" stop-color="#64D2FF" />
+                                <stop offset="0.7" stop-color="#30D158" />
+                                <stop offset="1" stop-color="rgba(255,255,255,0.2)" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Sub-ms Latency Metrics</div>
+            </div>
+
+            <!-- 3D -->
+            <div class="apple-glass rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-purple-400">Variant 3D</span>
+                    <h3 class="text-base font-bold text-white font-sans mt-1">The Refraction Prism</h3>
+                    <p class="text-[11px] text-zinc-400 mt-1 font-sans">A dark triangular prism concentrating 15,000 bloated tokens into a single 200-token laser beam.</p>
+                </div>
+                <div class="h-40 bg-zinc-950/90 rounded-2xl border border-white/5 flex items-center justify-center relative group">
+                    <svg width="100" height="100" viewBox="0 0 120 120" fill="none" class="glow-mint group-hover:scale-105 transition-transform">
+                        <!-- Glass Prism Triangle -->
+                        <polygon points="60,24 96,86 24,86" fill="rgba(16,18,26,0.85)" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+                        <!-- Incoming Wide Token Wave (Dashed) -->
+                        <line x1="14" y1="46" x2="42" y2="55" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-dasharray="3 3" />
+                        <line x1="14" y1="62" x2="36" y2="65" stroke="rgba(255,255,255,0.4)" stroke-width="3" stroke-dasharray="3 3" />
+                        <!-- Focused Outgoing Laser Beam -->
+                        <line x1="78" y1="58" x2="108" y2="58" stroke="#30D158" stroke-width="4.5" stroke-linecap="round" />
+                        <!-- Internal Refraction Core -->
+                        <circle cx="60" cy="58" r="8" fill="#10121A" stroke="#64D2FF" stroke-width="2.5" />
+                        <circle cx="60" cy="58" r="3.5" fill="#30D158" />
+                    </svg>
+                </div>
+                <div class="text-[10px] text-zinc-500">Best for: Token Compression Story</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Navigation & Next Steps -->
+    <div class="text-center pt-8 text-xs font-mono text-zinc-400 space-x-4 border-t border-white/5">
+        <a href="index.html" class="text-emerald-400 hover:underline">← Return to Main Overview</a>
+        <span>•</span>
+        <a href="tech.html" class="text-zinc-400 hover:text-white">Technical Deep-Dive</a>
+        <span>•</span>
+        <a href="gallery-3d.html" class="text-cyan-400 hover:text-white">3D Orbital Lab</a>
+    </div>
+
+    <script>
+        function switchTab(conceptId) {
+            ['concept1', 'concept2', 'concept3'].forEach(id => {
+                const btn = document.getElementById(`tab-${id}`);
+                const panel = document.getElementById(`panel-${id}`);
+                if (id === conceptId) {
+                    btn.classList.add('active');
+                    panel.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('active');
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

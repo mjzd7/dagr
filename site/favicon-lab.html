@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dagr — 16x16px Optical Grid & Favicon Master Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist", "Inter", sans-serif;
+            letter-spacing: -0.015em;
+        }
+        .titanium-card {
+            background: rgba(18, 18, 22, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .titanium-card:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        .pixel-grid {
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 10px 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6 sm:p-12 space-y-12 max-w-7xl mx-auto">
+
+    <!-- Header -->
+    <div class="text-center space-y-4 max-w-3xl mx-auto">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-white/10 text-white border border-white/20">
+            <span>🔬 16x16px Sub-Pixel Engineering</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight">
+            16x16px Optical Favicon Suite
+        </h1>
+        <p class="text-sm text-zinc-400 font-sans leading-relaxed">
+            Eliminates all hairline blur. 6 solid, pixel-grid-aligned marks engineered to remain <strong>100% razor-sharp</strong> in browser tabs, macOS menu bars, and terminal prompts.
+        </p>
+    </div>
+
+    <!-- 6 OPTICAL 16x16 MARKS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left font-mono">
+
+        <!-- ================= OPTION 01: THE SOLID SLIT VERTEX (RECOMMENDED) ================= -->
+        <div class="titanium-card p-6 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span class="text-white font-bold">OPTION 01</span>
+                    <span class="px-2 py-0.5 rounded bg-white/10 text-white text-[10px]">TOP FAVICON PICK</span>
+                </div>
+                <h3 class="text-base font-bold text-white font-sans">The Solid Slit Vertex</h3>
+                <p class="text-xs text-zinc-400 font-sans">Solid downward chevron with a crisp 2px vertical optical laser slit.</p>
+            </div>
+
+            <!-- Optical Scale Test: 16px Native + 160px Magnified Pixel Grid -->
+            <div class="grid grid-cols-2 gap-3 items-center">
+                <!-- 16px Native In Environment -->
+                <div class="p-3 bg-black rounded-2xl border border-white/10 space-y-2 text-center">
+                    <span class="text-[10px] text-zinc-500 block">16x16 Native</span>
+                    <div class="h-10 flex items-center justify-center">
+                        <!-- EXACT 16x16 SVG -->
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <polygon points="1,2 7,2 7,12 1,2" fill="#FFFFFF" />
+                            <polygon points="15,2 9,2 9,12 15,2" fill="#FFFFFF" />
+                            <circle cx="8" cy="14" r="1.5" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 160px Magnified Grid -->
+                <div class="h-28 bg-black rounded-2xl border border-white/10 pixel-grid flex items-center justify-center">
+                    <svg width="80" height="80" viewBox="0 0 16 16" fill="none">
+                        <polygon points="1,2 7,2 7,12 1,2" fill="#FFFFFF" />
+                        <polygon points="15,2 9,2 9,12 15,2" fill="#FFFFFF" />
+                        <circle cx="8" cy="14" r="1.5" fill="#FFFFFF" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Fill: 100% Solid Mass</span>
+                <span class="text-white">Zero Sub-Pixel Blur</span>
+            </div>
+        </div>
+
+        <!-- ================= OPTION 02: THE BOLD V-CHEVRON (PURE MINIMAL) ================= -->
+        <div class="titanium-card p-6 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span class="text-white font-bold">OPTION 02</span>
+                    <span class="text-zinc-400 text-[10px]">MONOLITHIC</span>
+                </div>
+                <h3 class="text-base font-bold text-white font-sans">The Monolithic V-Chevron</h3>
+                <p class="text-xs text-zinc-400 font-sans">A heavy 3.5px solid V-stroke with a crisp internal diamond cutout.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 items-center">
+                <div class="p-3 bg-black rounded-2xl border border-white/10 space-y-2 text-center">
+                    <span class="text-[10px] text-zinc-500 block">16x16 Native</span>
+                    <div class="h-10 flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M 2 2 L 8 13 L 14 2 L 11 2 L 8 8 L 5 2 Z" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="h-28 bg-black rounded-2xl border border-white/10 pixel-grid flex items-center justify-center">
+                    <svg width="80" height="80" viewBox="0 0 16 16" fill="none">
+                        <path d="M 2 2 L 8 13 L 14 2 L 11 2 L 8 8 L 5 2 Z" fill="#FFFFFF" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Vercel / Linear Weight</span>
+                <span class="text-white">Maximum Contrast</span>
+            </div>
+        </div>
+
+        <!-- ================= OPTION 03: THE 16px TRI-NODE DAG ================= -->
+        <div class="titanium-card p-6 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span class="text-white font-bold">OPTION 03</span>
+                    <span class="text-zinc-400 text-[10px]">DIRECT GRAPH</span>
+                </div>
+                <h3 class="text-base font-bold text-white font-sans">The 16px Tri-Node DAG</h3>
+                <p class="text-xs text-zinc-400 font-sans">3 heavy solid circular nodes connected by thick 2.5px vector rails.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 items-center">
+                <div class="p-3 bg-black rounded-2xl border border-white/10 space-y-2 text-center">
+                    <span class="text-[10px] text-zinc-500 block">16x16 Native</span>
+                    <div class="h-10 flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <line x1="3" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                            <line x1="13" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                            <circle cx="3" cy="3" r="2" fill="#FFFFFF" />
+                            <circle cx="13" cy="3" r="2" fill="#FFFFFF" />
+                            <circle cx="8" cy="12" r="2.5" fill="#000000" stroke="#FFFFFF" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="h-28 bg-black rounded-2xl border border-white/10 pixel-grid flex items-center justify-center">
+                    <svg width="80" height="80" viewBox="0 0 16 16" fill="none">
+                        <line x1="3" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                        <line x1="13" y1="3" x2="8" y2="12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                        <circle cx="3" cy="3" r="2" fill="#FFFFFF" />
+                        <circle cx="13" cy="3" r="2" fill="#FFFFFF" />
+                        <circle cx="8" cy="12" r="2.5" fill="#000000" stroke="#FFFFFF" stroke-width="1.5" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Git-grade Graph</span>
+                <span class="text-white">Crisp Connected Nodes</span>
+            </div>
+        </div>
+
+        <!-- ================= OPTION 04: THE 16px CHISELED RHOMBUS ================= -->
+        <div class="titanium-card p-6 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span class="text-white font-bold">OPTION 04</span>
+                    <span class="text-zinc-400 text-[10px]">ISOMETRIC</span>
+                </div>
+                <h3 class="text-base font-bold text-white font-sans">The Chiseled Rhombus</h3>
+                <p class="text-xs text-zinc-400 font-sans">Left facet solid white, right facet 1.5px specular rim.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 items-center">
+                <div class="p-3 bg-black rounded-2xl border border-white/10 space-y-2 text-center">
+                    <span class="text-[10px] text-zinc-500 block">16x16 Native</span>
+                    <div class="h-10 flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <polygon points="8,1 2,8 8,15" fill="#FFFFFF" />
+                            <polygon points="8,1 14,8 8,15" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="h-28 bg-black rounded-2xl border border-white/10 pixel-grid flex items-center justify-center">
+                    <svg width="80" height="80" viewBox="0 0 16 16" fill="none">
+                        <polygon points="8,1 2,8 8,15" fill="#FFFFFF" />
+                        <polygon points="8,1 14,8 8,15" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Linear Rhombus Style</span>
+                <span class="text-white">Specular Depth</span>
+            </div>
+        </div>
+
+        <!-- ================= OPTION 05: THE 16px SLICED 'D' MONOGRAM ================= -->
+        <div class="titanium-card p-6 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span class="text-white font-bold">OPTION 05</span>
+                    <span class="text-zinc-400 text-[10px]">LETTERMARK</span>
+                </div>
+                <h3 class="text-base font-bold text-white font-sans">The Sliced 'D' Monogram</h3>
+                <p class="text-xs text-zinc-400 font-sans">Solid geometric 'D' cleaved with a 2px horizontal razor incision.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 items-center">
+                <div class="p-3 bg-black rounded-2xl border border-white/10 space-y-2 text-center">
+                    <span class="text-[10px] text-zinc-500 block">16x16 Native</span>
+                    <div class="h-10 flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M 2 2 L 9 2 C 12 2, 14 4, 14 7 L 2 7 Z" fill="#FFFFFF" />
+                            <path d="M 2 9 L 14 9 C 14 12, 12 14, 9 14 L 2 14 Z" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="h-28 bg-black rounded-2xl border border-white/10 pixel-grid flex items-center justify-center">
+                    <svg width="80" height="80" viewBox="0 0 16 16" fill="none">
+                        <path d="M 2 2 L 9 2 C 12 2, 14 4, 14 7 L 2 7 Z" fill="#FFFFFF" />
+                        <path d="M 2 9 L 14 9 C 14 12, 12 14, 9 14 L 2 14 Z" fill="#FFFFFF" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Stripe / Raycast Clarity</span>
+                <span class="text-white">Instant Letter Recall</span>
+            </div>
+        </div>
+
+        <!-- ================= OPTION 06: THE 16px SOLID DELTA DAG ================= -->
+        <div class="titanium-card p-6 space-y-5 flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span class="text-white font-bold">OPTION 06</span>
+                    <span class="text-zinc-400 text-[10px]">DELTA DIFF</span>
+                </div>
+                <h3 class="text-base font-bold text-white font-sans">The Solid Delta DAG</h3>
+                <p class="text-xs text-zinc-400 font-sans">Heavy inverted delta triangle with an isolated center focal core.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 items-center">
+                <div class="p-3 bg-black rounded-2xl border border-white/10 space-y-2 text-center">
+                    <span class="text-[10px] text-zinc-500 block">16x16 Native</span>
+                    <div class="h-10 flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <polygon points="8,14 1,2 15,2" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round" fill="none" />
+                            <circle cx="8" cy="6.5" r="1.5" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="h-28 bg-black rounded-2xl border border-white/10 pixel-grid flex items-center justify-center">
+                    <svg width="80" height="80" viewBox="0 0 16 16" fill="none">
+                        <polygon points="8,14 1,2 15,2" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round" fill="none" />
+                        <circle cx="8" cy="6.5" r="1.5" fill="#FFFFFF" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Vibe: Mathematical Diff (Δ)</span>
+                <span class="text-white">Unmistakable Outline</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- REAL-WORLD 16px BROWSER TAB & APP DOCK SIMULATION -->
+    <div class="titanium-card p-8 space-y-6">
+        <div class="border-b border-white/10 pb-3 flex items-center justify-between font-mono">
+            <h2 class="text-base font-bold text-white font-sans">Real-World Environmental Simulation (Option 01: Solid Slit Vertex)</h2>
+            <span class="text-xs text-zinc-500">Chrome Tab • Safari Bar • Terminal CLI</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+            
+            <!-- 1. Real Chrome Tab Simulation -->
+            <div class="p-4 bg-zinc-950 rounded-2xl border border-white/10 space-y-3">
+                <span class="text-[11px] text-zinc-500">Chrome Browser Tab (16x16)</span>
+                <div class="bg-zinc-900 rounded-xl px-3 py-2 flex items-center space-x-2 border border-white/10">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="shrink-0">
+                        <polygon points="1,2 7,2 7,12 1,2" fill="#FFFFFF" />
+                        <polygon points="15,2 9,2 9,12 15,2" fill="#FFFFFF" />
+                        <circle cx="8" cy="14" r="1.5" fill="#FFFFFF" />
+                    </svg>
+                    <span class="text-[11px] text-zinc-200 truncate">DAGR — AST Hypervisor</span>
+                    <span class="text-zinc-600 text-xs ml-auto">×</span>
+                </div>
+            </div>
+
+            <!-- 2. Terminal Shell Glyph -->
+            <div class="p-4 bg-zinc-950 rounded-2xl border border-white/10 space-y-3">
+                <span class="text-[11px] text-zinc-500">CLI Terminal Prompt Glyph</span>
+                <div class="bg-black rounded-xl p-2.5 flex items-center space-x-2 border border-white/10 text-[11px]">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" class="shrink-0">
+                        <polygon points="1,2 7,2 7,12 1,2" fill="#FFFFFF" />
+                        <polygon points="15,2 9,2 9,12 15,2" fill="#FFFFFF" />
+                        <circle cx="8" cy="14" r="1.5" fill="#FFFFFF" />
+                    </svg>
+                    <span class="text-white font-bold">dagr</span>
+                    <span class="text-zinc-400">slice --target auth</span>
+                </div>
+            </div>
+
+            <!-- 3. macOS Menu Bar Icon -->
+            <div class="p-4 bg-zinc-950 rounded-2xl border border-white/10 space-y-3">
+                <span class="text-[11px] text-zinc-500">macOS Menu Bar (Status Icon)</span>
+                <div class="bg-zinc-900 rounded-xl px-4 py-2 flex items-center justify-between border border-white/10">
+                    <div class="flex items-center space-x-4">
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <polygon points="1,2 7,2 7,12 1,2" fill="#FFFFFF" />
+                            <polygon points="15,2 9,2 9,12 15,2" fill="#FFFFFF" />
+                            <circle cx="8" cy="14" r="1.5" fill="#FFFFFF" />
+                        </svg>
+                        <span class="text-[11px] text-zinc-300">DAGR Running</span>
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="text-center pt-8 text-xs font-mono text-zinc-400 space-x-4 border-t border-white/10">
+        <a href="index.html" class="text-white hover:underline">← Main Overview</a>
+        <span>•</span>
+        <a href="brand.html" class="text-zinc-400 hover:text-white">Brand Guidelines</a>
+        <span>•</span>
+        <a href="pure-vertex.html" class="text-zinc-400 hover:text-white">Pure Vertex Master</a>
+    </div>
+
+</body>
+</html>

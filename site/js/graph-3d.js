@@ -46,18 +46,18 @@ class Graph3DVisualizer {
     }
 
     initLights() {
-        const ambient = new THREE.AmbientLight(0xffffff, 0.90);
+        const ambient = new THREE.AmbientLight(0xffffff, 0.95);
         this.scene.add(ambient);
 
-        const emeraldPoint = new THREE.PointLight(0x10b981, 2.5, 300);
-        emeraldPoint.position.set(0, 20, 50);
-        this.scene.add(emeraldPoint);
+        const mintPoint = new THREE.PointLight(0x30d158, 2.8, 300);
+        mintPoint.position.set(0, 20, 50);
+        this.scene.add(mintPoint);
 
-        const cyanPoint = new THREE.PointLight(0x06b6d4, 2.0, 250);
+        const cyanPoint = new THREE.PointLight(0x64d2ff, 2.2, 250);
         cyanPoint.position.set(-35, -20, 35);
         this.scene.add(cyanPoint);
 
-        const redPoint = new THREE.PointLight(0xef4444, 1.5, 200);
+        const redPoint = new THREE.PointLight(0xff453a, 1.4, 200);
         redPoint.position.set(45, 25, -40);
         this.scene.add(redPoint);
     }
@@ -227,10 +227,10 @@ class Graph3DVisualizer {
         // 2. Center Target Function Sphere (Green Core)
         const targetGeo = new THREE.SphereGeometry(4.8, 32, 32);
         const targetMat = new THREE.MeshStandardMaterial({
-            color: 0x10b981,
-            emissive: 0x059669,
+            color: 0x30d158,
+            emissive: 0x1b8437,
             roughness: 0.15,
-            metalness: 0.85
+            metalness: 0.65
         });
         const targetMesh = new THREE.Mesh(targetGeo, targetMat);
         targetMesh.position.set(0, 0, 0);
@@ -261,10 +261,10 @@ class Graph3DVisualizer {
 
             const geo = new THREE.SphereGeometry(2.8, 24, 24);
             const mat = new THREE.MeshStandardMaterial({
-                color: 0x06b6d4,
-                emissive: 0x0891b2,
-                roughness: 0.25,
-                metalness: 0.75
+                color: 0x64d2ff,
+                emissive: 0x0a84ff,
+                roughness: 0.20,
+                metalness: 0.60
             });
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z);
@@ -289,7 +289,7 @@ class Graph3DVisualizer {
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(x, y, z)
             ]);
-            const lineMat = new THREE.LineBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.8 });
+            const lineMat = new THREE.LineBasicMaterial({ color: 0x64d2ff, transparent: true, opacity: 0.75 });
             const line = new THREE.Line(lineGeo, lineMat);
             this.scene.add(line);
             this.lines.push(line);
@@ -310,10 +310,10 @@ class Graph3DVisualizer {
 
             const geo = new THREE.SphereGeometry(2.2, 16, 16);
             const mat = new THREE.MeshStandardMaterial({
-                color: 0xef4444,
+                color: 0xff453a,
                 transparent: true,
-                opacity: 0.55,
-                roughness: 0.8
+                opacity: 0.45,
+                roughness: 0.85
             });
             const mesh = new THREE.Mesh(geo, mat);
             mesh.position.set(x, y, z);

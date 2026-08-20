@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dagr — 20 Evergreen Minimalist Logo Concepts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Geist", "Inter", sans-serif;
+            letter-spacing: -0.01em;
+        }
+        .evergreen-card {
+            background: #0a0b0e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .evergreen-card:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.06);
+        }
+        .preview-box {
+            background: #040507;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+        }
+        .light-mode {
+            background-color: #f7f8fa !important;
+            color: #000000 !important;
+        }
+        .light-mode .evergreen-card {
+            background: #ffffff !important;
+            border-color: #e5e7eb !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04) !important;
+        }
+        .light-mode .evergreen-card:hover {
+            border-color: #d1d5db !important;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08) !important;
+        }
+        .light-mode .preview-box {
+            background: #f3f4f6 !important;
+            border-color: #e5e7eb !important;
+        }
+        .light-mode svg path,
+        .light-mode svg line,
+        .light-mode svg polygon,
+        .light-mode svg rect,
+        .light-mode svg circle {
+            stroke: #000000 !important;
+        }
+        .light-mode svg [fill="#FFFFFF"],
+        .light-mode svg [fill="#fff"] {
+            fill: #000000 !important;
+        }
+        .light-mode svg [fill="#000000"],
+        .light-mode svg [fill="#040507"],
+        .light-mode svg [fill="#0a0b0e"] {
+            fill: #FFFFFF !important;
+        }
+        .light-mode .text-white { color: #000000 !important; }
+        .light-mode .text-zinc-400 { color: #4b5563 !important; }
+        .light-mode .text-zinc-500 { color: #6b7280 !important; }
+    </style>
+</head>
+<body class="min-h-screen p-6 sm:p-12 space-y-12 max-w-7xl mx-auto">
+
+    <!-- Header & Study Summary -->
+    <div class="text-center space-y-4 max-w-3xl mx-auto">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono bg-white/10 text-white border border-white/20">
+            <span>✨ Evergreen Brand Geometry Study</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight">
+            20 Evergreen Minimalist Logo Concepts
+        </h1>
+        <p class="text-sm text-zinc-400 leading-relaxed font-sans">
+            Inspired by the timeless geometry of Apple, Nike, Linear, Vercel, and Git. 
+            Each concept distills <strong>DAG Graph Topology</strong>, <strong>Surgical Precision</strong>, and <strong>Daylight Clarity</strong> into a single iconic mark.
+        </p>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-center gap-3 pt-2 text-xs font-mono">
+            <button onclick="toggleInvert()" id="invert-btn" class="px-4 py-2 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-all">
+                🔄 Invert (Dark / Light)
+            </button>
+            <a href="#scale-test" class="px-4 py-2 rounded-xl bg-white/10 text-white font-semibold hover:bg-white/20 border border-white/15 transition-all">
+                🔍 Scale &amp; Favicon Test
+            </a>
+        </div>
+    </div>
+
+    <!-- 20 LOGOS GRID (4 COLUMNS) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left font-mono">
+
+        <!-- ================= CATEGORY A: MONOGRAMS & DELTA ================= -->
+
+        <!-- 01: The Delta-DAG -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 01</span>
+                    <span>DELTA + DAG</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">The Delta-DAG</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Equilateral delta triangle where the apex node branches into base paths.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <polygon points="50,18 84,78 16,78" stroke="#FFFFFF" stroke-width="4.5" stroke-linejoin="round" fill="none" />
+                    <line x1="50" y1="18" x2="50" y2="78" stroke="#FFFFFF" stroke-width="2.5" stroke-dasharray="3 3" />
+                    <circle cx="50" cy="18" r="7" fill="#000000" stroke="#FFFFFF" stroke-width="3" />
+                    <circle cx="16" cy="78" r="5" fill="#FFFFFF" />
+                    <circle cx="84" cy="78" r="5" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Mathematical precision</div>
+        </div>
+
+        <!-- 02: The Razor Slash 'D' -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 02</span>
+                    <span>SLICED 'D'</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">The Razor Slash 'D'</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">A solid geometric letter 'D' sliced at 45° by a hairline precision gap.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- Top Half of Sliced D -->
+                    <path d="M 24 20 L 56 20 C 74 20, 84 32, 84 46 L 24 46 Z" fill="#FFFFFF" />
+                    <!-- Bottom Half of Sliced D (Offset) -->
+                    <path d="M 24 54 L 84 54 C 84 68, 74 80, 56 80 L 24 80 Z" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Iconic lettermark</div>
+        </div>
+
+        <!-- 03: The Dual-Vertex Arc 'D' -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 03</span>
+                    <span>MINIMAL ARCS</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Dual-Arc 'D'</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Two pure circular arcs meeting at terminal graph anchor points.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <line x1="28" y1="20" x2="28" y2="80" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" />
+                    <path d="M 28 20 C 72 20, 84 38, 84 50 C 84 62, 72 80, 28 80" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" fill="none" />
+                    <circle cx="84" cy="50" r="6" fill="#000000" stroke="#FFFFFF" stroke-width="3" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Apple-grade purity</div>
+        </div>
+
+        <!-- 04: The Tri-Node 'D' -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 04</span>
+                    <span>GRAPH TOPOLOGY</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Tri-Node 'D'</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">3 solid graph vertices forming a capital 'D' through directional strokes.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <line x1="30" y1="24" x2="30" y2="76" stroke="#FFFFFF" stroke-width="4.5" />
+                    <line x1="30" y1="24" x2="78" y2="50" stroke="#FFFFFF" stroke-width="3.5" />
+                    <line x1="78" y1="50" x2="30" y2="76" stroke="#FFFFFF" stroke-width="3.5" />
+                    <circle cx="30" cy="24" r="7" fill="#FFFFFF" />
+                    <circle cx="30" cy="76" r="7" fill="#FFFFFF" />
+                    <circle cx="78" cy="50" r="9" fill="#000000" stroke="#FFFFFF" stroke-width="3.5" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Direct graph letterform</div>
+        </div>
+
+        <!-- ================= CATEGORY B: PRISMS & SURGICAL SLICING ================= -->
+
+        <!-- 05: The 45° Slicing Horizon -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 05</span>
+                    <span>SQUIRCLE CUT</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">The Slicing Horizon</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Solid continuous squircle cleaved diagonally by a precision beam.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <rect x="20" y="20" width="60" height="60" rx="18" fill="#FFFFFF" />
+                    <line x1="14" y1="86" x2="86" y2="14" stroke="#000000" stroke-width="6" stroke-linecap="round" />
+                    <circle cx="50" cy="50" r="4.5" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Radical reduction</div>
+        </div>
+
+        <!-- 06: The Dual-Blade Chevron -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 06</span>
+                    <span>CONVERGENCE</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Dual Chevron</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Two heavy forward chevrons converging into a single sub-millisecond point.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <path d="M 20 28 L 50 50 L 20 72" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M 44 28 L 74 50 L 44 72" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="84" cy="50" r="5" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Speed &amp; direction</div>
+        </div>
+
+        <!-- 07: The Pruned Circle -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 07</span>
+                    <span>PRUNED MASS</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">The Pruned Circle</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Solid circle split into two offset semicircles with a focal vertex node.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- Top Semicircle -->
+                    <path d="M 18 46 A 32 32 0 0 1 82 46 Z" fill="#FFFFFF" />
+                    <!-- Bottom Semicircle (Offset) -->
+                    <path d="M 26 54 A 32 32 0 0 0 90 54 Z" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Token context reduction</div>
+        </div>
+
+        <!-- 08: The Chiseled Diamond Obelisk -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 08</span>
+                    <span>LINEAR STYLE</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Chiseled Diamond</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">A pure isometric rhombus with a high-contrast half-tone shadow split.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- Left Solid Half -->
+                    <polygon points="50,15 20,50 50,85" fill="#FFFFFF" />
+                    <!-- Right Wireframe Half -->
+                    <polygon points="50,15 80,50 50,85" stroke="#FFFFFF" stroke-width="2.5" fill="none" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Linear-grade craftsmanship</div>
+        </div>
+
+        <!-- ================= CATEGORY C: GRAPH & TOPOLOGY ================= -->
+
+        <!-- 09: The Pure Git-DAG Fork -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 09</span>
+                    <span>GIT PARADIGM</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">The Git-DAG Fork</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">The universal developer symbol of branching, slicing, and merging.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <line x1="30" y1="20" x2="30" y2="80" stroke="#FFFFFF" stroke-width="4" />
+                    <path d="M 30 54 Q 55 54 70 34" stroke="#FFFFFF" stroke-width="4" fill="none" />
+                    <circle cx="30" cy="20" r="6" fill="#FFFFFF" />
+                    <circle cx="30" cy="80" r="6" fill="#FFFFFF" />
+                    <circle cx="70" cy="34" r="8" fill="#000000" stroke="#FFFFFF" stroke-width="3.5" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Universal devtool symbol</div>
+        </div>
+
+        <!-- 10: The Hex-Matrix Vertex -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 10</span>
+                    <span>HEX TOPOLOGY</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Hex-Matrix Vertex</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Isometric hollow hexagon with internal triangular focal vectors.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <polygon points="50,16 82,34 82,70 50,88 18,70 18,34" stroke="#FFFFFF" stroke-width="3" fill="none" />
+                    <line x1="50" y1="16" x2="50" y2="52" stroke="#FFFFFF" stroke-width="2.5" />
+                    <line x1="18" y1="70" x2="50" y2="52" stroke="#FFFFFF" stroke-width="2.5" />
+                    <line x1="82" y1="70" x2="50" y2="52" stroke="#FFFFFF" stroke-width="2.5" />
+                    <circle cx="50" cy="52" r="5" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Architecture &amp; systems</div>
+        </div>
+
+        <!-- 11: The Satellite Core -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 11</span>
+                    <span>ORBITAL NUCLEUS</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Satellite Core</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">A solid center core protected by concentric geometric orbit bars.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <circle cx="50" cy="50" r="14" fill="#FFFFFF" />
+                    <path d="M 22 50 A 28 28 0 0 1 78 50" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" fill="none" />
+                    <path d="M 78 50 A 28 28 0 0 1 22 50" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 6" fill="none" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Safe sandbox boundary</div>
+        </div>
+
+        <!-- 12: The Cycle-Free Infinity -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 12</span>
+                    <span>INFINITY MERGE</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Cycle-Free Infinity</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">An open infinity ribbon that resolves into a single deterministic output.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <path d="M 26 50 C 26 36, 40 36, 50 50 C 60 64, 74 64, 74 50 C 74 36, 60 36, 50 50 C 40 64, 26 64, 26 50" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                    <circle cx="74" cy="50" r="6" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Deterministic execution</div>
+        </div>
+
+        <!-- ================= CATEGORY D: LIGHTNING, DAYLIGHT & SPEED ================= -->
+
+        <!-- 13: The Minimalist Bolt (⚡ Modernized) -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 13</span>
+                    <span>KINETIC SPEED</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">The Minimal Bolt</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">A solid 3-segment monolithic lightning glyph with razor precision.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <polygon points="56,16 28,54 50,54 44,84 72,46 50,46" fill="#FFFFFF" stroke="#000000" stroke-width="2" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Sub-millisecond performance</div>
+        </div>
+
+        <!-- 14: Radiant Daylight (Dagr Star) -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 14</span>
+                    <span>NORSE DAYLIGHT</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Radiant Daylight</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Geometric 4-point radiance star (Norse Dagr = Personification of Day).</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <path d="M 50 14 Q 50 50 14 50 Q 50 50 50 86 Q 50 50 86 50 Q 50 50 50 14 Z" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Authentic etymology</div>
+        </div>
+
+        <!-- 15: The 95% Contrast Bar -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 15</span>
+                    <span>SCALE RATIO</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">The 95% Contrast</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Heavy background block contrasting with a single laser-sharp dot.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <rect x="22" y="24" width="40" height="52" rx="10" fill="rgba(255,255,255,0.2)" />
+                    <rect x="22" y="58" width="40" height="18" rx="8" fill="#FFFFFF" />
+                    <circle cx="76" cy="67" r="6" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Bloat vs precision</div>
+        </div>
+
+        <!-- 16: The Focus Aperture -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 16</span>
+                    <span>LASER APERTURE</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Focus Aperture</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Four perimeter framing brackets focusing on a central context target.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- 4 Corner Brackets -->
+                    <path d="M 22 36 L 22 22 L 36 22" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+                    <path d="M 78 36 L 78 22 L 64 22" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+                    <path d="M 22 64 L 22 78 L 36 78" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+                    <path d="M 78 64 L 78 78 L 64 78" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+                    <!-- Center Focal Core -->
+                    <circle cx="50" cy="50" r="8" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Laser focus</div>
+        </div>
+
+        <!-- ================= CATEGORY E: HYPERVISOR & MESH COLLISION ================= -->
+
+        <!-- 17: The Quantum Shear Aperture -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 17</span>
+                    <span>SHEAR VECTOR</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Quantum Shears</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Two interlocking parabolic curves forming a lens-like slicing aperture.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <path d="M 20 30 Q 50 65 80 30" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                    <path d="M 20 70 Q 50 35 80 70" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                    <circle cx="50" cy="50" r="5" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Digital scissors</div>
+        </div>
+
+        <!-- 18: The Forward-Fold 'D' -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 18</span>
+                    <span>ISOMETRIC FOLD</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Forward-Fold 'D'</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Continuous isometric ribbon folding into a capital 'D' and arrow.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <polygon points="26,20 64,40 64,60 26,80 26,50" fill="rgba(255,255,255,0.25)" />
+                    <polygon points="26,20 64,40 26,50" fill="#FFFFFF" />
+                    <polygon points="64,40 78,50 64,60" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Modern 3D origami</div>
+        </div>
+
+        <!-- 19: The Directional Acyclic Ray -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 19</span>
+                    <span>RAY BURST</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">Acyclic Ray</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">Three staggered horizontal data streams terminating in a single node.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <line x1="20" y1="34" x2="52" y2="34" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" />
+                    <line x1="20" y1="50" x2="74" y2="50" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" />
+                    <line x1="20" y1="66" x2="52" y2="66" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" />
+                    <circle cx="74" cy="50" r="7" fill="#FFFFFF" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: Data-flow streams</div>
+        </div>
+
+        <!-- 20: The Minimalist Dagger Vertex (Purest Distillation) -->
+        <div class="evergreen-card p-6 space-y-4 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>CONCEPT 20</span>
+                    <span>HERO CONCEPT</span>
+                </div>
+                <h3 class="text-base font-bold text-white mt-1 font-sans">The Pure Vertex</h3>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">The single cleanest distillation of a downward dagger apex and two contract nodes.</p>
+            </div>
+            <div class="h-36 preview-box flex items-center justify-center group">
+                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" class="group-hover:scale-105 transition-transform">
+                    <!-- Inverted Chevron Blade -->
+                    <path d="M 24 30 L 50 78 L 76 30" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    <!-- Top Contract Satellite Bar -->
+                    <line x1="24" y1="30" x2="76" y2="30" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="3 3" />
+                    <circle cx="24" cy="30" r="5" fill="#FFFFFF" />
+                    <circle cx="76" cy="30" r="5" fill="#FFFFFF" />
+                    <circle cx="50" cy="78" r="7" fill="#000000" stroke="#FFFFFF" stroke-width="3" />
+                </svg>
+            </div>
+            <div class="text-[10px] text-zinc-500">Theme: The ultimate pure mark</div>
+        </div>
+
+    </div>
+
+    <!-- Scale & Favicon Comparison Suite -->
+    <div id="scale-test" class="evergreen-card p-8 space-y-6">
+        <div class="border-b border-white/10 pb-3 flex items-center justify-between">
+            <h2 class="text-base font-bold text-white font-sans">Optical Scale &amp; Favicon Legibility Test (Top 4 Picks)</h2>
+            <span class="text-xs text-zinc-500 font-mono">16px Favicon • 24px Terminal • 32px Navbar • 64px Hero</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-2">
+            
+            <!-- Pick 1: Concept 01 (Delta-DAG) -->
+            <div class="space-y-3 text-center">
+                <span class="text-xs text-zinc-400 font-mono">01. Delta-DAG</span>
+                <div class="flex items-center justify-center space-x-3">
+                    <div class="w-8 h-8 preview-box flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+                            <polygon points="50,18 84,78 16,78" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round" />
+                            <circle cx="50" cy="18" r="10" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                    <div class="w-12 h-12 preview-box flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                            <polygon points="50,18 84,78 16,78" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round" />
+                            <circle cx="50" cy="18" r="8" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                    <div class="w-16 h-16 preview-box flex items-center justify-center">
+                        <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
+                            <polygon points="50,18 84,78 16,78" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round" />
+                            <circle cx="50" cy="18" r="7" fill="#000000" stroke="#FFFFFF" stroke-width="4" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pick 2: Concept 02 (Razor Slash D) -->
+            <div class="space-y-3 text-center">
+                <span class="text-xs text-zinc-400 font-mono">02. Sliced 'D'</span>
+                <div class="flex items-center justify-center space-x-3">
+                    <div class="w-8 h-8 preview-box flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+                            <path d="M 24 20 L 56 20 C 74 20, 84 32, 84 46 L 24 46 Z" fill="#FFFFFF" />
+                            <path d="M 24 54 L 84 54 C 84 68, 74 80, 56 80 L 24 80 Z" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                    <div class="w-12 h-12 preview-box flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                            <path d="M 24 20 L 56 20 C 74 20, 84 32, 84 46 L 24 46 Z" fill="#FFFFFF" />
+                            <path d="M 24 54 L 84 54 C 84 68, 74 80, 56 80 L 24 80 Z" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                    <div class="w-16 h-16 preview-box flex items-center justify-center">
+                        <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
+                            <path d="M 24 20 L 56 20 C 74 20, 84 32, 84 46 L 24 46 Z" fill="#FFFFFF" />
+                            <path d="M 24 54 L 84 54 C 84 68, 74 80, 56 80 L 24 80 Z" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pick 3: Concept 08 (Chiseled Diamond) -->
+            <div class="space-y-3 text-center">
+                <span class="text-xs text-zinc-400 font-mono">08. Diamond</span>
+                <div class="flex items-center justify-center space-x-3">
+                    <div class="w-8 h-8 preview-box flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+                            <polygon points="50,15 20,50 50,85" fill="#FFFFFF" />
+                            <polygon points="50,15 80,50 50,85" stroke="#FFFFFF" stroke-width="8" />
+                        </svg>
+                    </div>
+                    <div class="w-12 h-12 preview-box flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                            <polygon points="50,15 20,50 50,85" fill="#FFFFFF" />
+                            <polygon points="50,15 80,50 50,85" stroke="#FFFFFF" stroke-width="5" />
+                        </svg>
+                    </div>
+                    <div class="w-16 h-16 preview-box flex items-center justify-center">
+                        <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
+                            <polygon points="50,15 20,50 50,85" fill="#FFFFFF" />
+                            <polygon points="50,15 80,50 50,85" stroke="#FFFFFF" stroke-width="4" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pick 4: Concept 20 (The Pure Vertex) -->
+            <div class="space-y-3 text-center">
+                <span class="text-xs text-zinc-400 font-mono">20. Pure Vertex</span>
+                <div class="flex items-center justify-center space-x-3">
+                    <div class="w-8 h-8 preview-box flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 100 100" fill="none">
+                            <path d="M 24 30 L 50 78 L 76 30" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="50" cy="78" r="8" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                    <div class="w-12 h-12 preview-box flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 100 100" fill="none">
+                            <path d="M 24 30 L 50 78 L 76 30" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="50" cy="78" r="7" fill="#FFFFFF" />
+                        </svg>
+                    </div>
+                    <div class="w-16 h-16 preview-box flex items-center justify-center">
+                        <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
+                            <path d="M 24 30 L 50 78 L 76 30" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="50" cy="78" r="8" fill="#000000" stroke="#FFFFFF" stroke-width="4" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="text-center pt-6 text-xs font-mono text-zinc-400 space-x-4 border-t border-white/10">
+        <a href="index.html" class="text-white hover:underline">← Main Overview</a>
+        <span>•</span>
+        <a href="tech.html" class="text-zinc-400 hover:text-white">Technical Deep-Dive</a>
+        <span>•</span>
+        <a href="gallery-3d.html" class="text-zinc-400 hover:text-white">3D Lab</a>
+    </div>
+
+    <script>
+        let isInverted = false;
+        function toggleInvert() {
+            isInverted = !isInverted;
+            document.body.classList.toggle('light-mode', isInverted);
+            document.getElementById('invert-btn').innerText = isInverted ? '🌙 Switch to Dark' : '🔄 Invert (Dark / Light)';
+        }
+    </script>
+
+</body>
+</html>
