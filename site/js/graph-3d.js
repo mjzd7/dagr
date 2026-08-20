@@ -1,4 +1,4 @@
-// 🪐 DAGR 3D WebGL AST Orbit Graph (True 100vw/100vh Fullscreen & Dead-Center Alignment)
+// 🪐 DAGR 3D WebGL AST Orbit Graph (Dynamic Text Measurement, Generous Padding & Hi-DPI Badges)
 
 class Graph3DVisualizer {
     constructor(containerId, tooltipId) {
@@ -9,8 +9,8 @@ class Graph3DVisualizer {
         this.scene = new THREE.Scene();
         
         // Strict Spherical Orbit Parameters
-        this.cameraDistance = 115; // Optimal viewing radius to fit all satellites
-        this.rotX = 0.15;          // Subtle pitch for natural depth
+        this.cameraDistance = 120; // Optimal radius fitting all badges with margins
+        this.rotX = 0.15;          // Natural pitch
         this.rotY = 0.0;           // Yaw
         this.autoOrbit = true;
 
@@ -113,60 +113,99 @@ class Graph3DVisualizer {
 
     resize() {
         if (!this.container || !this.renderer || !this.camera) return;
-        const width = this.container.clientWidth || window.innerWidth;
-        const height = this.container.clientHeight || (isFullscreenActive ? (window.innerHeight - 180) : 480);
+        const rect = this.container.getBoundingClientRect();
+        const width = rect.width || window.innerWidth;
+        const height = rect.height || (isFullscreenActive ? (window.innerHeight - 180) : 480);
 
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
     }
 
+    /**
+     * Creates a high-DPI billboard sprite with dynamic text measurement and generous padding
+     */
     createLabelSprite(text, type) {
+        // High-DPI Offscreen Canvas for crisp typography
         const canvas = document.createElement('canvas');
-        canvas.width = 440;
-        canvas.height = 90;
         const ctx = canvas.getContext('2d');
 
-        let bgColor = 'rgba(16, 185, 129, 0.92)';
-        let borderColor = '#34d399';
-        let prefix = '🎯 [TARGET] ';
+        let prefix = '🎯 TARGET: ';
+        let bgColor = 'rgba(6, 40, 30, 0.92)';
+        let borderColor = '#10b981';
         let textColor = '#ffffff';
+        let fontSize = 20;
 
         if (type === 'contract') {
-            bgColor = 'rgba(6, 182, 212, 0.92)';
-            borderColor = '#22d3ee';
-            prefix = '🏗️ [CONTRACT] ';
+            prefix = '🏗️ CONTRACT: ';
+            bgColor = 'rgba(8, 45, 60, 0.92)';
+            borderColor = '#06b6d4';
+            textColor = '#e0f2fe';
+            fontSize = 19;
         } else if (type === 'pruned') {
-            bgColor = 'rgba(239, 68, 68, 0.85)';
-            borderColor = '#f87171';
-            prefix = '✂️ [PRUNED] ';
+            prefix = '✂️ PRUNED: ';
+            bgColor = 'rgba(50, 15, 15, 0.88)';
+            borderColor = '#ef4444';
+            textColor = '#fecaca';
+            fontSize = 17;
         }
 
+        const fullText = prefix + text;
+        
+        // Font setup for measurement
+        ctx.font = `bold ${fontSize}px "JetBrains Mono", Menlo, monospace`;
+        const textMetrics = ctx.measureText(fullText);
+        const textWidth = textMetrics.width;
+
+        // Generous horizontal padding (36px total: 18px left & right) + pill dimensions
+        const horizontalPadding = 36;
+        const verticalPadding = 20;
+        const pillWidth = Math.ceil(textWidth + horizontalPadding * 2);
+        const pillHeight = fontSize + verticalPadding * 2;
+
+        const dpr = 2; // Hi-DPI rendering
+        canvas.width = (pillWidth + 24) * dpr;
+        canvas.height = (pillHeight + 24) * dpr;
+        ctx.scale(dpr, dpr);
+
+        const x = 12;
+        const y = 12;
+
+        // Draw Pill Container with Glow Border
         ctx.fillStyle = bgColor;
         ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 2.5;
         
         ctx.beginPath();
-        ctx.roundRect(10, 10, 420, 70, 18);
+        ctx.roundRect(x, y, pillWidth, pillHeight, pillHeight / 2);
         ctx.fill();
         ctx.stroke();
 
+        // Draw Centered Text with Clean Lettering
+        ctx.font = `bold ${fontSize}px "JetBrains Mono", Menlo, monospace`;
         ctx.fillStyle = textColor;
-        ctx.font = 'bold 24px JetBrains Mono, monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(prefix + text, 220, 45);
+        ctx.fillText(fullText, x + pillWidth / 2, y + pillHeight / 2);
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        
         const spriteMat = new THREE.SpriteMaterial({
             map: texture,
             transparent: true,
             depthTest: false,
             depthWrite: false
         });
+        
         const sprite = new THREE.Sprite(spriteMat);
-        sprite.scale.set(15, 3.1, 1);
+        
+        // Scale in 3D world space proportionally
+        const baseHeight = (type === 'target' ? 3.0 : (type === 'contract' ? 2.7 : 2.3));
+        const aspect = canvas.width / canvas.height;
+        sprite.scale.set(baseHeight * aspect, baseHeight, 1);
+        
         return sprite;
     }
 
@@ -205,7 +244,7 @@ class Graph3DVisualizer {
         this.scene.add(targetMesh);
         this.nodeMeshes.push(targetMesh);
 
-        // Target Billboard Label
+        // Target Billboard Label (Centered above core)
         const targetLabel = this.createLabelSprite(targetName || 'TargetFunction', 'target');
         targetLabel.position.set(0, 7.8, 0);
         this.scene.add(targetLabel);
@@ -381,7 +420,7 @@ class Graph3DVisualizer {
     }
 
     resetCamera() {
-        this.cameraDistance = 115;
+        this.cameraDistance = 120;
         this.rotX = 0.15;
         this.rotY = 0.0;
         this.updateCameraPosition();
