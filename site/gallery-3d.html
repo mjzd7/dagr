@@ -3,511 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAGR 3D Node Archetype Gallery & Interactive Showcase</title>
+    <title>DAGR 🪐 Neon Bloom & Glowing Energy 3D Force Graph</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://unpkg.com/three@0.160.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://unpkg.com/3d-force-graph@1.73.3/dist/3d-force-graph.min.js"></script>
     <style>
         body {
-            background-color: #080a0f;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
+            background-color: #040609;
             color: #f3f4f6;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow-x: hidden;
         }
         .glass-panel {
-            background: rgba(17, 22, 34, 0.85);
-            backdrop-filter: blur(16px);
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 35px -2px rgba(16, 185, 129, 0.5);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 35px -2px rgba(6, 182, 212, 0.5);
+        }
+        .glow-red {
+            box-shadow: 0 0 35px -2px rgba(239, 68, 68, 0.4);
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-6 space-y-6">
+<body class="min-h-screen flex flex-col p-4 sm:p-6 space-y-4">
 
-    <!-- Header & Style Switcher -->
-    <header class="glass-panel rounded-2xl p-6 flex flex-col lg:flex-row items-center justify-between gap-4">
-        <div>
-            <div class="flex items-center space-x-2">
-                <span class="text-xl">🪐</span>
-                <h1 class="text-xl font-bold text-white font-mono">DAGR 3D Node Style Gallery & Live Preview Lab</h1>
+    <!-- Header Bar -->
+    <header class="glass-panel rounded-2xl px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-400 flex items-center justify-center font-mono font-bold text-black text-lg shadow-lg">
+                ⚡
             </div>
-            <p class="text-xs text-zinc-400 font-mono mt-1">Select an archetype below to preview the 3D interactive physics and geometry in real-time</p>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-lg font-bold text-white font-mono tracking-tight">DAGR Neon Bloom 3D Force Graph</h1>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Unreal Bloom Pass</span>
+                </div>
+                <p class="text-xs text-zinc-400 font-mono">Interactive force graph with glowing energy conduits, color differentiation & on-hover HUD</p>
+            </div>
         </div>
 
-        <!-- Archetype Switcher Tabs -->
-        <div class="flex flex-wrap gap-2">
-            <button onclick="switchStyle('cubes')" id="btn-cubes" class="px-3.5 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all">
-                💎 1. Linear Glass Cubes
+        <!-- Interactive Scenario Controls -->
+        <div class="flex items-center space-x-2">
+            <button onclick="loadScenarioData('payment')" id="btn-payment" class="px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all">
+                TypeScript: processPayment
             </button>
-            <button onclick="switchStyle('semantic')" id="btn-semantic" class="px-3.5 py-2 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
-                🧩 2. Semantic Syntax Shapes
+            <button onclick="loadScenarioData('auth')" id="btn-auth" class="px-3.5 py-1.5 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
+                Python: verify_token
             </button>
-            <button onclick="switchStyle('gyroscope')" id="btn-gyroscope" class="px-3.5 py-2 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
-                ⚛️ 3. Stripe Gyroscope Reactor
+            <button onclick="loadScenarioData('db')" id="btn-db" class="px-3.5 py-1.5 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
+                Rust: open_database
             </button>
-            <button onclick="switchStyle('codecards')" id="btn-codecards" class="px-3.5 py-2 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
-                🗂️ 4. Raycast 3D Code Cards
-            </button>
+            <a href="index.html" class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-mono font-semibold transition-all">
+                ← Main Site
+            </a>
         </div>
     </header>
 
-    <!-- Main Live 3D Viewport -->
-    <main class="flex-1 glass-panel rounded-3xl p-6 flex flex-col space-y-4 relative min-h-[540px]">
-        <!-- Info Banner -->
-        <div class="flex items-center justify-between border-b border-white/10 pb-3 text-xs font-mono">
-            <div class="flex items-center space-x-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="style-title" class="font-bold text-white">Archetype 1: Linear Frosted Glass Tech-Cubes</span>
+    <!-- Main Viewport Area -->
+    <main class="flex-1 glass-panel rounded-3xl p-4 sm:p-6 flex flex-col relative min-h-[660px]">
+        <!-- Top Toolbar & Legend -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 text-xs font-mono">
+            <div class="flex items-center space-x-4">
+                <span class="flex items-center space-x-1.5">
+                    <span class="w-3 h-3 rounded-full bg-[#10b981] inline-block shadow-[0_0_12px_#10b981]"></span>
+                    <strong class="text-white">Target Core (Prompt Target)</strong>
+                </span>
+                <span class="flex items-center space-x-1.5">
+                    <span class="w-3 h-3 rounded-full bg-[#06b6d4] inline-block shadow-[0_0_12px_#06b6d4]"></span>
+                    <strong class="text-cyan-300">Hoisted Contracts (Type Safe)</strong>
+                </span>
+                <span class="flex items-center space-x-1.5">
+                    <span class="w-3 h-3 rounded-full bg-[#ef4444] inline-block shadow-[0_0_8px_#ef4444]"></span>
+                    <span class="text-red-400/80">Pruned Monolith Bloat (-95%)</span>
+                </span>
             </div>
-            <span class="text-zinc-400">💡 Drag with mouse to rotate in 360° • Scroll to zoom</span>
+            <div class="text-zinc-400 text-[11px] flex items-center space-x-3">
+                <span>💡 Hover any node to isolate its connected subgraph</span>
+                <button onclick="toggleBloom()" id="btn-bloom" class="px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px]">
+                    ✨ Bloom: ON
+                </button>
+            </div>
         </div>
 
-        <!-- 3D Canvas Mount -->
-        <div id="galleryCanvasContainer" class="flex-1 w-full h-[520px] rounded-2xl bg-zinc-950/90 border border-white/5 relative overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing">
-            <!-- Three.js Canvas Injected Here -->
-        </div>
+        <!-- 3D WebGL Force Graph Canvas Host -->
+        <div id="3d-graph" class="flex-1 w-full h-[580px] rounded-2xl bg-[#040609] relative overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing mt-3"></div>
 
-        <!-- Archetype Description Card -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs font-mono">
-            <div class="p-3.5 rounded-xl bg-zinc-900/60 border border-emerald-500/20 space-y-1">
-                <div class="font-bold text-emerald-400" id="card-target-title">Target Representation</div>
-                <p class="text-[11px] text-zinc-400 leading-relaxed" id="card-target-desc">Chamfered Hyper-Cube with internal pulsing emerald core matrix.</p>
+        <!-- Live Floating Node Details Card (Bottom-Left HUD) -->
+        <div id="node-info-card" class="glass-panel absolute bottom-8 left-8 max-w-sm rounded-2xl p-4 space-y-2 border border-emerald-500/40 shadow-2xl transition-all duration-300 glow-emerald">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="font-bold font-mono text-sm text-white" id="info-node-name">processPayment</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" id="info-node-badge">🟢 3D Target Core</span>
             </div>
-            <div class="p-3.5 rounded-xl bg-zinc-900/60 border border-cyan-500/20 space-y-1">
-                <div class="font-bold text-cyan-400" id="card-contract-title">Contract Representation</div>
-                <p class="text-[11px] text-zinc-400 leading-relaxed" id="card-contract-desc">Translucent Cyan Hexagonal Wafers with high-transmission glass refraction.</p>
-            </div>
-            <div class="p-3.5 rounded-xl bg-zinc-900/60 border border-red-500/20 space-y-1">
-                <div class="font-bold text-red-400" id="card-pruned-title">Pruned Bloat Representation</div>
-                <p class="text-[11px] text-zinc-400 leading-relaxed" id="card-pruned-desc">Shattered Obsidian / Ash Shards floating in outer dark space.</p>
+            <p class="text-xs text-zinc-300 font-mono leading-relaxed" id="info-node-desc">
+                🎯 Target Function: Central symbol requested by prompt. Kept in the strict LLM context boundary for zero token waste.
+            </p>
+            <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400 pt-1 border-t border-white/10">
+                <span>AST Footprint: <strong class="text-white" id="info-node-tokens">180 tokens</strong></span>
+                <span>Status: <strong class="text-emerald-400 font-bold" id="info-node-status">ACTIVE IN PROMPT</strong></span>
             </div>
         </div>
     </main>
 
-    <!-- Reference Links -->
-    <footer class="glass-panel rounded-2xl p-4 text-xs font-mono text-zinc-400 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center space-x-2">
-            <span>Inspiration references:</span>
-            <a href="https://linear.app" target="_blank" class="text-indigo-400 hover:underline">Linear.app</a> •
-            <a href="https://stripe.com/press" target="_blank" class="text-indigo-400 hover:underline">Stripe Press 3D</a> •
-            <a href="https://spline.design" target="_blank" class="text-indigo-400 hover:underline">Spline</a> •
-            <a href="https://threejs.org/examples/#webgl_geometry_shapes" target="_blank" class="text-indigo-400 hover:underline">Three.js Examples</a>
-        </div>
-        <a href="index.html" class="px-3 py-1 rounded bg-white/10 text-white hover:bg-white/20 transition-all">← Back to Main DAGR Site</a>
-    </footer>
-
-    <!-- Gallery 3D Engine Script -->
+    <!-- 3D Force Graph Engine Script -->
     <script>
-        let currentStyle = 'cubes';
-        let scene, camera, renderer, container;
-        let activeMeshes = [];
-        let activeLines = [];
-        let spinningCore = null;
-        let rings = [];
+        let Graph = null;
+        let bloomPass = null;
+        let isBloomActive = true;
+        let highlightNodes = new Set();
+        let highlightLinks = new Set();
+        let hoverNode = null;
 
-        let isDragging = false;
-        let prevMouseX = 0;
-        let prevMouseY = 0;
-        let rotX = 0.20;
-        let rotY = 0.0;
-        let cameraDist = 110;
+        const SCENARIOS = {
+            payment: {
+                name: 'TypeScript (Stripe Payment)',
+                nodes: [
+                    { id: 'processPayment', name: 'processPayment()', group: 'target', tokens: 180, desc: '🎯 Target Function: Central business logic symbol requested by prompt.' },
+                    { id: 'PaymentPayload', name: 'PaymentPayload', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Input interface hoisted to prevent hallucinated params.' },
+                    { id: 'PaymentReceipt', name: 'PaymentReceipt', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Return type interface hoisted for deterministic type safety.' },
+                    { id: 'DatabasePool', name: 'DatabasePool', group: 'pruned', tokens: 1850, desc: '✂️ Pruned Monolith Code: 400 lines of raw SQL connection pooling omitted.' },
+                    { id: 'StripeClient', name: 'StripeClient', group: 'pruned', tokens: 2400, desc: '✂️ Pruned Monolith Code: Entire Stripe SDK bindings omitted (-95% bloat).' },
+                    { id: 'NotificationService', name: 'NotificationService', group: 'pruned', tokens: 1200, desc: '✂️ Pruned Monolith Code: Unrelated transactional email & SMS workers pruned.' },
+                    { id: 'AuditLogger', name: 'AuditLogger', group: 'pruned', tokens: 890, desc: '✂️ Pruned Monolith Code: Compliance disk logging omitted from context.' },
+                    { id: 'TaxCalculator', name: 'TaxCalculator', group: 'pruned', tokens: 1450, desc: '✂️ Pruned Monolith Code: State sales tax matrix omitted from prompt.' }
+                ],
+                links: [
+                    { source: 'PaymentPayload', target: 'processPayment', value: 3 },
+                    { source: 'PaymentReceipt', target: 'processPayment', value: 3 },
+                    { source: 'DatabasePool', target: 'processPayment', value: 0.5 },
+                    { source: 'StripeClient', target: 'processPayment', value: 0.5 },
+                    { source: 'NotificationService', target: 'processPayment', value: 0.5 },
+                    { source: 'AuditLogger', target: 'processPayment', value: 0.5 },
+                    { source: 'TaxCalculator', target: 'processPayment', value: 0.5 }
+                ]
+            },
+            auth: {
+                name: 'Python (JWT Auth)',
+                nodes: [
+                    { id: 'verify_token', name: 'verify_token()', group: 'target', tokens: 140, desc: '🎯 Target Function: JWT HMAC verification logic requested by prompt.' },
+                    { id: 'AuthToken', name: 'AuthToken', group: 'contract', tokens: 40, desc: '🏗️ Pydantic Contract: JWT payload schema hoisted for validation.' },
+                    { id: 'TokenValidationResult', name: 'TokenValidationResult', group: 'contract', tokens: 35, desc: '🏗️ Pydantic Contract: Output schema hoisted to guarantee type safety.' },
+                    { id: 'RateLimiter', name: 'RateLimiter', group: 'pruned', tokens: 1600, desc: '✂️ Pruned Code: Redis sliding window rate-limiter omitted.' },
+                    { id: 'UserRecord', name: 'UserRecord', group: 'pruned', tokens: 2100, desc: '✂️ Pruned Code: SQLAlchemy ORM models pruned.' },
+                    { id: 'get_db', name: 'get_db', group: 'pruned', tokens: 750, desc: '✂️ Pruned Code: Session dependency provider omitted.' },
+                    { id: 'send_otp_email', name: 'send_otp_email', group: 'pruned', tokens: 1100, desc: '✂️ Pruned Code: SMTP mailer helper pruned.' }
+                ],
+                links: [
+                    { source: 'AuthToken', target: 'verify_token', value: 3 },
+                    { source: 'TokenValidationResult', target: 'verify_token', value: 3 },
+                    { source: 'RateLimiter', target: 'verify_token', value: 0.5 },
+                    { source: 'UserRecord', target: 'verify_token', value: 0.5 },
+                    { source: 'get_db', target: 'verify_token', value: 0.5 },
+                    { source: 'send_otp_email', target: 'verify_token', value: 0.5 }
+                ]
+            },
+            db: {
+                name: 'Rust (SQLite Storage)',
+                nodes: [
+                    { id: 'open_database', name: 'open_database()', group: 'target', tokens: 190, desc: '🎯 Target Function: SQLite connection builder requested by prompt.' },
+                    { id: 'DbConfig', name: 'DbConfig', group: 'contract', tokens: 50, desc: '🏗️ Rust Struct: Connection config struct hoisted for compiler contracts.' },
+                    { id: 'StorageMetrics', name: 'StorageMetrics', group: 'contract', tokens: 45, desc: '🏗️ Rust Struct: Telemetry metrics struct hoisted for return typing.' },
+                    { id: 'RawPool', name: 'RawPool', group: 'pruned', tokens: 2200, desc: '✂️ Pruned Code: Mutex pool locks & thread allocator pruned.' },
+                    { id: 'WalSyncWorker', name: 'WalSyncWorker', group: 'pruned', tokens: 1750, desc: '✂️ Pruned Code: WAL disk fsync background daemon pruned.' },
+                    { id: 'SchemaMigration', name: 'SchemaMigration', group: 'pruned', tokens: 3100, desc: '✂️ Pruned Code: Multi-version schema migrations pruned.' },
+                    { id: 'CompressionEngine', name: 'CompressionEngine', group: 'pruned', tokens: 1400, desc: '✂️ Pruned Code: Zstd compression block engine pruned.' }
+                ],
+                links: [
+                    { source: 'DbConfig', target: 'open_database', value: 3 },
+                    { source: 'StorageMetrics', target: 'open_database', value: 3 },
+                    { source: 'RawPool', target: 'open_database', value: 0.5 },
+                    { source: 'WalSyncWorker', target: 'open_database', value: 0.5 },
+                    { source: 'SchemaMigration', target: 'open_database', value: 0.5 },
+                    { source: 'CompressionEngine', target: 'open_database', value: 0.5 }
+                ]
+            }
+        };
+
+        let currentData = SCENARIOS.payment;
+
+        function getNodeColor(node) {
+            if (highlightNodes.size > 0) {
+                if (highlightNodes.has(node)) {
+                    return node.group === 'target' ? '#10b981' : (node.group === 'contract' ? '#06b6d4' : '#ef4444');
+                }
+                return 'rgba(45, 50, 65, 0.2)'; // Faded out when another node is hovered
+            }
+
+            if (node.group === 'target') return '#10b981';   // Radiant Emerald
+            if (node.group === 'contract') return '#06b6d4'; // Radiant Cyan
+            return '#ef4444';                               // Crimson Pruned
+        }
+
+        function getNodeVal(node) {
+            if (node.group === 'target') return 36;
+            if (node.group === 'contract') return 20;
+            return 12;
+        }
+
+        function init3DForceGraph() {
+            const elem = document.getElementById('3d-graph');
+            elem.innerHTML = '';
+
+            Graph = ForceGraph3D()
+                (elem)
+                .graphData(currentData)
+                .backgroundColor('#040609')
+                .nodeId('id')
+                .nodeLabel(node => `
+                    <div style="background: rgba(10,14,24,0.95); border: 1px solid ${node.group === 'target' ? '#10b981' : (node.group === 'contract' ? '#06b6d4' : '#ef4444')}; border-radius: 8px; padding: 6px 12px; font-family: monospace; font-size: 12px; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+                        <strong style="color: ${node.group === 'target' ? '#34d399' : (node.group === 'contract' ? '#22d3ee' : '#f87171')};">${node.name}</strong>
+                        <div style="font-size: 10px; color: #9ca3af; margin-top: 2px;">${node.group.toUpperCase()} • ${node.tokens} tokens</div>
+                    </div>
+                `)
+                .nodeVal(node => getNodeVal(node))
+                .nodeColor(node => getNodeColor(node))
+                .nodeResolution(24)
+                // Animated glowing energy particle beams on connection lines
+                .linkDirectionalParticles(link => link.value > 1 ? 4 : 1)
+                .linkDirectionalParticleSpeed(link => link.value > 1 ? 0.008 : 0.002)
+                .linkDirectionalParticleWidth(link => link.value > 1 ? 3.0 : 1.2)
+                .linkDirectionalParticleColor(link => link.value > 1 ? '#06b6d4' : '#ef4444')
+                .linkColor(link => {
+                    if (highlightLinks.size > 0) {
+                        return highlightLinks.has(link) ? (link.value > 1 ? '#06b6d4' : '#ef4444') : 'rgba(35,40,55,0.12)';
+                    }
+                    return link.value > 1 ? 'rgba(6, 182, 212, 0.75)' : 'rgba(239, 68, 68, 0.25)';
+                })
+                .linkWidth(link => link.value > 1 ? 2.2 : 0.8)
+                // Interactive Hover Highlighting
+                .onNodeHover(node => {
+                    highlightNodes.clear();
+                    highlightLinks.clear();
+
+                    if (node) {
+                        highlightNodes.add(node);
+                        currentData.links.forEach(link => {
+                            const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+                            const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+                            
+                            if (sourceId === node.id || targetId === node.id) {
+                                highlightLinks.add(link);
+                                highlightNodes.add(typeof link.source === 'object' ? link.source : currentData.nodes.find(n => n.id === sourceId));
+                                highlightNodes.add(typeof link.target === 'object' ? link.target : currentData.nodes.find(n => n.id === targetId));
+                            }
+                        });
+
+                        updateInfoCard(node);
+                    }
+
+                    hoverNode = node || null;
+                    Graph.nodeColor(Graph.nodeColor())
+                         .linkColor(Graph.linkColor());
+                })
+                .onNodeClick(node => {
+                    // Aim camera at clicked node smoothly
+                    const distance = 80;
+                    const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
+                    Graph.cameraPosition(
+                        { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
+                        node,
+                        2000
+                    );
+                    updateInfoCard(node);
+                });
+
+            // Adjust physics charge for spacious distribution
+            try {
+                Graph.d3Force('charge').strength(-450);
+                Graph.d3Force('link').distance(link => link.value > 1 ? 80 : 160);
+            } catch(e) {}
+
+            // Attach Unreal Bloom Pass Shader to PostProcessing Composer
+            try {
+                if (typeof THREE.UnrealBloomPass !== 'undefined') {
+                    bloomPass = new THREE.UnrealBloomPass();
+                    bloomPass.strength = 2.6;   // Vibrant neon bloom
+                    bloomPass.radius = 0.85;    // Glow diffusion
+                    bloomPass.threshold = 0.12; // Glow threshold
+                    Graph.postProcessingComposer().addPass(bloomPass);
+                }
+            } catch(e) {
+                console.warn('Unreal Bloom Pass initialization error:', e);
+            }
+
+            // Set initial camera perspective
+            Graph.cameraPosition({ x: 0, y: 35, z: 200 });
+
+            // Auto-orbit rotation
+            let angle = 0;
+            setInterval(() => {
+                if (!hoverNode) {
+                    Graph.cameraPosition({
+                        x: 200 * Math.sin(angle),
+                        z: 200 * Math.cos(angle)
+                    });
+                    angle += Math.PI / 2400;
+                }
+            }, 10);
+        }
+
+        function updateInfoCard(node) {
+            const card = document.getElementById('node-info-card');
+            const name = document.getElementById('info-node-name');
+            const badge = document.getElementById('info-node-badge');
+            const desc = document.getElementById('info-node-desc');
+            const tokens = document.getElementById('info-node-tokens');
+            const status = document.getElementById('info-node-status');
+
+            if (!card || !node) return;
+
+            name.innerText = node.name;
+            desc.innerText = node.desc;
+            tokens.innerText = `${node.tokens} tokens`;
+
+            if (node.group === 'target') {
+                badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                badge.innerText = '🟢 3D Target Core';
+                status.className = 'text-emerald-400 font-bold';
+                status.innerText = 'ACTIVE IN LLM PROMPT';
+                card.className = 'glass-panel absolute bottom-8 left-8 max-w-sm rounded-2xl p-4 space-y-2 border border-emerald-500/40 shadow-2xl transition-all glow-emerald';
+            } else if (node.group === 'contract') {
+                badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30';
+                badge.innerText = '🔵 Hoisted Satellite';
+                status.className = 'text-cyan-400 font-bold';
+                status.innerText = 'HOISTED (TYPE SAFE)';
+                card.className = 'glass-panel absolute bottom-8 left-8 max-w-sm rounded-2xl p-4 space-y-2 border border-cyan-500/40 shadow-2xl transition-all glow-cyan';
+            } else {
+                badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30';
+                badge.innerText = '🔴 Pruned Orbit (-95%)';
+                status.className = 'text-red-400 font-bold';
+                status.innerText = 'OMITTED FROM PROMPT';
+                card.className = 'glass-panel absolute bottom-8 left-8 max-w-sm rounded-2xl p-4 space-y-2 border border-red-500/30 shadow-2xl transition-all glow-red';
+            }
+        }
+
+        function loadScenarioData(key) {
+            currentData = SCENARIOS[key];
+            ['payment', 'auth', 'db'].forEach(k => {
+                const btn = document.getElementById(`btn-${k}`);
+                if (k === key) {
+                    btn.className = 'px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all';
+                } else {
+                    btn.className = 'px-3.5 py-1.5 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all';
+                }
+            });
+
+            init3DForceGraph();
+            updateInfoCard(currentData.nodes[0]);
+        }
+
+        function toggleBloom() {
+            isBloomActive = !isBloomActive;
+            const btn = document.getElementById('btn-bloom');
+            if (bloomPass) {
+                bloomPass.enabled = isBloomActive;
+            }
+            btn.innerText = isBloomActive ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+            btn.className = isBloomActive ? 'px-2.5 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px]' : 'px-2.5 py-1 rounded bg-zinc-800 text-zinc-400 border border-white/10 text-[11px]';
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            initScene();
-            loadStyle(currentStyle);
+            init3DForceGraph();
         });
-
-        function initScene() {
-            container = document.getElementById('galleryCanvasContainer');
-            scene = new THREE.Scene();
-            
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-            updateCamera();
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
-
-            // Lighting
-            const ambient = new THREE.AmbientLight(0xffffff, 0.85);
-            scene.add(ambient);
-
-            const p1 = new THREE.PointLight(0x10b981, 3.0, 300);
-            p1.position.set(0, 20, 50);
-            scene.add(p1);
-
-            const p2 = new THREE.PointLight(0x06b6d4, 2.5, 250);
-            p2.position.set(-40, -20, 30);
-            scene.add(p2);
-
-            const p3 = new THREE.PointLight(0xef4444, 1.8, 200);
-            p3.position.set(40, 25, -40);
-            scene.add(p3);
-
-            // Events
-            container.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                prevMouseX = e.clientX;
-                prevMouseY = e.clientY;
-            });
-            window.addEventListener('mouseup', () => isDragging = false);
-            container.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    rotY += (e.clientX - prevMouseX) * 0.007;
-                    rotX = Math.max(-1.3, Math.min(1.3, rotX + (e.clientY - prevMouseY) * 0.007));
-                    prevMouseX = e.clientX;
-                    prevMouseY = e.clientY;
-                    updateCamera();
-                }
-            });
-            container.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                cameraDist = Math.max(40, Math.min(220, cameraDist + e.deltaY * 0.08));
-                updateCamera();
-            }, { passive: false });
-
-            window.addEventListener('resize', () => {
-                camera.aspect = container.clientWidth / container.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.clientWidth, container.clientHeight);
-            });
-
-            animate();
-        }
-
-        function updateCamera() {
-            camera.position.x = cameraDist * Math.sin(rotY) * Math.cos(rotX);
-            camera.position.y = cameraDist * Math.sin(rotX);
-            camera.position.z = cameraDist * Math.cos(rotY) * Math.cos(rotX);
-            camera.lookAt(0, 0, 0);
-        }
-
-        function clearMeshes() {
-            activeMeshes.forEach(m => scene.remove(m));
-            activeLines.forEach(l => scene.remove(l));
-            rings.forEach(r => scene.remove(r));
-            activeMeshes = [];
-            activeLines = [];
-            rings = [];
-            spinningCore = null;
-        }
-
-        function createPillSprite(text, color, border) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 440;
-            canvas.height = 90;
-            const ctx = canvas.getContext('2d');
-
-            ctx.fillStyle = color;
-            ctx.strokeStyle = border;
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.roundRect(10, 10, 420, 70, 18);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 22px "JetBrains Mono", monospace';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text, 220, 45);
-
-            const texture = new THREE.CanvasTexture(canvas);
-            const mat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
-            const sprite = new THREE.Sprite(mat);
-            sprite.scale.set(13, 2.7, 1);
-            return sprite;
-        }
-
-        function switchStyle(styleKey) {
-            currentStyle = styleKey;
-            ['cubes', 'semantic', 'gyroscope', 'codecards'].forEach(k => {
-                const btn = document.getElementById(`btn-${k}`);
-                if (k === styleKey) {
-                    btn.className = 'px-3.5 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all';
-                } else {
-                    btn.className = 'px-3.5 py-2 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all';
-                }
-            });
-
-            loadStyle(styleKey);
-        }
-
-        function loadStyle(key) {
-            clearMeshes();
-
-            // 1. Boundary Wireframe Sphere
-            const boundGeo = new THREE.IcosahedronGeometry(30, 2);
-            const boundMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true, transparent: true, opacity: 0.18 });
-            const boundary = new THREE.Mesh(boundGeo, boundMat);
-            scene.add(boundary);
-            activeMeshes.push(boundary);
-
-            if (key === 'cubes') {
-                // Style 1: Linear Frosted Glass Tech-Cubes
-                document.getElementById('style-title').innerText = 'Archetype 1: Linear Frosted Glass Tech-Cubes';
-                document.getElementById('card-target-desc').innerText = 'Chamfered Hyper-Cube with internal pulsing emerald core matrix.';
-                document.getElementById('card-contract-desc').innerText = 'Translucent Cyan Hexagonal Wafers with high-transmission glass refraction.';
-                document.getElementById('card-pruned-desc').innerText = 'Shattered Obsidian / Ash Shards floating in outer dark space.';
-
-                // Target Core Cube
-                const cubeGeo = new THREE.BoxGeometry(6.5, 6.5, 6.5);
-                const cubeMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.2, metalness: 0.8 });
-                const targetCube = new THREE.Mesh(cubeGeo, cubeMat);
-                scene.add(targetCube);
-                activeMeshes.push(targetCube);
-                spinningCore = targetCube;
-
-                const lbl = createPillSprite('🎯 processPayment()', 'rgba(6,40,30,0.92)', '#10b981');
-                lbl.position.set(0, 7.8, 0);
-                scene.add(lbl);
-                activeMeshes.push(lbl);
-
-                // Contracts: Hexagonal Wafers
-                [-18, 18].forEach((x, i) => {
-                    const waferGeo = new THREE.CylinderGeometry(3.5, 3.5, 1.2, 6);
-                    const waferMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.1, metalness: 0.7 });
-                    const wafer = new THREE.Mesh(waferGeo, waferMat);
-                    wafer.position.set(x, i === 0 ? 5 : -5, (i === 0 ? 8 : -8));
-                    scene.add(wafer);
-                    activeMeshes.push(wafer);
-
-                    const clbl = createPillSprite(i === 0 ? '🏗️ PaymentPayload' : '🏗️ PaymentReceipt', 'rgba(8,45,60,0.92)', '#06b6d4');
-                    clbl.position.set(x, (i === 0 ? 5 : -5) + 4.5, (i === 0 ? 8 : -8));
-                    scene.add(clbl);
-                    activeMeshes.push(clbl);
-
-                    const line = new THREE.Line(
-                        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), wafer.position]),
-                        new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.8, transparent: true })
-                    );
-                    scene.add(line);
-                    activeLines.push(line);
-                });
-
-                // Pruned: Low-poly Obsidian Shards
-                [[-42, 15, -10], [45, -20, 20], [20, 38, -35]].forEach((pos, i) => {
-                    const shardGeo = new THREE.DodecahedronGeometry(2.8, 0);
-                    const shardMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.9, transparent: true, opacity: 0.55 });
-                    const shard = new THREE.Mesh(shardGeo, shardMat);
-                    shard.position.set(...pos);
-                    scene.add(shard);
-                    activeMeshes.push(shard);
-
-                    const plbl = createPillSprite(`✂️ HelperModule_${i+1}`, 'rgba(50,15,15,0.85)', '#ef4444');
-                    plbl.position.set(pos[0], pos[1] + 3.8, pos[2]);
-                    scene.add(plbl);
-                    activeMeshes.push(plbl);
-                });
-
-            } else if (key === 'semantic') {
-                // Style 2: Semantic Syntax-Driven Shapes
-                document.getElementById('style-title').innerText = 'Archetype 2: Semantic Syntax-Driven Shapes (Compiler Metaphor)';
-                document.getElementById('card-target-desc').innerText = 'Gemstone Octahedron for Functions (Executable Energy Core).';
-                document.getElementById('card-contract-desc').innerText = 'Diamond Tetrahedrons for Interfaces/Types (Structural Blueprint).';
-                document.getElementById('card-pruned-desc').innerText = 'Stacked Database Cylinders & Ghost Boxes (Pruned Infrastructure).';
-
-                // Target: Gemstone Octahedron
-                const octaGeo = new THREE.OctahedronGeometry(5.2, 0);
-                const octaMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.15, metalness: 0.9 });
-                const targetOcta = new THREE.Mesh(octaGeo, octaMat);
-                scene.add(targetOcta);
-                activeMeshes.push(targetOcta);
-                spinningCore = targetOcta;
-
-                const lbl = createPillSprite('🎯 fn processPayment()', 'rgba(6,40,30,0.92)', '#10b981');
-                lbl.position.set(0, 8, 0);
-                scene.add(lbl);
-                activeMeshes.push(lbl);
-
-                // Contracts: Diamond Tetrahedrons
-                [-18, 18].forEach((x, i) => {
-                    const tetraGeo = new THREE.TetrahedronGeometry(3.6, 0);
-                    const tetraMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.2, metalness: 0.8 });
-                    const tetra = new THREE.Mesh(tetraGeo, tetraMat);
-                    tetra.position.set(x, i === 0 ? 6 : -6, 5);
-                    scene.add(tetra);
-                    activeMeshes.push(tetra);
-
-                    const clbl = createPillSprite(i === 0 ? '🏗️ interface Payload' : '🏗️ type Receipt', 'rgba(8,45,60,0.92)', '#06b6d4');
-                    clbl.position.set(x, (i === 0 ? 6 : -6) + 4.5, 5);
-                    scene.add(clbl);
-                    activeMeshes.push(clbl);
-
-                    const line = new THREE.Line(
-                        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), tetra.position]),
-                        new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.8, transparent: true })
-                    );
-                    scene.add(line);
-                    activeLines.push(line);
-                });
-
-                // Pruned: Database Cylinders
-                [[-44, 18, 0], [42, -15, 15]].forEach((pos, i) => {
-                    const cylGeo = new THREE.CylinderGeometry(2.5, 2.5, 4.0, 16);
-                    const cylMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.8, transparent: true, opacity: 0.5 });
-                    const cyl = new THREE.Mesh(cylGeo, cylMat);
-                    cyl.position.set(...pos);
-                    scene.add(cyl);
-                    activeMeshes.push(cyl);
-
-                    const plbl = createPillSprite(i === 0 ? '✂️ db: DatabasePool' : '✂️ audit: LoggerService', 'rgba(50,15,15,0.85)', '#ef4444');
-                    plbl.position.set(pos[0], pos[1] + 4.2, pos[2]);
-                    scene.add(plbl);
-                    activeMeshes.push(plbl);
-                });
-
-            } else if (key === 'gyroscope') {
-                // Style 3: Stripe Gyroscopic Reactor
-                document.getElementById('style-title').innerText = 'Archetype 3: Stripe Gyroscopic Arc Reactor Core';
-                document.getElementById('card-target-desc').innerText = 'Concentric Metallic Gyroscope Rings rotating on 3 axes around Plasma Core.';
-                document.getElementById('card-contract-desc').innerText = 'Crystal Power Satellites with neon energy streams pulsing to core.';
-                document.getElementById('card-pruned-desc').innerText = 'Extinguished Asteroids drifting in frozen outer orbits.';
-
-                // Central Plasma Sphere
-                const coreGeo = new THREE.SphereGeometry(3.5, 32, 32);
-                const coreMat = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, roughness: 0.1 });
-                const core = new THREE.Mesh(coreGeo, coreMat);
-                scene.add(core);
-                activeMeshes.push(core);
-
-                // 3 Gyroscope Rings
-                [5.5, 7.0, 8.5].forEach((rad, i) => {
-                    const ringGeo = new THREE.TorusGeometry(rad, 0.25, 16, 64);
-                    const ringMat = new THREE.MeshStandardMaterial({ color: 0x34d399, metalness: 0.9, roughness: 0.1 });
-                    const ring = new THREE.Mesh(ringGeo, ringMat);
-                    scene.add(ring);
-                    rings.push({ mesh: ring, speedX: 0.02 * (i+1), speedY: 0.015 * (i+1) });
-                });
-
-                const lbl = createPillSprite('⚛️ [REACTOR] processPayment', 'rgba(6,40,30,0.92)', '#10b981');
-                lbl.position.set(0, 11, 0);
-                scene.add(lbl);
-                activeMeshes.push(lbl);
-
-                // Crystal Satellites
-                [-20, 20].forEach((x, i) => {
-                    const satGeo = new THREE.ConeGeometry(2.5, 5.0, 6);
-                    const satMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, roughness: 0.2 });
-                    const sat = new THREE.Mesh(satGeo, satMat);
-                    sat.position.set(x, i === 0 ? 5 : -5, 0);
-                    scene.add(sat);
-                    activeMeshes.push(sat);
-
-                    const clbl = createPillSprite(i === 0 ? '⚡ Energy: Payload' : '⚡ Energy: Receipt', 'rgba(8,45,60,0.92)', '#06b6d4');
-                    clbl.position.set(x, (i === 0 ? 5 : -5) + 4.8, 0);
-                    scene.add(clbl);
-                    activeMeshes.push(clbl);
-
-                    const line = new THREE.Line(
-                        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), sat.position]),
-                        new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.9, transparent: true })
-                    );
-                    scene.add(line);
-                    activeLines.push(line);
-                });
-
-            } else if (key === 'codecards') {
-                // Style 4: Raycast 3D Code Cards
-                document.getElementById('style-title').innerText = 'Archetype 4: Raycast 3D Floating Code Cards';
-                document.getElementById('card-target-desc').innerText = '3D Chamfered Glass Card displaying real syntax-highlighted code.';
-                document.getElementById('card-contract-desc').innerText = 'Compact 3D Schema Cards displaying interface types & return signatures.';
-                document.getElementById('card-pruned-desc').innerText = 'Faded Ghost Cards stamped with crimson [PRUNED] marks.';
-
-                // Central Function Card
-                const cardCanvas = document.createElement('canvas');
-                cardCanvas.width = 512;
-                cardCanvas.height = 280;
-                const cctx = cardCanvas.getContext('2d');
-
-                cctx.fillStyle = 'rgba(10, 25, 20, 0.95)';
-                cctx.strokeStyle = '#10b981';
-                cctx.lineWidth = 6;
-                cctx.beginPath();
-                cctx.roundRect(10, 10, 492, 260, 24);
-                cctx.fill();
-                cctx.stroke();
-
-                cctx.fillStyle = '#34d399';
-                cctx.font = 'bold 22px monospace';
-                cctx.fillText('⚡ export async function processPayment(', 30, 60);
-                cctx.fillStyle = '#e0f2fe';
-                cctx.font = '18px monospace';
-                cctx.fillText('   req: PaymentRequest, db: Database', 30, 100);
-                cctx.fillText(' ): Promise<PaymentResponse> {', 30, 140);
-                cctx.fillStyle = '#94a3b8';
-                cctx.fillText('   const tx = await db.create(req);', 30, 180);
-                cctx.fillStyle = '#34d399';
-                cctx.fillText('   return { success: true, txId };', 30, 220);
-
-                const cardTex = new THREE.CanvasTexture(cardCanvas);
-                const cardMat = new THREE.MeshStandardMaterial({ map: cardTex, transparent: true, roughness: 0.1 });
-                const mainCard = new THREE.Mesh(new THREE.PlaneGeometry(16, 9), cardMat);
-                mainCard.position.set(0, 0, 0);
-                scene.add(mainCard);
-                activeMeshes.push(mainCard);
-
-                // Contract Cards
-                [-22, 22].forEach((x, i) => {
-                    const subCanvas = document.createElement('canvas');
-                    subCanvas.width = 380;
-                    subCanvas.height = 180;
-                    const sctx = subCanvas.getContext('2d');
-
-                    sctx.fillStyle = 'rgba(8, 30, 45, 0.95)';
-                    sctx.strokeStyle = '#06b6d4';
-                    sctx.lineWidth = 5;
-                    sctx.beginPath();
-                    sctx.roundRect(8, 8, 364, 164, 16);
-                    sctx.fill();
-                    sctx.stroke();
-
-                    sctx.fillStyle = '#22d3ee';
-                    sctx.font = 'bold 18px monospace';
-                    sctx.fillText(i === 0 ? '🏗️ interface PaymentRequest' : '🏗️ interface PaymentResponse', 25, 45);
-                    sctx.fillStyle = '#94a3b8';
-                    sctx.font = '15px monospace';
-                    sctx.fillText(i === 0 ? '  userId: string;' : '  success: boolean;', 25, 80);
-                    sctx.fillText(i === 0 ? '  amount: number;' : '  transactionId: string;', 25, 110);
-                    sctx.fillText(i === 0 ? '  currency: "USD";' : '  timestamp: number;', 25, 140);
-
-                    const subTex = new THREE.CanvasTexture(subCanvas);
-                    const subCard = new THREE.Mesh(new THREE.PlaneGeometry(11, 5.5), new THREE.MeshStandardMaterial({ map: subTex, transparent: true }));
-                    subCard.position.set(x, i === 0 ? 4 : -4, 4);
-                    scene.add(subCard);
-                    activeMeshes.push(subCard);
-
-                    const line = new THREE.Line(
-                        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), subCard.position]),
-                        new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.8, transparent: true })
-                    );
-                    scene.add(line);
-                    activeLines.push(line);
-                });
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            if (spinningCore) {
-                spinningCore.rotation.x += 0.008;
-                spinningCore.rotation.y += 0.012;
-            }
-
-            rings.forEach(r => {
-                r.mesh.rotation.x += r.speedX;
-                r.mesh.rotation.y += r.speedY;
-            });
-
-            if (!isDragging) {
-                rotY += 0.0025;
-                updateCamera();
-            }
-
-            renderer.render(scene, camera);
-        }
     </script>
 </body>
 </html>
