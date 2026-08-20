@@ -64,6 +64,7 @@ pub enum Commands {
                       EXAMPLES:\n  \
                         dagr guard\n  \
                         dagr guard --workspace . --staged\n  \
+                        dagr guard --ci --base origin/main\n  \
                         dagr guard --format json"
     )]
     Guard {
@@ -74,6 +75,26 @@ pub enum Commands {
         /// Check only git staged files
         #[arg(short = 's', long)]
         staged: bool,
+
+        /// Run in CI / Pull Request mode inspecting git diff against base branch
+        #[arg(long)]
+        ci: bool,
+
+        /// Base git reference for CI diff (default: origin/main or main)
+        #[arg(long)]
+        base: Option<String>,
+
+        /// Head git reference for CI diff (default: HEAD)
+        #[arg(long)]
+        head: Option<String>,
+
+        /// Report violations as warnings without exiting with error code 1
+        #[arg(long)]
+        warn_only: bool,
+
+        /// Write Markdown summary report to specified file path (e.g. $GITHUB_STEP_SUMMARY)
+        #[arg(long)]
+        output_file: Option<PathBuf>,
 
         /// Output format (pretty, json)
         #[arg(short = 'f', long, value_enum, default_value_t = OutputFormat::Pretty)]
@@ -286,8 +307,21 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
         Commands::Guard {
             workspace,
             staged: _,
+            ci,
+            base,
+            head,
+            warn_only,
+            output_file,
             format,
-        } => handle_guard(&workspace, format),
+        } => handle_guard(
+            &workspace,
+            ci,
+            base.as_deref(),
+            head.as_deref(),
+            warn_only,
+            output_file.as_deref(),
+            format,
+        ),
         Commands::Run {
             command,
             sandbox,
@@ -658,7 +692,39 @@ pub fn render_pretty_slice(slice: &MinimalContextSlice) {
     }
 }
 
-pub fn handle_guard(workspace_root: &Path, format: OutputFormat) -> Result<()> {
+pub fn handle_guard(
+    workspace_root: &Path,
+    ci: bool,
+    base: Option<&str>,
+    head: Option<&str>,
+    warn_only: bool,
+    output_file: Option<&Path>,
+    format: OutputFormat,
+) -> Result<()> {
+    if ci {
+        let report = dagr_guard::CiGuardReport::check_pr_diff(workspace_root, base, head)?;
+        report.emit_github_workflow_commands();
+
+        if let Some(out_path) = output_file {
+            let md = report.to_markdown_summary();
+            let _ = std::fs::write(out_path, md);
+        }
+
+        if format == OutputFormat::Json {
+            println!("{}", serde_json::to_string_pretty(&report)?);
+        } else {
+            eprintln!("{}", report.to_markdown_summary());
+        }
+
+        if !report.violations.is_empty() && !warn_only {
+            return Err(DagrError::Config(format!(
+                "DAGR Architecture Guard detected {} violation(s) in PR diff",
+                report.violations.len()
+            )));
+        }
+        return Ok(());
+    }
+
     let start = std::time::Instant::now();
     let guard = ArchitectureGuard::load(workspace_root)?;
     let total_rules = guard.config.boundaries.len();
@@ -992,6 +1058,36 @@ mod tests {
             Commands::Guard {
                 workspace: PathBuf::from("."),
                 staged: true,
+                ci: false,
+                base: None,
+                head: None,
+                warn_only: false,
+                output_file: None,
+                format: OutputFormat::Pretty,
+            }
+        );
+
+        let args_ci = vec![
+            "dagr",
+            "guard",
+            "--ci",
+            "--base",
+            "origin/main",
+            "--warn-only",
+            "--output-file",
+            "summary.md",
+        ];
+        let cli_ci = Cli::try_parse_from(args_ci).expect("CLI parsing failed");
+        assert_eq!(
+            cli_ci.command,
+            Commands::Guard {
+                workspace: PathBuf::from("."),
+                staged: false,
+                ci: true,
+                base: Some("origin/main".into()),
+                head: None,
+                warn_only: true,
+                output_file: Some(PathBuf::from("summary.md")),
                 format: OutputFormat::Pretty,
             }
         );

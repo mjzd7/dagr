@@ -1,0 +1,42 @@
+name: 'DAGR Architecture Guard'
+description: 'Ultra-fast (<50ms) architectural boundary and layer import linter for Pull Requests'
+author: 'Mohit Dagar'
+branding:
+  icon: 'shield'
+  color: 'green'
+
+inputs:
+  base-ref:
+    description: 'Base branch or commit reference for PR diff'
+    required: false
+    default: 'origin/main'
+  head-ref:
+    description: 'Head branch or commit reference for PR diff'
+    required: false
+    default: 'HEAD'
+  fail-on-violation:
+    description: 'Fail the CI job if architectural boundary violations are found'
+    required: false
+    default: 'true'
+  workspace:
+    description: 'Workspace directory root'
+    required: false
+    default: '.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run DAGR Architecture Guard
+      shell: bash
+      run: |
+        WARN_FLAG=""
+        if [ "${{ inputs.fail-on-violation }}" = "false" ]; then
+          WARN_FLAG="--warn-only"
+        fi
+        dagr guard \
+          --workspace "${{ inputs.workspace }}" \
+          --ci \
+          --base "${{ inputs.base-ref }}" \
+          --head "${{ inputs.head-ref }}" \
+          --output-file "$GITHUB_STEP_SUMMARY" \
+          $WARN_FLAG

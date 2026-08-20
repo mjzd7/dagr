@@ -118,7 +118,7 @@ impl ArchitectureGuard {
         Ok(())
     }
 
-    fn extract_imported_module(line: &str) -> Option<String> {
+    pub fn extract_imported_module(line: &str) -> Option<String> {
         // TypeScript/JavaScript: import ... from '...' / from "..."
         if let Some(pos) = line.find("from ") {
             let rest = &line[pos + 5..].trim();
