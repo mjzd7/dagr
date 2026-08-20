@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRoiCalculator();
     initClientsGrid();
     initHistoryLedger();
+    initGraphVisualizer();
 });
 
 // 1. Interactive AST Slicing Simulator & Custom Code Engine
@@ -29,7 +30,6 @@ function selectScenario(scenarioKey) {
     });
 
     const customPanel = document.getElementById('custom-code-panel');
-    const presetPanel = document.getElementById('preset-playground-panel');
 
     if (scenarioKey === 'custom') {
         if (customPanel) customPanel.classList.remove('hidden');
@@ -38,6 +38,7 @@ function selectScenario(scenarioKey) {
         if (customPanel) customPanel.classList.add('hidden');
         renderSimulatorScenario(scenarioKey);
     }
+    updateGraphForActiveScenario();
 }
 
 function renderSimulatorScenario(key) {
@@ -145,6 +146,15 @@ function executeCustomSlice() {
     const explanationEl = document.getElementById('sim-explanation-text');
     if (explanationEl) {
         explanationEl.innerText = result.explanation;
+    }
+
+    if (globalGraphVisualizer) {
+        const contracts = result.detectedSymbols
+            .filter(s => s.name !== result.targetSymbol)
+            .slice(0, 3)
+            .map(s => s.name);
+        const pruned = ['UnrelatedHelperA', 'UnrelatedHelperB', 'DatabaseClient', 'TaxModule'];
+        globalGraphVisualizer.loadScenario(result.targetSymbol, contracts, pruned);
     }
 }
 

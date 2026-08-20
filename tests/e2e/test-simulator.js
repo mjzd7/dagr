@@ -3,7 +3,7 @@ const path = require('path');
 const assert = require('assert');
 
 (async () => {
-    console.log('🧪 Starting E2E Verification for Custom Code Simulator & Telemetry History...');
+    console.log('🧪 Starting E2E Verification for Custom Code Simulator, Visual Graph & Telemetry History...');
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
 
@@ -14,12 +14,16 @@ const assert = require('assert');
     const heroText = await page.locator('h1').innerText();
     assert(heroText.includes('Cut 95% AI Token Bloat'), 'Hero title text mismatch');
 
-    // 2. Click "🧪 Paste Your Own Code"
+    // 2. Check Visual Graph Canvas
+    const isCanvasVisible = await page.locator('#astGraphCanvas').isVisible();
+    assert(isCanvasVisible, 'Visual AST Graph Canvas should be visible');
+
+    // 3. Click "🧪 Paste Your Own Code"
     await page.click('#sim-btn-custom');
     const isPanelVisible = await page.locator('#custom-code-panel').isVisible();
     assert(isPanelVisible, 'Custom code panel should be visible');
 
-    // 3. Fill Custom Code snippet
+    // 4. Fill Custom Code snippet
     const customCode = `
 export interface BillingRecord {
   id: string;
@@ -35,10 +39,10 @@ export function executeBilling(record: BillingRecord): boolean {
     await page.fill('#custom-code-input', customCode);
     await page.fill('#custom-symbol-input', 'executeBilling');
 
-    // 4. Click Slice button
+    // 5. Click Slice button
     await page.click('button:has-text("⚡ Slice with DAGR")');
 
-    // 5. Verify Target Label and Sliced Code
+    // 6. Verify Target Label and Sliced Code
     const targetLabel = await page.locator('#sim-target-label').innerText();
     assert(targetLabel.includes('executeBilling'), 'Target label should contain executeBilling');
 
@@ -46,13 +50,13 @@ export function executeBilling(record: BillingRecord): boolean {
     assert(slicedCode.includes('export interface BillingRecord'), 'Should hoist BillingRecord interface');
     assert(slicedCode.includes('executeBilling'), 'Should include executeBilling function');
 
-    // 6. Verify Telemetry Ledger Row
+    // 7. Verify Telemetry Ledger Row
     const rows = await page.locator('#history-ledger-body tr').count();
     assert.strictEqual(rows, 1, 'Should have 1 history row recorded');
 
     const totalSlices = await page.locator('#history-total-slices').innerText();
     assert.strictEqual(totalSlices, '1', 'Total slices count should be 1');
 
-    console.log('✅ ALL IN-BROWSER CUSTOM AST SLICING & TELEMETRY TESTS PASSED 100%!');
+    console.log('✅ ALL IN-BROWSER CUSTOM AST SLICING, VISUAL GRAPH & TELEMETRY TESTS PASSED 100%!');
     await browser.close();
 })();
