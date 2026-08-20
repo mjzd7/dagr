@@ -90,10 +90,10 @@
         <!-- Navigation Links -->
         <nav class="hidden md:flex items-center space-x-6 text-xs font-mono text-zinc-400 font-medium">
             <a href="#simulator" class="hover:text-emerald-400 transition-colors">Slicer Simulator</a>
+            <a href="#history-ledger" class="hover:text-emerald-400 transition-colors">Live Iterations Ledger</a>
             <a href="#features" class="hover:text-emerald-400 transition-colors">Core Superpowers</a>
             <a href="#calculator" class="hover:text-emerald-400 transition-colors">ROI Calculator</a>
             <a href="#clients" class="hover:text-emerald-400 transition-colors">31 Supported IDEs</a>
-            <a href="#benchmarks" class="hover:text-emerald-400 transition-colors">SLA Benchmarks</a>
         </nav>
 
         <!-- Right Utilities -->
@@ -140,24 +140,95 @@
             </div>
         </section>
 
-        <!-- 2. INTERACTIVE AST SLICING SIMULATOR -->
+        <!-- 2. INTERACTIVE AST SLICING SIMULATOR & CUSTOM CODE LAB -->
         <section id="simulator" class="space-y-6">
             <div class="text-center space-y-2 max-w-2xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Interactive AST Slicing Simulator</h2>
-                <p class="text-xs sm:text-sm text-zinc-400 font-mono">See how DAGR prunes thousands of monolithic lines down to exact AST contracts in &lt;0.3ms</p>
+                <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Interactive AST Slicing Simulator & Custom Code Lab</h2>
+                <p class="text-xs sm:text-sm text-zinc-400 font-mono">Test pre-built examples or <strong class="text-emerald-400">paste your own code</strong> to visualize live token cuts & AST contract hoisting</p>
             </div>
 
             <!-- Scenario Switcher Buttons -->
-            <div class="flex justify-center space-x-2">
-                <button onclick="selectScenario('typescript')" id="sim-btn-typescript" class="px-4 py-2 rounded-xl bg-white/10 text-white font-semibold text-xs border border-white/20 shadow-sm transition-all">
-                    TypeScript (Stripe Payment)
+            <div class="flex flex-wrap justify-center gap-2">
+                <button onclick="selectScenario('typescript')" id="sim-btn-typescript" class="px-4 py-2 rounded-xl bg-white/10 text-white font-semibold text-xs border border-white/20 shadow-sm transition-all flex items-center space-x-1.5">
+                    <span>TypeScript (Stripe Payment)</span>
                 </button>
-                <button onclick="selectScenario('python')" id="sim-btn-python" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all">
-                    Python (JWT Auth)
+                <button onclick="selectScenario('python')" id="sim-btn-python" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all flex items-center space-x-1.5">
+                    <span>Python (JWT Auth)</span>
                 </button>
-                <button onclick="selectScenario('rust')" id="sim-btn-rust" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all">
-                    Rust (SQLite Storage)
+                <button onclick="selectScenario('rust')" id="sim-btn-rust" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs border border-transparent transition-all flex items-center space-x-1.5">
+                    <span>Rust (SQLite Storage)</span>
                 </button>
+                <button onclick="selectScenario('custom')" id="sim-btn-custom" class="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 font-semibold text-xs border border-emerald-500/30 shadow-sm transition-all flex items-center space-x-1.5 glow-emerald">
+                    <span>🧪 Paste Your Own Code</span>
+                </button>
+            </div>
+
+            <!-- Custom Code Input Panel (Expands when 'Custom' selected) -->
+            <div id="custom-code-panel" class="hidden glass-card rounded-3xl p-6 space-y-4 border-emerald-500/30">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-400 pulse-live"></span>
+                        <span class="text-sm font-bold text-white">Custom Code AST Slicer Lab</span>
+                        <span class="text-xs text-zinc-400 font-mono">(Simulate live LLM context pruning)</span>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <select id="custom-lang-select" class="bg-zinc-900 border border-white/10 rounded-xl px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-emerald-500">
+                            <option value="typescript">TypeScript / JavaScript</option>
+                            <option value="python">Python</option>
+                            <option value="rust">Rust</option>
+                            <option value="go">Go</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Target Symbol & Auto-detection -->
+                <div class="space-y-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <label class="text-xs font-mono text-zinc-400">Target Function / Symbol to Query:</label>
+                        <div id="detected-symbols-badges" class="flex flex-wrap items-center gap-1.5">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="custom-symbol-input" placeholder="e.g. processPayment or calculateTotal" value="processPayment" class="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500" />
+                        <button onclick="executeCustomSlice()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-bold font-mono text-xs shadow-lg transition-all flex items-center space-x-2">
+                            <span>⚡ Slice with DAGR</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Large Code Input Area -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-mono text-zinc-400">Paste Raw Monolithic Source Code (any classes, helpers, types):</label>
+                    <textarea id="custom-code-input" rows="8" class="w-full bg-zinc-950/90 border border-white/10 rounded-2xl p-4 font-mono text-xs text-zinc-300 focus:outline-none focus:border-emerald-500 leading-relaxed" placeholder="Paste your code here...">// Paste your entire monolithic file here!
+import { Database } from "@/db/client";
+import { MetricsCollector } from "@/telemetry";
+import { EmailService } from "@/notify/email";
+
+// ... 500 lines of unrelated helpers, database pools, analytics ...
+
+export interface PaymentRequest {
+  userId: string;
+  amount: number;
+  currency: string;
+}
+
+export interface PaymentResponse {
+  success: boolean;
+  transactionId: string;
+}
+
+export async function processPayment(req: PaymentRequest, db: Database): Promise<PaymentResponse> {
+  console.log("Processing payment for user", req.userId);
+  const tx = await db.transactions.create({ amount: req.amount });
+  return { success: true, transactionId: tx.id };
+}
+
+export async function sendReceiptEmail(email: string, amount: number) {
+  // ... 200 more lines of unrelated email formatting ...
+}</textarea>
+                </div>
             </div>
 
             <!-- Side-by-Side Slicing Playground Card -->
@@ -195,6 +266,12 @@
                     </div>
                 </div>
 
+                <!-- Visual Explanation Banner -->
+                <div class="p-3.5 rounded-xl bg-zinc-900/80 border border-white/10 flex items-center space-x-3 text-xs font-mono">
+                    <span class="text-emerald-400 font-bold text-sm">💡</span>
+                    <span class="text-zinc-300" id="sim-explanation-text">Pruned monolithic dependencies & hoisted exact AST type signatures in 0.24ms. Zero token waste.</span>
+                </div>
+
                 <!-- Metric Savings Summary Bar -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                     <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 text-center">
@@ -213,7 +290,63 @@
             </div>
         </section>
 
-        <!-- 3. CORE SUPERPOWERS -->
+        <!-- 3. LIVE ITERATIONS & TELEMETRY LEDGER -->
+        <section id="history-ledger" class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Live Slicing Iterations & Telemetry History</h2>
+                    <p class="text-xs sm:text-sm text-zinc-400 font-mono">Persistent client-side ledger tracking token cuts and cumulative ROI across all your test iterations</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="clearSlicingHistory()" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-400 hover:text-red-400 transition-colors">
+                        Clear History
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cumulative Telemetry Metric Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-card rounded-2xl p-4 text-center">
+                    <div class="text-[11px] font-mono text-zinc-400">SLICES TESTED</div>
+                    <div class="text-2xl font-bold font-mono text-white mt-1" id="history-total-slices">0</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4 text-center">
+                    <div class="text-[11px] font-mono text-zinc-400">CUMULATIVE TOKENS SAVED</div>
+                    <div class="text-2xl font-bold font-mono text-emerald-400 mt-1" id="history-tokens-saved">0k</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4 text-center">
+                    <div class="text-[11px] font-mono text-zinc-400">AVG COMPRESSION RATIO</div>
+                    <div class="text-2xl font-bold font-mono text-cyan-400 mt-1" id="history-avg-compression">0.0%</div>
+                </div>
+                <div class="glass-card rounded-2xl p-4 text-center">
+                    <div class="text-[11px] font-mono text-zinc-400">CUMULATIVE DOLLAR ROI</div>
+                    <div class="text-2xl font-bold font-mono text-indigo-400 mt-1" id="history-usd-saved">$0.00</div>
+                </div>
+            </div>
+
+            <!-- Iterations Table -->
+            <div class="glass-card rounded-2xl overflow-hidden border border-white/5">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-mono">
+                        <thead class="bg-zinc-900/90 text-zinc-400 border-b border-white/10 uppercase tracking-wider">
+                            <tr>
+                                <th class="py-3 px-4">#</th>
+                                <th class="py-3 px-4">Time</th>
+                                <th class="py-3 px-4">Language & Target</th>
+                                <th class="py-3 px-4">Token Footprint</th>
+                                <th class="py-3 px-4">Compression</th>
+                                <th class="py-3 px-4">USD Saved</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-ledger-body" class="divide-y divide-white/5 text-zinc-300">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. CORE SUPERPOWERS -->
         <section id="features" class="space-y-12">
             <div class="text-center space-y-2 max-w-2xl mx-auto">
                 <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">The 4 Architectural Superpowers</h2>
@@ -271,7 +404,7 @@
             </div>
         </section>
 
-        <!-- 4. DYNAMIC TOKEN ROI CALCULATOR -->
+        <!-- 5. DYNAMIC TOKEN ROI CALCULATOR -->
         <section id="calculator" class="space-y-8">
             <div class="text-center space-y-2 max-w-2xl mx-auto">
                 <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Dynamic Token ROI Financial Calculator</h2>
@@ -330,7 +463,7 @@
             </div>
         </section>
 
-        <!-- 5. 31 SUPPORTED AI IDES HUB -->
+        <!-- 6. 31 SUPPORTED AI IDES HUB -->
         <section id="clients" class="space-y-8">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -345,53 +478,6 @@
             <!-- Searchable Cards Grid -->
             <div id="clients-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Dynamically injected by clients-data.js & app.js -->
-            </div>
-        </section>
-
-        <!-- 6. BENCHMARK SLA MATRIX -->
-        <section id="benchmarks" class="space-y-6">
-            <div class="text-center space-y-2 max-w-2xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Audited SLA Latency & Token Compression Matrix</h2>
-                <p class="text-xs sm:text-sm text-zinc-400 font-mono">Deterministic performance benchmarks calculated via Tree-sitter & Byte-Pair Encoding</p>
-            </div>
-
-            <div class="overflow-x-auto glass-card rounded-2xl p-6 border border-white/5">
-                <table class="w-full text-left text-xs font-mono">
-                    <thead class="text-zinc-400 border-b border-white/10 uppercase tracking-wider">
-                        <tr>
-                            <th class="py-3 px-4">Operation</th>
-                            <th class="py-3 px-4">Cold Latency</th>
-                            <th class="py-3 px-4">Cached Latency (Blake3)</th>
-                            <th class="py-3 px-4">Underlying Engine</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-white/5 text-zinc-300">
-                        <tr>
-                            <td class="py-3 px-4 font-semibold text-white">AST Slicing (1,000 LOC)</td>
-                            <td class="py-3 px-4 text-emerald-400">1.5ms - 2.8ms</td>
-                            <td class="py-3 px-4 text-cyan-400">&lt; 0.05ms</td>
-                            <td class="py-3 px-4 text-zinc-400">Tree-sitter AST + SQLite WAL</td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 px-4 font-semibold text-white">Architecture Guard (<code class="text-amber-300">dagr guard</code>)</td>
-                            <td class="py-3 px-4 text-emerald-400">&lt; 25ms (50 files)</td>
-                            <td class="py-3 px-4 text-cyan-400">&lt; 2ms</td>
-                            <td class="py-3 px-4 text-zinc-400">Glob AST Import Evaluator</td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 px-4 font-semibold text-white">CoW Shadow Snapshot Creation</td>
-                            <td class="py-3 px-4 text-emerald-400">&lt; 2.0ms</td>
-                            <td class="py-3 px-4 text-cyan-400">&lt; 0.8ms</td>
-                            <td class="py-3 px-4 text-zinc-400">macOS APFS <code class="text-zinc-300">clonefile(2)</code> / Linux <code class="text-zinc-300">reflink</code></td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 px-4 font-semibold text-white">Shadow Sandbox Atomic Rollback</td>
-                            <td class="py-3 px-4 text-emerald-400">&lt; 10ms</td>
-                            <td class="py-3 px-4 text-cyan-400">&lt; 10ms</td>
-                            <td class="py-3 px-4 text-zinc-400">Atomic Directory Unlink & Purge</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </section>
 
@@ -411,6 +497,8 @@
     <!-- Scripts -->
     <script src="js/clients-data.js"></script>
     <script src="js/simulator.js"></script>
+    <script src="js/slicer-engine.js"></script>
+    <script src="js/history-store.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
