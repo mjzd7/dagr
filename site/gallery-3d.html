@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAGR 3D Node Archetype Gallery & Interactive Showcase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            background-color: #080a0f;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%);
+            color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .glass-panel {
+            background: rgba(17, 22, 34, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-6 space-y-6">
+
+    <!-- Header & Style Switcher -->
+    <header class="glass-panel rounded-2xl p-6 flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="text-xl">🪐</span>
+                <h1 class="text-xl font-bold text-white font-mono">DAGR 3D Node Style Gallery & Live Preview Lab</h1>
+            </div>
+            <p class="text-xs text-zinc-400 font-mono mt-1">Select an archetype below to preview the 3D interactive physics and geometry in real-time</p>
+        </div>
+
+        <!-- Archetype Switcher Tabs -->
+        <div class="flex flex-wrap gap-2">
+            <button onclick="switchStyle('cubes')" id="btn-cubes" class="px-3.5 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all">
+                💎 1. Linear Glass Cubes
+            </button>
+            <button onclick="switchStyle('semantic')" id="btn-semantic" class="px-3.5 py-2 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
+                🧩 2. Semantic Syntax Shapes
+            </button>
+            <button onclick="switchStyle('gyroscope')" id="btn-gyroscope" class="px-3.5 py-2 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
+                ⚛️ 3. Stripe Gyroscope Reactor
+            </button>
+            <button onclick="switchStyle('codecards')" id="btn-codecards" class="px-3.5 py-2 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all">
+                🗂️ 4. Raycast 3D Code Cards
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Live 3D Viewport -->
+    <main class="flex-1 glass-panel rounded-3xl p-6 flex flex-col space-y-4 relative min-h-[540px]">
+        <!-- Info Banner -->
+        <div class="flex items-center justify-between border-b border-white/10 pb-3 text-xs font-mono">
+            <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="style-title" class="font-bold text-white">Archetype 1: Linear Frosted Glass Tech-Cubes</span>
+            </div>
+            <span class="text-zinc-400">💡 Drag with mouse to rotate in 360° • Scroll to zoom</span>
+        </div>
+
+        <!-- 3D Canvas Mount -->
+        <div id="galleryCanvasContainer" class="flex-1 w-full h-[520px] rounded-2xl bg-zinc-950/90 border border-white/5 relative overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing">
+            <!-- Three.js Canvas Injected Here -->
+        </div>
+
+        <!-- Archetype Description Card -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs font-mono">
+            <div class="p-3.5 rounded-xl bg-zinc-900/60 border border-emerald-500/20 space-y-1">
+                <div class="font-bold text-emerald-400" id="card-target-title">Target Representation</div>
+                <p class="text-[11px] text-zinc-400 leading-relaxed" id="card-target-desc">Chamfered Hyper-Cube with internal pulsing emerald core matrix.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-zinc-900/60 border border-cyan-500/20 space-y-1">
+                <div class="font-bold text-cyan-400" id="card-contract-title">Contract Representation</div>
+                <p class="text-[11px] text-zinc-400 leading-relaxed" id="card-contract-desc">Translucent Cyan Hexagonal Wafers with high-transmission glass refraction.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-zinc-900/60 border border-red-500/20 space-y-1">
+                <div class="font-bold text-red-400" id="card-pruned-title">Pruned Bloat Representation</div>
+                <p class="text-[11px] text-zinc-400 leading-relaxed" id="card-pruned-desc">Shattered Obsidian / Ash Shards floating in outer dark space.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reference Links -->
+    <footer class="glass-panel rounded-2xl p-4 text-xs font-mono text-zinc-400 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-2">
+            <span>Inspiration references:</span>
+            <a href="https://linear.app" target="_blank" class="text-indigo-400 hover:underline">Linear.app</a> •
+            <a href="https://stripe.com/press" target="_blank" class="text-indigo-400 hover:underline">Stripe Press 3D</a> •
+            <a href="https://spline.design" target="_blank" class="text-indigo-400 hover:underline">Spline</a> •
+            <a href="https://threejs.org/examples/#webgl_geometry_shapes" target="_blank" class="text-indigo-400 hover:underline">Three.js Examples</a>
+        </div>
+        <a href="index.html" class="px-3 py-1 rounded bg-white/10 text-white hover:bg-white/20 transition-all">← Back to Main DAGR Site</a>
+    </footer>
+
+    <!-- Gallery 3D Engine Script -->
+    <script>
+        let currentStyle = 'cubes';
+        let scene, camera, renderer, container;
+        let activeMeshes = [];
+        let activeLines = [];
+        let spinningCore = null;
+        let rings = [];
+
+        let isDragging = false;
+        let prevMouseX = 0;
+        let prevMouseY = 0;
+        let rotX = 0.20;
+        let rotY = 0.0;
+        let cameraDist = 110;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initScene();
+            loadStyle(currentStyle);
+        });
+
+        function initScene() {
+            container = document.getElementById('galleryCanvasContainer');
+            scene = new THREE.Scene();
+            
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            updateCamera();
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+            scene.add(ambient);
+
+            const p1 = new THREE.PointLight(0x10b981, 3.0, 300);
+            p1.position.set(0, 20, 50);
+            scene.add(p1);
+
+            const p2 = new THREE.PointLight(0x06b6d4, 2.5, 250);
+            p2.position.set(-40, -20, 30);
+            scene.add(p2);
+
+            const p3 = new THREE.PointLight(0xef4444, 1.8, 200);
+            p3.position.set(40, 25, -40);
+            scene.add(p3);
+
+            // Events
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                prevMouseX = e.clientX;
+                prevMouseY = e.clientY;
+            });
+            window.addEventListener('mouseup', () => isDragging = false);
+            container.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    rotY += (e.clientX - prevMouseX) * 0.007;
+                    rotX = Math.max(-1.3, Math.min(1.3, rotX + (e.clientY - prevMouseY) * 0.007));
+                    prevMouseX = e.clientX;
+                    prevMouseY = e.clientY;
+                    updateCamera();
+                }
+            });
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                cameraDist = Math.max(40, Math.min(220, cameraDist + e.deltaY * 0.08));
+                updateCamera();
+            }, { passive: false });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            animate();
+        }
+
+        function updateCamera() {
+            camera.position.x = cameraDist * Math.sin(rotY) * Math.cos(rotX);
+            camera.position.y = cameraDist * Math.sin(rotX);
+            camera.position.z = cameraDist * Math.cos(rotY) * Math.cos(rotX);
+            camera.lookAt(0, 0, 0);
+        }
+
+        function clearMeshes() {
+            activeMeshes.forEach(m => scene.remove(m));
+            activeLines.forEach(l => scene.remove(l));
+            rings.forEach(r => scene.remove(r));
+            activeMeshes = [];
+            activeLines = [];
+            rings = [];
+            spinningCore = null;
+        }
+
+        function createPillSprite(text, color, border) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 440;
+            canvas.height = 90;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = color;
+            ctx.strokeStyle = border;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.roundRect(10, 10, 420, 70, 18);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 220, 45);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(13, 2.7, 1);
+            return sprite;
+        }
+
+        function switchStyle(styleKey) {
+            currentStyle = styleKey;
+            ['cubes', 'semantic', 'gyroscope', 'codecards'].forEach(k => {
+                const btn = document.getElementById(`btn-${k}`);
+                if (k === styleKey) {
+                    btn.className = 'px-3.5 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 text-xs font-mono transition-all';
+                } else {
+                    btn.className = 'px-3.5 py-2 rounded-xl text-zinc-400 hover:text-white border border-transparent text-xs font-mono transition-all';
+                }
+            });
+
+            loadStyle(styleKey);
+        }
+
+        function loadStyle(key) {
+            clearMeshes();
+
+            // 1. Boundary Wireframe Sphere
+            const boundGeo = new THREE.IcosahedronGeometry(30, 2);
+            const boundMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true, transparent: true, opacity: 0.18 });
+            const boundary = new THREE.Mesh(boundGeo, boundMat);
+            scene.add(boundary);
+            activeMeshes.push(boundary);
+
+            if (key === 'cubes') {
+                // Style 1: Linear Frosted Glass Tech-Cubes
+                document.getElementById('style-title').innerText = 'Archetype 1: Linear Frosted Glass Tech-Cubes';
+                document.getElementById('card-target-desc').innerText = 'Chamfered Hyper-Cube with internal pulsing emerald core matrix.';
+                document.getElementById('card-contract-desc').innerText = 'Translucent Cyan Hexagonal Wafers with high-transmission glass refraction.';
+                document.getElementById('card-pruned-desc').innerText = 'Shattered Obsidian / Ash Shards floating in outer dark space.';
+
+                // Target Core Cube
+                const cubeGeo = new THREE.BoxGeometry(6.5, 6.5, 6.5);
+                const cubeMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.2, metalness: 0.8 });
+                const targetCube = new THREE.Mesh(cubeGeo, cubeMat);
+                scene.add(targetCube);
+                activeMeshes.push(targetCube);
+                spinningCore = targetCube;
+
+                const lbl = createPillSprite('🎯 processPayment()', 'rgba(6,40,30,0.92)', '#10b981');
+                lbl.position.set(0, 7.8, 0);
+                scene.add(lbl);
+                activeMeshes.push(lbl);
+
+                // Contracts: Hexagonal Wafers
+                [-18, 18].forEach((x, i) => {
+                    const waferGeo = new THREE.CylinderGeometry(3.5, 3.5, 1.2, 6);
+                    const waferMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.1, metalness: 0.7 });
+                    const wafer = new THREE.Mesh(waferGeo, waferMat);
+                    wafer.position.set(x, i === 0 ? 5 : -5, (i === 0 ? 8 : -8));
+                    scene.add(wafer);
+                    activeMeshes.push(wafer);
+
+                    const clbl = createPillSprite(i === 0 ? '🏗️ PaymentPayload' : '🏗️ PaymentReceipt', 'rgba(8,45,60,0.92)', '#06b6d4');
+                    clbl.position.set(x, (i === 0 ? 5 : -5) + 4.5, (i === 0 ? 8 : -8));
+                    scene.add(clbl);
+                    activeMeshes.push(clbl);
+
+                    const line = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), wafer.position]),
+                        new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.8, transparent: true })
+                    );
+                    scene.add(line);
+                    activeLines.push(line);
+                });
+
+                // Pruned: Low-poly Obsidian Shards
+                [[-42, 15, -10], [45, -20, 20], [20, 38, -35]].forEach((pos, i) => {
+                    const shardGeo = new THREE.DodecahedronGeometry(2.8, 0);
+                    const shardMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.9, transparent: true, opacity: 0.55 });
+                    const shard = new THREE.Mesh(shardGeo, shardMat);
+                    shard.position.set(...pos);
+                    scene.add(shard);
+                    activeMeshes.push(shard);
+
+                    const plbl = createPillSprite(`✂️ HelperModule_${i+1}`, 'rgba(50,15,15,0.85)', '#ef4444');
+                    plbl.position.set(pos[0], pos[1] + 3.8, pos[2]);
+                    scene.add(plbl);
+                    activeMeshes.push(plbl);
+                });
+
+            } else if (key === 'semantic') {
+                // Style 2: Semantic Syntax-Driven Shapes
+                document.getElementById('style-title').innerText = 'Archetype 2: Semantic Syntax-Driven Shapes (Compiler Metaphor)';
+                document.getElementById('card-target-desc').innerText = 'Gemstone Octahedron for Functions (Executable Energy Core).';
+                document.getElementById('card-contract-desc').innerText = 'Diamond Tetrahedrons for Interfaces/Types (Structural Blueprint).';
+                document.getElementById('card-pruned-desc').innerText = 'Stacked Database Cylinders & Ghost Boxes (Pruned Infrastructure).';
+
+                // Target: Gemstone Octahedron
+                const octaGeo = new THREE.OctahedronGeometry(5.2, 0);
+                const octaMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.15, metalness: 0.9 });
+                const targetOcta = new THREE.Mesh(octaGeo, octaMat);
+                scene.add(targetOcta);
+                activeMeshes.push(targetOcta);
+                spinningCore = targetOcta;
+
+                const lbl = createPillSprite('🎯 fn processPayment()', 'rgba(6,40,30,0.92)', '#10b981');
+                lbl.position.set(0, 8, 0);
+                scene.add(lbl);
+                activeMeshes.push(lbl);
+
+                // Contracts: Diamond Tetrahedrons
+                [-18, 18].forEach((x, i) => {
+                    const tetraGeo = new THREE.TetrahedronGeometry(3.6, 0);
+                    const tetraMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.2, metalness: 0.8 });
+                    const tetra = new THREE.Mesh(tetraGeo, tetraMat);
+                    tetra.position.set(x, i === 0 ? 6 : -6, 5);
+                    scene.add(tetra);
+                    activeMeshes.push(tetra);
+
+                    const clbl = createPillSprite(i === 0 ? '🏗️ interface Payload' : '🏗️ type Receipt', 'rgba(8,45,60,0.92)', '#06b6d4');
+                    clbl.position.set(x, (i === 0 ? 6 : -6) + 4.5, 5);
+                    scene.add(clbl);
+                    activeMeshes.push(clbl);
+
+                    const line = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), tetra.position]),
+                        new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.8, transparent: true })
+                    );
+                    scene.add(line);
+                    activeLines.push(line);
+                });
+
+                // Pruned: Database Cylinders
+                [[-44, 18, 0], [42, -15, 15]].forEach((pos, i) => {
+                    const cylGeo = new THREE.CylinderGeometry(2.5, 2.5, 4.0, 16);
+                    const cylMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.8, transparent: true, opacity: 0.5 });
+                    const cyl = new THREE.Mesh(cylGeo, cylMat);
+                    cyl.position.set(...pos);
+                    scene.add(cyl);
+                    activeMeshes.push(cyl);
+
+                    const plbl = createPillSprite(i === 0 ? '✂️ db: DatabasePool' : '✂️ audit: LoggerService', 'rgba(50,15,15,0.85)', '#ef4444');
+                    plbl.position.set(pos[0], pos[1] + 4.2, pos[2]);
+                    scene.add(plbl);
+                    activeMeshes.push(plbl);
+                });
+
+            } else if (key === 'gyroscope') {
+                // Style 3: Stripe Gyroscopic Reactor
+                document.getElementById('style-title').innerText = 'Archetype 3: Stripe Gyroscopic Arc Reactor Core';
+                document.getElementById('card-target-desc').innerText = 'Concentric Metallic Gyroscope Rings rotating on 3 axes around Plasma Core.';
+                document.getElementById('card-contract-desc').innerText = 'Crystal Power Satellites with neon energy streams pulsing to core.';
+                document.getElementById('card-pruned-desc').innerText = 'Extinguished Asteroids drifting in frozen outer orbits.';
+
+                // Central Plasma Sphere
+                const coreGeo = new THREE.SphereGeometry(3.5, 32, 32);
+                const coreMat = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, roughness: 0.1 });
+                const core = new THREE.Mesh(coreGeo, coreMat);
+                scene.add(core);
+                activeMeshes.push(core);
+
+                // 3 Gyroscope Rings
+                [5.5, 7.0, 8.5].forEach((rad, i) => {
+                    const ringGeo = new THREE.TorusGeometry(rad, 0.25, 16, 64);
+                    const ringMat = new THREE.MeshStandardMaterial({ color: 0x34d399, metalness: 0.9, roughness: 0.1 });
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    scene.add(ring);
+                    rings.push({ mesh: ring, speedX: 0.02 * (i+1), speedY: 0.015 * (i+1) });
+                });
+
+                const lbl = createPillSprite('⚛️ [REACTOR] processPayment', 'rgba(6,40,30,0.92)', '#10b981');
+                lbl.position.set(0, 11, 0);
+                scene.add(lbl);
+                activeMeshes.push(lbl);
+
+                // Crystal Satellites
+                [-20, 20].forEach((x, i) => {
+                    const satGeo = new THREE.ConeGeometry(2.5, 5.0, 6);
+                    const satMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0891b2, roughness: 0.2 });
+                    const sat = new THREE.Mesh(satGeo, satMat);
+                    sat.position.set(x, i === 0 ? 5 : -5, 0);
+                    scene.add(sat);
+                    activeMeshes.push(sat);
+
+                    const clbl = createPillSprite(i === 0 ? '⚡ Energy: Payload' : '⚡ Energy: Receipt', 'rgba(8,45,60,0.92)', '#06b6d4');
+                    clbl.position.set(x, (i === 0 ? 5 : -5) + 4.8, 0);
+                    scene.add(clbl);
+                    activeMeshes.push(clbl);
+
+                    const line = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), sat.position]),
+                        new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.9, transparent: true })
+                    );
+                    scene.add(line);
+                    activeLines.push(line);
+                });
+
+            } else if (key === 'codecards') {
+                // Style 4: Raycast 3D Code Cards
+                document.getElementById('style-title').innerText = 'Archetype 4: Raycast 3D Floating Code Cards';
+                document.getElementById('card-target-desc').innerText = '3D Chamfered Glass Card displaying real syntax-highlighted code.';
+                document.getElementById('card-contract-desc').innerText = 'Compact 3D Schema Cards displaying interface types & return signatures.';
+                document.getElementById('card-pruned-desc').innerText = 'Faded Ghost Cards stamped with crimson [PRUNED] marks.';
+
+                // Central Function Card
+                const cardCanvas = document.createElement('canvas');
+                cardCanvas.width = 512;
+                cardCanvas.height = 280;
+                const cctx = cardCanvas.getContext('2d');
+
+                cctx.fillStyle = 'rgba(10, 25, 20, 0.95)';
+                cctx.strokeStyle = '#10b981';
+                cctx.lineWidth = 6;
+                cctx.beginPath();
+                cctx.roundRect(10, 10, 492, 260, 24);
+                cctx.fill();
+                cctx.stroke();
+
+                cctx.fillStyle = '#34d399';
+                cctx.font = 'bold 22px monospace';
+                cctx.fillText('⚡ export async function processPayment(', 30, 60);
+                cctx.fillStyle = '#e0f2fe';
+                cctx.font = '18px monospace';
+                cctx.fillText('   req: PaymentRequest, db: Database', 30, 100);
+                cctx.fillText(' ): Promise<PaymentResponse> {', 30, 140);
+                cctx.fillStyle = '#94a3b8';
+                cctx.fillText('   const tx = await db.create(req);', 30, 180);
+                cctx.fillStyle = '#34d399';
+                cctx.fillText('   return { success: true, txId };', 30, 220);
+
+                const cardTex = new THREE.CanvasTexture(cardCanvas);
+                const cardMat = new THREE.MeshStandardMaterial({ map: cardTex, transparent: true, roughness: 0.1 });
+                const mainCard = new THREE.Mesh(new THREE.PlaneGeometry(16, 9), cardMat);
+                mainCard.position.set(0, 0, 0);
+                scene.add(mainCard);
+                activeMeshes.push(mainCard);
+
+                // Contract Cards
+                [-22, 22].forEach((x, i) => {
+                    const subCanvas = document.createElement('canvas');
+                    subCanvas.width = 380;
+                    subCanvas.height = 180;
+                    const sctx = subCanvas.getContext('2d');
+
+                    sctx.fillStyle = 'rgba(8, 30, 45, 0.95)';
+                    sctx.strokeStyle = '#06b6d4';
+                    sctx.lineWidth = 5;
+                    sctx.beginPath();
+                    sctx.roundRect(8, 8, 364, 164, 16);
+                    sctx.fill();
+                    sctx.stroke();
+
+                    sctx.fillStyle = '#22d3ee';
+                    sctx.font = 'bold 18px monospace';
+                    sctx.fillText(i === 0 ? '🏗️ interface PaymentRequest' : '🏗️ interface PaymentResponse', 25, 45);
+                    sctx.fillStyle = '#94a3b8';
+                    sctx.font = '15px monospace';
+                    sctx.fillText(i === 0 ? '  userId: string;' : '  success: boolean;', 25, 80);
+                    sctx.fillText(i === 0 ? '  amount: number;' : '  transactionId: string;', 25, 110);
+                    sctx.fillText(i === 0 ? '  currency: "USD";' : '  timestamp: number;', 25, 140);
+
+                    const subTex = new THREE.CanvasTexture(subCanvas);
+                    const subCard = new THREE.Mesh(new THREE.PlaneGeometry(11, 5.5), new THREE.MeshStandardMaterial({ map: subTex, transparent: true }));
+                    subCard.position.set(x, i === 0 ? 4 : -4, 4);
+                    scene.add(subCard);
+                    activeMeshes.push(subCard);
+
+                    const line = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), subCard.position]),
+                        new THREE.LineBasicMaterial({ color: 0x06b6d4, opacity: 0.8, transparent: true })
+                    );
+                    scene.add(line);
+                    activeLines.push(line);
+                });
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (spinningCore) {
+                spinningCore.rotation.x += 0.008;
+                spinningCore.rotation.y += 0.012;
+            }
+
+            rings.forEach(r => {
+                r.mesh.rotation.x += r.speedX;
+                r.mesh.rotation.y += r.speedY;
+            });
+
+            if (!isDragging) {
+                rotY += 0.0025;
+                updateCamera();
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
