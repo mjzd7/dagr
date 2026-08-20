@@ -1,3 +1,4 @@
+pub mod daemon;
 pub mod server;
 pub mod skills_installer;
 pub mod tui;
@@ -291,6 +292,20 @@ pub enum Commands {
                         dagr status"
     )]
     Status,
+
+    /// Start or manage the Distributed Blake3 Remote Monorepo AST Cache Daemon
+    #[command(
+        name = "daemon",
+        about = "Distributed remote monorepo AST cache daemon",
+        long_about = "Accelerates multi-developer monorepos by sharing pre-indexed Blake3 AST symbols over TCP/HTTP.\n\n\
+                      EXAMPLES:\n  \
+                        dagr daemon --port 4444"
+    )]
+    Daemon {
+        /// Port to listen on (default: 4444)
+        #[arg(short = 'p', long, default_value_t = 4444)]
+        port: u16,
+    },
 }
 
 #[derive(Subcommand, Debug, PartialEq)]
@@ -418,6 +433,10 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
         Commands::Login { key, org, url } => handle_login(key.as_deref(), org.as_deref(), &url),
         Commands::Sync { workspace } => handle_sync(&workspace),
         Commands::Status => handle_status(),
+        Commands::Daemon { port } => {
+            let daemon = daemon::CacheDaemon::new(port);
+            daemon.run().await
+        }
     };
 
     // Show non-blocking update notification on stderr if available
@@ -1394,5 +1413,9 @@ mod tests {
         let args_status = vec!["dagr", "status"];
         let cli_status = Cli::try_parse_from(args_status).expect("CLI parsing failed");
         assert_eq!(cli_status.command, Commands::Status);
+
+        let args_daemon = vec!["dagr", "daemon", "--port", "5555"];
+        let cli_daemon = Cli::try_parse_from(args_daemon).expect("CLI parsing failed");
+        assert_eq!(cli_daemon.command, Commands::Daemon { port: 5555 });
     }
 }
