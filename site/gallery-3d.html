@@ -49,9 +49,9 @@
             <div>
                 <div class="flex items-center space-x-2">
                     <h1 class="text-lg font-bold text-white font-mono tracking-tight">DAGR Neon Bloom 3D Environment Studio</h1>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Concentric Globe Alignment</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">120° Asymmetrical Orbit</span>
                 </div>
-                <p class="text-xs text-zinc-400 font-mono">Green Core Centered • Blue Contracts Inside Globe • Diametric Laser Axis Passing Through Core</p>
+                <p class="text-xs text-zinc-400 font-mono">Green Core Centered • Blue Contracts at 120° Separation & Asymmetrical Arm Lengths</p>
             </div>
         </div>
 
@@ -84,7 +84,7 @@
                 </span>
                 <span class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-full bg-[#06b6d4] inline-block shadow-[0_0_12px_#06b6d4]"></span>
-                    <strong class="text-cyan-300">Hoisted Contracts (Inside Globe)</strong>
+                    <strong class="text-cyan-300">Hoisted Contracts (120° Gap, Inside Globe)</strong>
                 </span>
                 <span class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-full bg-[#ef4444] inline-block shadow-[0_0_8px_#ef4444]"></span>
@@ -132,11 +132,11 @@
 
         <!-- Quick Interaction Hint (Bottom-Right) -->
         <div class="absolute bottom-8 right-8 glass-panel px-3.5 py-2 rounded-xl text-[11px] font-mono text-zinc-400 border border-white/10 hidden sm:flex items-center space-x-2 pointer-events-none">
-            <span>⚡ Cyan conduits pass through core • Click any node for shockwaves</span>
+            <span>⚡ 120° orbital satellites • Click any node for shockwaves</span>
         </div>
     </main>
 
-    <!-- Atmospheric 3D Force Graph Engine Script with Diametric Concentric Alignment -->
+    <!-- Atmospheric 3D Force Graph Engine Script with 120-Degree Separation and Asymmetrical Arms -->
     <script>
         let Graph = null;
         let bloomPass = null;
@@ -162,18 +162,18 @@
                 nodes: [
                     // 1. Green Target Core strictly centered at (0, 0, 0)
                     { id: 'processPayment', name: '🎯 processPayment()', group: 'target', tokens: 180, desc: '🎯 Target Function: Central business logic symbol requested by prompt.', fx: 0, fy: 0, fz: 0 },
-                    // 2. Cyan Blue Contract Nodes: Locked inside globe (radius ~45 < 68) along a diametric axis passing through (0,0,0)
-                    { id: 'PaymentPayload', name: '🏗️ PaymentPayload', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Input interface hoisted to prevent hallucinated params.', fx: -36, fy: 18, fz: 22 },
-                    { id: 'PaymentReceipt', name: '🏗️ PaymentReceipt', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Return type interface hoisted for deterministic type safety.', fx: 36, fy: -18, fz: -22 },
+                    // 2. Cyan Blue Contract Nodes: 120° angular gap, different arm lengths (r1 = 35, r2 = 49), both inside globe (R = 68)
+                    { id: 'PaymentPayload', name: '🏗️ PaymentPayload', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Input interface hoisted to prevent hallucinated params.', fx: 34, fy: 10, fz: 8 },      // Short arm: ~35 units
+                    { id: 'PaymentReceipt', name: '🏗️ PaymentReceipt', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Return type interface hoisted for deterministic type safety.', fx: -24, fy: -12, fz: 41 },  // Long arm (120° gap): ~49 units
                     // 3. Pruned Bloat outside the globe mesh (radius > 100 > 68)
                     { id: 'DatabasePool', name: '✂️ DatabasePool', group: 'pruned', tokens: 1850, desc: '✂️ Pruned Monolith Code: 400 lines of raw SQL connection pooling omitted.', fx: -105, fy: 50, fz: -40 },
                     { id: 'StripeClient', name: '✂️ StripeClient', group: 'pruned', tokens: 2400, desc: '✂️ Pruned Monolith Code: Entire Stripe SDK bindings omitted (-95% bloat).', fx: 115, fy: 40, fz: 55 },
-                    { id: 'NotificationService', name: '✂️ NotificationService', group: 'pruned', tokens: 1200, desc: '✂️ Pruned Monolith Code: Unrelated transactional email & SMS workers pruned.', fx: -50, fy: -85, z: 95, fz: 95 },
+                    { id: 'NotificationService', name: '✂️ NotificationService', group: 'pruned', tokens: 1200, desc: '✂️ Pruned Monolith Code: Unrelated transactional email & SMS workers pruned.', fx: -50, fy: -85, fz: 95 },
                     { id: 'AuditLogger', name: '✂️ AuditLogger', group: 'pruned', tokens: 890, desc: '✂️ Pruned Monolith Code: Compliance disk logging omitted from context.', fx: 85, fy: -80, fz: -90 },
                     { id: 'TaxCalculator', name: '✂️ TaxCalculator', group: 'pruned', tokens: 1450, desc: '✂️ Pruned Monolith Code: State sales tax matrix omitted from prompt.', fx: -100, fy: 20, fz: 105 }
                 ],
                 links: [
-                    // Cyan links connecting both blue nodes straight through the center (0,0,0) of the green sphere
+                    // Cyan links connecting blue nodes to the center (0,0,0) of the green sphere at 120° angle
                     { source: 'PaymentPayload', target: 'processPayment', value: 3 },
                     { source: 'PaymentReceipt', target: 'processPayment', value: 3 },
                     // Pruned links from outside
@@ -188,8 +188,8 @@
                 name: 'Python (JWT Auth)',
                 nodes: [
                     { id: 'verify_token', name: '🎯 verify_token()', group: 'target', tokens: 140, desc: '🎯 Target Function: JWT HMAC verification logic requested by prompt.', fx: 0, fy: 0, fz: 0 },
-                    { id: 'AuthToken', name: '🏗️ AuthToken', group: 'contract', tokens: 40, desc: '🏗️ Pydantic Contract: JWT payload schema hoisted for validation.', fx: -35, fy: 18, fz: -20 },
-                    { id: 'TokenValidationResult', name: '🏗️ TokenValidationResult', group: 'contract', tokens: 35, desc: '🏗️ Pydantic Contract: Output schema hoisted to guarantee type safety.', fx: 35, fy: -18, fz: 20 },
+                    { id: 'AuthToken', name: '🏗️ AuthToken', group: 'contract', tokens: 40, desc: '🏗️ Pydantic Contract: JWT payload schema hoisted for validation.', fx: 32, fy: 12, fz: -10 },
+                    { id: 'TokenValidationResult', name: '🏗️ TokenValidationResult', group: 'contract', tokens: 35, desc: '🏗️ Pydantic Contract: Output schema hoisted to guarantee type safety.', fx: -22, fy: -14, fz: 42 },
                     { id: 'RateLimiter', name: '✂️ RateLimiter', group: 'pruned', tokens: 1600, desc: '✂️ Pruned Code: Redis sliding window rate-limiter omitted.', fx: -105, fy: 45, fz: 55 },
                     { id: 'UserRecord', name: '✂️ UserRecord', group: 'pruned', tokens: 2100, desc: '✂️ Pruned Code: SQLAlchemy ORM models pruned.', fx: 110, fy: -40, fz: -65 },
                     { id: 'get_db', name: '✂️ get_db', group: 'pruned', tokens: 750, desc: '✂️ Pruned Code: Session dependency provider omitted.', fx: -50, fy: -90, fz: -85 },
@@ -208,8 +208,8 @@
                 name: 'Rust (SQLite Storage)',
                 nodes: [
                     { id: 'open_database', name: '🎯 open_database()', group: 'target', tokens: 190, desc: '🎯 Target Function: SQLite connection builder requested by prompt.', fx: 0, fy: 0, fz: 0 },
-                    { id: 'DbConfig', name: '🏗️ DbConfig', group: 'contract', tokens: 50, desc: '🏗️ Rust Struct: Connection config struct hoisted for compiler contracts.', fx: -38, fy: 16, fz: 18 },
-                    { id: 'StorageMetrics', name: '🏗️ StorageMetrics', group: 'contract', tokens: 45, desc: '🏗️ Rust Struct: Telemetry metrics struct hoisted for return typing.', fx: 38, fy: -16, fz: -18 },
+                    { id: 'DbConfig', name: '🏗️ DbConfig', group: 'contract', tokens: 50, desc: '🏗️ Rust Struct: Connection config struct hoisted for compiler contracts.', fx: 35, fy: 14, fz: 10 },
+                    { id: 'StorageMetrics', name: '🏗️ StorageMetrics', group: 'contract', tokens: 45, desc: '🏗️ Rust Struct: Telemetry metrics struct hoisted for return typing.', fx: -25, fy: -10, fz: 44 },
                     { id: 'RawPool', name: '✂️ RawPool', group: 'pruned', tokens: 2200, desc: '✂️ Pruned Code: Mutex pool locks & thread allocator pruned.', fx: -115, fy: 45, fz: -55 },
                     { id: 'WalSyncWorker', name: '✂️ WalSyncWorker', group: 'pruned', tokens: 1750, desc: '✂️ Pruned Code: WAL disk fsync background daemon pruned.', fx: 110, fy: 60, fz: 70 },
                     { id: 'SchemaMigration', name: '✂️ SchemaMigration', group: 'pruned', tokens: 3100, desc: '✂️ Pruned Code: Multi-version schema migrations pruned.', fx: -65, fy: -85, fz: 100 },
@@ -336,7 +336,7 @@
                 .nodeVal(node => getNodeVal(node))
                 .nodeColor(node => getNodeColor(node))
                 .nodeResolution(24)
-                // Animated glowing energy particle beams on connection lines passing straight through center
+                // Animated glowing energy particle beams on connection lines
                 .linkDirectionalParticles(link => link.value > 1 ? 5 : 1)
                 .linkDirectionalParticleSpeed(link => link.value > 1 ? 0.009 : 0.002)
                 .linkDirectionalParticleWidth(link => link.value > 1 ? 3.2 : 1.2)
