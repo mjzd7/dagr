@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAGR 🪐 Neon Bloom 3D Force Graph with Atmospheric Cyberpunk Environment</title>
+    <title>DAGR 🪐 Interactive Context Boundary Physics & Enforcement Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
     <script src="https://unpkg.com/three@0.160.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -34,7 +34,14 @@
             box-shadow: 0 0 35px -2px rgba(6, 182, 212, 0.5);
         }
         .glow-red {
-            box-shadow: 0 0 35px -2px rgba(239, 68, 68, 0.4);
+            box-shadow: 0 0 35px -2px rgba(239, 68, 68, 0.5);
+        }
+        .toast-pop {
+            animation: toast-slide 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes toast-slide {
+            0% { opacity: 0; transform: translate(-50%, -20px) scale(0.95); }
+            100% { opacity: 1; transform: translate(-50%, 0px) scale(1); }
         }
     </style>
 </head>
@@ -48,10 +55,10 @@
             </div>
             <div>
                 <div class="flex items-center space-x-2">
-                    <h1 class="text-lg font-bold text-white font-mono tracking-tight">DAGR Neon Bloom 3D Environment Studio</h1>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">120° Asymmetrical Orbit</span>
+                    <h1 class="text-lg font-bold text-white font-mono tracking-tight">DAGR Context Boundary Enforcement Studio</h1>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Interactive Physics Guard</span>
                 </div>
-                <p class="text-xs text-zinc-400 font-mono">Green Core Centered • Blue Contracts at 120° Separation & Asymmetrical Arm Lengths</p>
+                <p class="text-xs text-zinc-400 font-mono">Try dragging blue contracts outside or red bloat inside the globe to see AST boundary rules in action</p>
             </div>
         </div>
 
@@ -84,11 +91,11 @@
                 </span>
                 <span class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-full bg-[#06b6d4] inline-block shadow-[0_0_12px_#06b6d4]"></span>
-                    <strong class="text-cyan-300">Hoisted Contracts (120° Gap, Inside Globe)</strong>
+                    <strong class="text-cyan-300">Hoisted Contracts (Locked Inside Globe)</strong>
                 </span>
                 <span class="flex items-center space-x-1.5">
                     <span class="w-3 h-3 rounded-full bg-[#ef4444] inline-block shadow-[0_0_8px_#ef4444]"></span>
-                    <span class="text-red-400/80">Pruned Bloat (Outside Globe -95%)</span>
+                    <span class="text-red-400/80">Pruned Bloat (Blocked from Globe)</strong>
                 </span>
             </div>
 
@@ -112,6 +119,19 @@
         <!-- 3D WebGL Canvas Host Container -->
         <div id="3d-graph" class="flex-1 w-full h-[600px] rounded-2xl bg-[#030508] relative overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing mt-3"></div>
 
+        <!-- Dynamic Context Boundary Violation Toast Banner -->
+        <div id="boundary-toast" class="hidden absolute top-24 left-1/2 -translate-x-1/2 max-w-xl w-full mx-auto px-4 z-50 pointer-events-none">
+            <div id="toast-inner-card" class="glass-panel p-4 rounded-2xl border shadow-2xl space-y-1.5 toast-pop">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg" id="toast-icon">🛡️</span>
+                    <strong class="text-xs font-mono font-bold" id="toast-title">BOUNDARY ENFORCEMENT NOTICE</strong>
+                </div>
+                <p class="text-xs text-zinc-300 font-mono leading-relaxed" id="toast-message">
+                    Contract nodes are required to stay in context.
+                </p>
+            </div>
+        </div>
+
         <!-- Live Floating Node Details Card (Bottom-Left HUD) -->
         <div id="node-info-card" class="glass-panel absolute bottom-8 left-8 max-w-sm rounded-2xl p-4 space-y-2 border border-emerald-500/40 shadow-2xl transition-all duration-300 glow-emerald">
             <div class="flex items-center justify-between border-b border-white/10 pb-2">
@@ -132,11 +152,11 @@
 
         <!-- Quick Interaction Hint (Bottom-Right) -->
         <div class="absolute bottom-8 right-8 glass-panel px-3.5 py-2 rounded-xl text-[11px] font-mono text-zinc-400 border border-white/10 hidden sm:flex items-center space-x-2 pointer-events-none">
-            <span>⚡ 120° orbital satellites • Click any node for shockwaves</span>
+            <span>✋ Drag blue/red nodes across globe boundary to test AST rules</span>
         </div>
     </main>
 
-    <!-- Atmospheric 3D Force Graph Engine Script with 120-Degree Separation and Asymmetrical Arms -->
+    <!-- Atmospheric 3D Force Graph Engine Script with Dynamic Boundary Guard -->
     <script>
         let Graph = null;
         let bloomPass = null;
@@ -149,6 +169,7 @@
         let starParticles = null;
         let gridHelper = null;
         let shockwaveRings = [];
+        let toastTimeout = null;
 
         let highlightNodes = new Set();
         let highlightLinks = new Set();
@@ -162,21 +183,19 @@
                 nodes: [
                     // 1. Green Target Core strictly centered at (0, 0, 0)
                     { id: 'processPayment', name: '🎯 processPayment()', group: 'target', tokens: 180, desc: '🎯 Target Function: Central business logic symbol requested by prompt.', fx: 0, fy: 0, fz: 0 },
-                    // 2. Cyan Blue Contract Nodes: 120° angular gap, different arm lengths (r1 = 35, r2 = 49), both inside globe (R = 68)
-                    { id: 'PaymentPayload', name: '🏗️ PaymentPayload', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Input interface hoisted to prevent hallucinated params.', fx: 34, fy: 10, fz: 8 },      // Short arm: ~35 units
-                    { id: 'PaymentReceipt', name: '🏗️ PaymentReceipt', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Return type interface hoisted for deterministic type safety.', fx: -24, fy: -12, fz: 41 },  // Long arm (120° gap): ~49 units
+                    // 2. Cyan Blue Contract Nodes: 120° angular gap, different arm lengths (r1 = 35, r2 = 49), strictly inside globe
+                    { id: 'PaymentPayload', name: '🏗️ PaymentPayload', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Input interface hoisted to prevent hallucinated params.', fx: 34, fy: 10, fz: 8, baseFx: 34, baseFy: 10, baseFz: 8 },
+                    { id: 'PaymentReceipt', name: '🏗️ PaymentReceipt', group: 'contract', tokens: 45, desc: '🏗️ Upstream Contract: Return type interface hoisted for deterministic type safety.', fx: -24, fy: -12, fz: 41, baseFx: -24, baseFy: -12, baseFz: 41 },
                     // 3. Pruned Bloat outside the globe mesh (radius > 100 > 68)
-                    { id: 'DatabasePool', name: '✂️ DatabasePool', group: 'pruned', tokens: 1850, desc: '✂️ Pruned Monolith Code: 400 lines of raw SQL connection pooling omitted.', fx: -105, fy: 50, fz: -40 },
-                    { id: 'StripeClient', name: '✂️ StripeClient', group: 'pruned', tokens: 2400, desc: '✂️ Pruned Monolith Code: Entire Stripe SDK bindings omitted (-95% bloat).', fx: 115, fy: 40, fz: 55 },
-                    { id: 'NotificationService', name: '✂️ NotificationService', group: 'pruned', tokens: 1200, desc: '✂️ Pruned Monolith Code: Unrelated transactional email & SMS workers pruned.', fx: -50, fy: -85, fz: 95 },
-                    { id: 'AuditLogger', name: '✂️ AuditLogger', group: 'pruned', tokens: 890, desc: '✂️ Pruned Monolith Code: Compliance disk logging omitted from context.', fx: 85, fy: -80, fz: -90 },
-                    { id: 'TaxCalculator', name: '✂️ TaxCalculator', group: 'pruned', tokens: 1450, desc: '✂️ Pruned Monolith Code: State sales tax matrix omitted from prompt.', fx: -100, fy: 20, fz: 105 }
+                    { id: 'DatabasePool', name: '✂️ DatabasePool', group: 'pruned', tokens: 1850, desc: '✂️ Pruned Monolith Code: 400 lines of raw SQL connection pooling omitted.', fx: -105, fy: 50, fz: -40, baseFx: -105, baseFy: 50, baseFz: -40 },
+                    { id: 'StripeClient', name: '✂️ StripeClient', group: 'pruned', tokens: 2400, desc: '✂️ Pruned Monolith Code: Entire Stripe SDK bindings omitted (-95% bloat).', fx: 115, fy: 40, fz: 55, baseFx: 115, baseFy: 40, baseFz: 55 },
+                    { id: 'NotificationService', name: '✂️ NotificationService', group: 'pruned', tokens: 1200, desc: '✂️ Pruned Monolith Code: Unrelated transactional email & SMS workers pruned.', fx: -50, fy: -85, fz: 95, baseFx: -50, baseFy: -85, baseFz: 95 },
+                    { id: 'AuditLogger', name: '✂️ AuditLogger', group: 'pruned', tokens: 890, desc: '✂️ Pruned Monolith Code: Compliance disk logging omitted from context.', fx: 85, fy: -80, fz: -90, baseFx: 85, baseFy: -80, baseFz: -90 },
+                    { id: 'TaxCalculator', name: '✂️ TaxCalculator', group: 'pruned', tokens: 1450, desc: '✂️ Pruned Monolith Code: State sales tax matrix omitted from prompt.', fx: -100, fy: 20, fz: 105, baseFx: -100, baseFy: 20, baseFz: 105 }
                 ],
                 links: [
-                    // Cyan links connecting blue nodes to the center (0,0,0) of the green sphere at 120° angle
                     { source: 'PaymentPayload', target: 'processPayment', value: 3 },
                     { source: 'PaymentReceipt', target: 'processPayment', value: 3 },
-                    // Pruned links from outside
                     { source: 'DatabasePool', target: 'processPayment', value: 0.5 },
                     { source: 'StripeClient', target: 'processPayment', value: 0.5 },
                     { source: 'NotificationService', target: 'processPayment', value: 0.5 },
@@ -188,12 +207,12 @@
                 name: 'Python (JWT Auth)',
                 nodes: [
                     { id: 'verify_token', name: '🎯 verify_token()', group: 'target', tokens: 140, desc: '🎯 Target Function: JWT HMAC verification logic requested by prompt.', fx: 0, fy: 0, fz: 0 },
-                    { id: 'AuthToken', name: '🏗️ AuthToken', group: 'contract', tokens: 40, desc: '🏗️ Pydantic Contract: JWT payload schema hoisted for validation.', fx: 32, fy: 12, fz: -10 },
-                    { id: 'TokenValidationResult', name: '🏗️ TokenValidationResult', group: 'contract', tokens: 35, desc: '🏗️ Pydantic Contract: Output schema hoisted to guarantee type safety.', fx: -22, fy: -14, fz: 42 },
-                    { id: 'RateLimiter', name: '✂️ RateLimiter', group: 'pruned', tokens: 1600, desc: '✂️ Pruned Code: Redis sliding window rate-limiter omitted.', fx: -105, fy: 45, fz: 55 },
-                    { id: 'UserRecord', name: '✂️ UserRecord', group: 'pruned', tokens: 2100, desc: '✂️ Pruned Code: SQLAlchemy ORM models pruned.', fx: 110, fy: -40, fz: -65 },
-                    { id: 'get_db', name: '✂️ get_db', group: 'pruned', tokens: 750, desc: '✂️ Pruned Code: Session dependency provider omitted.', fx: -50, fy: -90, fz: -85 },
-                    { id: 'send_otp_email', name: '✂️ send_otp_email', group: 'pruned', tokens: 1100, desc: '✂️ Pruned Code: SMTP mailer helper pruned.', fx: 90, fy: 75, fz: 85 }
+                    { id: 'AuthToken', name: '🏗️ AuthToken', group: 'contract', tokens: 40, desc: '🏗️ Pydantic Contract: JWT payload schema hoisted for validation.', fx: 32, fy: 12, fz: -10, baseFx: 32, baseFy: 12, baseFz: -10 },
+                    { id: 'TokenValidationResult', name: '🏗️ TokenValidationResult', group: 'contract', tokens: 35, desc: '🏗️ Pydantic Contract: Output schema hoisted to guarantee type safety.', fx: -22, fy: -14, fz: 42, baseFx: -22, baseFy: -14, baseFz: 42 },
+                    { id: 'RateLimiter', name: '✂️ RateLimiter', group: 'pruned', tokens: 1600, desc: '✂️ Pruned Code: Redis sliding window rate-limiter omitted.', fx: -105, fy: 45, fz: 55, baseFx: -105, baseFy: 45, baseFz: 55 },
+                    { id: 'UserRecord', name: '✂️ UserRecord', group: 'pruned', tokens: 2100, desc: '✂️ Pruned Code: SQLAlchemy ORM models pruned.', fx: 110, fy: -40, fz: -65, baseFx: 110, baseFy: -40, baseFz: -65 },
+                    { id: 'get_db', name: '✂️ get_db', group: 'pruned', tokens: 750, desc: '✂️ Pruned Code: Session dependency provider omitted.', fx: -50, fy: -90, fz: -85, baseFx: -50, baseFy: -90, baseFz: -85 },
+                    { id: 'send_otp_email', name: '✂️ send_otp_email', group: 'pruned', tokens: 1100, desc: '✂️ Pruned Code: SMTP mailer helper pruned.', fx: 90, fy: 75, fz: 85, baseFx: 90, baseFy: 75, baseFz: 85 }
                 ],
                 links: [
                     { source: 'AuthToken', target: 'verify_token', value: 3 },
@@ -208,12 +227,12 @@
                 name: 'Rust (SQLite Storage)',
                 nodes: [
                     { id: 'open_database', name: '🎯 open_database()', group: 'target', tokens: 190, desc: '🎯 Target Function: SQLite connection builder requested by prompt.', fx: 0, fy: 0, fz: 0 },
-                    { id: 'DbConfig', name: '🏗️ DbConfig', group: 'contract', tokens: 50, desc: '🏗️ Rust Struct: Connection config struct hoisted for compiler contracts.', fx: 35, fy: 14, fz: 10 },
-                    { id: 'StorageMetrics', name: '🏗️ StorageMetrics', group: 'contract', tokens: 45, desc: '🏗️ Rust Struct: Telemetry metrics struct hoisted for return typing.', fx: -25, fy: -10, fz: 44 },
-                    { id: 'RawPool', name: '✂️ RawPool', group: 'pruned', tokens: 2200, desc: '✂️ Pruned Code: Mutex pool locks & thread allocator pruned.', fx: -115, fy: 45, fz: -55 },
-                    { id: 'WalSyncWorker', name: '✂️ WalSyncWorker', group: 'pruned', tokens: 1750, desc: '✂️ Pruned Code: WAL disk fsync background daemon pruned.', fx: 110, fy: 60, fz: 70 },
-                    { id: 'SchemaMigration', name: '✂️ SchemaMigration', group: 'pruned', tokens: 3100, desc: '✂️ Pruned Code: Multi-version schema migrations pruned.', fx: -65, fy: -85, fz: 100 },
-                    { id: 'CompressionEngine', name: '✂️ CompressionEngine', group: 'pruned', tokens: 1400, desc: '✂️ Pruned Code: Zstd compression block engine pruned.', fx: 100, fy: -75, fz: -80 }
+                    { id: 'DbConfig', name: '🏗️ DbConfig', group: 'contract', tokens: 50, desc: '🏗️ Rust Struct: Connection config struct hoisted for compiler contracts.', fx: 35, fy: 14, fz: 10, baseFx: 35, baseFy: 14, baseFz: 10 },
+                    { id: 'StorageMetrics', name: '🏗️ StorageMetrics', group: 'contract', tokens: 45, desc: '🏗️ Rust Struct: Telemetry metrics struct hoisted for return typing.', fx: -25, fy: -10, fz: 44, baseFx: -25, baseFy: -10, baseFz: 44 },
+                    { id: 'RawPool', name: '✂️ RawPool', group: 'pruned', tokens: 2200, desc: '✂️ Pruned Code: Mutex pool locks & thread allocator pruned.', fx: -115, fy: 45, fz: -55, baseFx: -115, baseFy: 45, baseFz: -55 },
+                    { id: 'WalSyncWorker', name: '✂️ WalSyncWorker', group: 'pruned', tokens: 1750, desc: '✂️ Pruned Code: WAL disk fsync background daemon pruned.', fx: 110, fy: 60, fz: 70, baseFx: 110, baseFy: 60, baseFz: 70 },
+                    { id: 'SchemaMigration', name: '✂️ SchemaMigration', group: 'pruned', tokens: 3100, desc: '✂️ Pruned Code: Multi-version schema migrations pruned.', fx: -65, fy: -85, fz: 100, baseFx: -65, baseFy: -85, baseFz: 100 },
+                    { id: 'CompressionEngine', name: '✂️ CompressionEngine', group: 'pruned', tokens: 1400, desc: '✂️ Pruned Code: Zstd compression block engine pruned.', fx: 100, fy: -75, fz: -80, baseFx: 100, baseFy: -75, baseFz: -80 }
                 ],
                 links: [
                     { source: 'DbConfig', target: 'open_database', value: 3 },
@@ -245,6 +264,38 @@
             if (node.group === 'target') return 36;
             if (node.group === 'contract') return 20;
             return 12;
+        }
+
+        function showBoundaryToast(type, nodeName, tokens) {
+            const toast = document.getElementById('boundary-toast');
+            const card = document.getElementById('toast-inner-card');
+            const icon = document.getElementById('toast-icon');
+            const title = document.getElementById('toast-title');
+            const msg = document.getElementById('toast-message');
+
+            if (!toast || !card) return;
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+
+            if (type === 'contract_escape') {
+                icon.innerText = '🛡️';
+                title.innerText = `CANNOT EJECT CONTRACT: ${nodeName}`;
+                title.className = 'text-xs font-mono font-bold text-cyan-400';
+                msg.innerHTML = `<strong>${nodeName}</strong> is an upstream type contract required by the LLM prompt. DAGR keeps all parameter and return interfaces <strong>strictly inside the context boundary</strong> to guarantee deterministic type safety & prevent signature hallucinations.`;
+                card.className = 'glass-panel p-4 rounded-2xl border border-cyan-500/50 shadow-2xl space-y-1 toast-pop glow-cyan bg-cyan-950/40';
+            } else if (type === 'bloat_injection') {
+                icon.innerText = '🚫';
+                title.innerText = `MONOLITHIC BLOAT BLOCKED: ${nodeName}`;
+                title.className = 'text-xs font-mono font-bold text-red-400';
+                msg.innerHTML = `<strong>${nodeName}</strong> (+${tokens} tokens) is irrelevant to this query. Injecting monolithic helper bloat inside the prompt boundary causes <strong>"lost-in-the-middle" confusion</strong> and wastes 95% of your token budget.`;
+                card.className = 'glass-panel p-4 rounded-2xl border border-red-500/50 shadow-2xl space-y-1 toast-pop glow-red bg-red-950/40';
+            }
+
+            toast.classList.remove('hidden');
+
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 6000);
         }
 
         function setupAtmosphericBackground(scene) {
@@ -298,10 +349,10 @@
             scene.add(gridHelper);
         }
 
-        function triggerShockwave(x, y, z, scene) {
+        function triggerShockwave(x, y, z, scene, color = 0x10b981) {
             const ringGeo = new THREE.RingGeometry(1, 4, 32);
             const ringMat = new THREE.MeshBasicMaterial({
-                color: 0x10b981,
+                color: color,
                 side: THREE.DoubleSide,
                 transparent: true,
                 opacity: 0.9
@@ -348,6 +399,70 @@
                     return link.value > 1 ? 'rgba(6, 182, 212, 0.85)' : 'rgba(239, 68, 68, 0.25)';
                 })
                 .linkWidth(link => link.value > 1 ? 2.5 : 0.8)
+                // Interactive Node Drag & Boundary Enforcement Physics
+                .onNodeDrag((node, translate) => {
+                    const distFromCenter = Math.hypot(node.x, node.y, node.z);
+
+                    // 1. Target node is permanently locked at (0, 0, 0)
+                    if (node.group === 'target') {
+                        node.fx = 0; node.fy = 0; node.fz = 0;
+                        node.x = 0; node.y = 0; node.z = 0;
+                        return;
+                    }
+
+                    // 2. Blue Contract Nodes: Locked inside globe (dist < GLOBE_RADIUS - 8)
+                    if (node.group === 'contract') {
+                        if (distFromCenter > GLOBE_RADIUS - 6) {
+                            const scale = (GLOBE_RADIUS - 10) / distFromCenter;
+                            node.fx = node.x * scale;
+                            node.fy = node.y * scale;
+                            node.fz = node.z * scale;
+                            node.x = node.fx;
+                            node.y = node.fy;
+                            node.z = node.fz;
+
+                            triggerShockwave(node.x, node.y, node.z, Graph.scene(), 0x06b6d4);
+                            showBoundaryToast('contract_escape', node.name.replace(/^[^\w]+/, ''), node.tokens);
+                        } else {
+                            node.fx = node.x;
+                            node.fy = node.y;
+                            node.fz = node.z;
+                        }
+                    }
+
+                    // 3. Red Pruned Nodes: Repelled from entering globe (dist > GLOBE_RADIUS + 12)
+                    if (node.group === 'pruned') {
+                        if (distFromCenter < GLOBE_RADIUS + 18) {
+                            const scale = (GLOBE_RADIUS + 30) / Math.max(1, distFromCenter);
+                            node.fx = (node.x || 1) * scale;
+                            node.fy = (node.y || 1) * scale;
+                            node.fz = (node.z || 1) * scale;
+                            node.x = node.fx;
+                            node.y = node.fy;
+                            node.z = node.fz;
+
+                            triggerShockwave(node.x, node.y, node.z, Graph.scene(), 0xef4444);
+                            showBoundaryToast('bloat_injection', node.name.replace(/^[^\w]+/, ''), node.tokens);
+                        } else {
+                            node.fx = node.x;
+                            node.fy = node.y;
+                            node.fz = node.z;
+                        }
+                    }
+                })
+                .onNodeDragEnd(node => {
+                    const distFromCenter = Math.hypot(node.x, node.y, node.z);
+
+                    if (node.group === 'contract' && distFromCenter > GLOBE_RADIUS - 10) {
+                        node.fx = node.baseFx || 34;
+                        node.fy = node.baseFy || 10;
+                        node.fz = node.baseFz || 8;
+                    } else if (node.group === 'pruned' && distFromCenter < GLOBE_RADIUS + 25) {
+                        node.fx = node.baseFx || 110;
+                        node.fy = node.baseFy || 40;
+                        node.fz = node.baseFz || 55;
+                    }
+                })
                 // Interactive Hover Highlighting
                 .onNodeHover(node => {
                     highlightNodes.clear();
@@ -375,7 +490,7 @@
                 })
                 .onNodeClick(node => {
                     // Trigger Slicing Shockwave Ring
-                    triggerShockwave(node.x, node.y, node.z, Graph.scene());
+                    triggerShockwave(node.x, node.y, node.z, Graph.scene(), node.group === 'target' ? 0x10b981 : (node.group === 'contract' ? 0x06b6d4 : 0xef4444));
 
                     // Aim camera smoothly
                     const distance = 80;
@@ -471,13 +586,13 @@
                 badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30';
                 badge.innerText = '🔵 Hoisted Satellite';
                 status.className = 'text-cyan-400 font-bold';
-                status.innerText = 'HOISTED (INSIDE GLOBE)';
+                status.innerText = 'HOISTED (LOCKED IN GLOBE)';
                 card.className = 'glass-panel absolute bottom-8 left-8 max-w-sm rounded-2xl p-4 space-y-2 border border-cyan-500/40 shadow-2xl transition-all glow-cyan';
             } else {
                 badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30';
-                badge.innerText = '🔴 Pruned Orbit (-95%)';
+                badge.innerText = '🔴 Pruned Bloat (-95%)';
                 status.className = 'text-red-400 font-bold';
-                status.innerText = 'OMITTED (OUTSIDE GLOBE)';
+                status.innerText = 'OMITTED (BLOCKED FROM GLOBE)';
                 card.className = 'glass-panel absolute bottom-8 left-8 max-w-sm rounded-2xl p-4 space-y-2 border border-red-500/30 shadow-2xl transition-all glow-red';
             }
         }
