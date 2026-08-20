@@ -1,4 +1,4 @@
-// 🕸️ DAGR Layman-Friendly AST Dependency & Pruning Graph Visualizer
+// 🕸️ DAGR Layman-Friendly AST Dependency & Pruning Graph Visualizer (Perfect Responsive Alignment)
 
 class GraphVisualizer {
     constructor(canvasId, tooltipId) {
@@ -11,6 +11,8 @@ class GraphVisualizer {
         this.links = [];
         this.hoveredNode = null;
         this.selectedNode = null;
+
+        this.currentScenario = { target: 'processPayment', contracts: [], pruned: [] };
 
         this.panX = 0;
         this.panY = 0;
@@ -25,12 +27,19 @@ class GraphVisualizer {
     }
 
     resize() {
-        if (!this.canvas) return;
+        if (!this.canvas || !this.canvas.parentElement) return;
         const rect = this.canvas.parentElement.getBoundingClientRect();
-        this.canvas.width = rect.width * window.devicePixelRatio;
-        this.canvas.height = 420 * window.devicePixelRatio;
-        this.canvas.style.width = `${rect.width}px`;
-        this.canvas.style.height = `420px`;
+        const width = rect.width || window.innerWidth;
+        const height = rect.height || 480;
+
+        this.canvas.width = width * window.devicePixelRatio;
+        this.canvas.height = height * window.devicePixelRatio;
+        this.canvas.style.width = `${width}px`;
+        this.canvas.style.height = `${height}px`;
+
+        if (this.currentScenario.target) {
+            this.rebuildNodes();
+        }
         this.draw();
     }
 
@@ -51,7 +60,6 @@ class GraphVisualizer {
                 return;
             }
 
-            // Find hovered node
             const transformedX = (mouseX - this.panX) / this.zoom;
             const transformedY = (mouseY - this.panY) / this.zoom;
 
@@ -130,7 +138,7 @@ class GraphVisualizer {
         let top = clientY - containerRect.top + 15;
 
         if (left + 280 > containerRect.width) left = left - 300;
-        if (top + 120 > 420) top = top - 130;
+        if (top + 120 > containerRect.height) top = top - 130;
 
         this.tooltip.style.left = `${Math.max(10, left)}px`;
         this.tooltip.style.top = `${Math.max(10, top)}px`;
@@ -141,16 +149,23 @@ class GraphVisualizer {
     }
 
     loadScenario(targetName, contracts = [], pruned = []) {
+        this.currentScenario = { target: targetName, contracts, pruned };
+        this.rebuildNodes();
+        this.panX = 0;
+        this.panY = 0;
+        this.draw();
+    }
+
+    rebuildNodes() {
         this.nodes = [];
         this.links = [];
 
-        const centerX = (this.canvas.width / 2);
-        const centerY = (this.canvas.height / 2);
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
 
-        // 1. Target Node (Green Center)
         const targetNode = {
             id: 'target',
-            label: targetName || 'TargetFunction',
+            label: this.currentScenario.target || 'TargetFunction',
             type: 'target',
             x: centerX,
             y: centerY,
@@ -162,17 +177,16 @@ class GraphVisualizer {
         };
         this.nodes.push(targetNode);
 
-        // 2. Hoisted Contracts (Cyan Nodes surrounding target)
-        const contractList = contracts.length > 0 ? contracts : ['PayloadContract', 'ReceiptType'];
-        contractList.forEach((c, idx) => {
-            const angle = (idx / contractList.length) * Math.PI * 1.2 - Math.PI * 0.6;
-            const dist = 110 * window.devicePixelRatio;
+        const contracts = this.currentScenario.contracts.length > 0 ? this.currentScenario.contracts : ['PaymentPayload', 'PaymentReceipt'];
+        contracts.forEach((c, idx) => {
+            const angle = (idx / contracts.length) * Math.PI * 1.2 - Math.PI * 0.6;
+            const dist = 115 * window.devicePixelRatio;
             const node = {
                 id: `contract_${idx}`,
                 label: c,
                 type: 'contract',
                 x: centerX + Math.cos(angle) * dist,
-                y: centerY - Math.abs(Math.sin(angle)) * dist - 30 * window.devicePixelRatio,
+                y: centerY - Math.abs(Math.sin(angle)) * dist - 25 * window.devicePixelRatio,
                 radius: 20 * window.devicePixelRatio,
                 color: '#06b6d4',
                 status: 'HOISTED CONTRACT',
@@ -183,13 +197,12 @@ class GraphVisualizer {
             this.links.push({ from: targetNode, to: node, type: 'contract' });
         });
 
-        // 3. Pruned Background Nodes (Faded Red Nodes outside perimeter)
         const defaultPruned = ['NotificationService', 'DatabasePool', 'RefundWebhook', 'TaxCalculator', 'AuditLogger', 'ExportScript', 'MetricsWorker'];
-        const prunedList = pruned.length > 0 ? pruned : defaultPruned;
+        const prunedList = this.currentScenario.pruned.length > 0 ? this.currentScenario.pruned : defaultPruned;
 
         prunedList.forEach((p, idx) => {
             const angle = (idx / prunedList.length) * Math.PI * 2;
-            const dist = (200 + (idx % 2) * 35) * window.devicePixelRatio;
+            const dist = (190 + (idx % 2) * 35) * window.devicePixelRatio;
             const node = {
                 id: `pruned_${idx}`,
                 label: p,
@@ -205,10 +218,6 @@ class GraphVisualizer {
             this.nodes.push(node);
             this.links.push({ from: targetNode, to: node, type: 'pruned' });
         });
-
-        this.panX = 0;
-        this.panY = 0;
-        this.draw();
     }
 
     draw() {
@@ -223,19 +232,19 @@ class GraphVisualizer {
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
 
-        // Draw LLM Context Safe Perimeter Ring (Emerald Dashed Line)
+        // Draw LLM Context Boundary Ring
         ctx.beginPath();
         ctx.arc(centerX, centerY, 155 * window.devicePixelRatio, 0, Math.PI * 2);
         ctx.setLineDash([8, 8]);
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
         ctx.lineWidth = 2 * window.devicePixelRatio;
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Label for Context Boundary
-        ctx.font = `${10 * window.devicePixelRatio}px JetBrains Mono, monospace`;
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.7)';
-        ctx.fillText('⚡ DAGR LLM PROMPT BOUNDARY (95% TOKENS SAVED OUTSIDE)', centerX - 140 * window.devicePixelRatio, centerY - 165 * window.devicePixelRatio);
+        ctx.font = `bold ${10 * window.devicePixelRatio}px JetBrains Mono, monospace`;
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.8)';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ DAGR LLM PROMPT BOUNDARY (95% TOKENS SAVED OUTSIDE)', centerX, centerY - 165 * window.devicePixelRatio);
 
         // Draw Links
         for (const l of this.links) {
@@ -244,12 +253,12 @@ class GraphVisualizer {
             ctx.lineTo(l.to.x, l.to.y);
 
             if (l.type === 'contract') {
-                ctx.strokeStyle = 'rgba(6, 182, 212, 0.6)';
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.65)';
                 ctx.lineWidth = 2 * window.devicePixelRatio;
                 ctx.stroke();
             } else {
                 ctx.setLineDash([4, 4]);
-                ctx.strokeStyle = 'rgba(239, 68, 68, 0.2)';
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
                 ctx.lineWidth = 1 * window.devicePixelRatio;
                 ctx.stroke();
                 ctx.setLineDash([]);
@@ -272,7 +281,7 @@ class GraphVisualizer {
                 ctx.shadowColor = 'rgba(6, 182, 212, 0.5)';
                 ctx.shadowBlur = isHovered ? 20 : 10;
             } else {
-                ctx.fillStyle = isHovered ? 'rgba(239, 68, 68, 0.8)' : 'rgba(239, 68, 68, 0.35)';
+                ctx.fillStyle = isHovered ? 'rgba(239, 68, 68, 0.85)' : 'rgba(239, 68, 68, 0.4)';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0)';
                 ctx.shadowBlur = 0;
             }
@@ -280,13 +289,13 @@ class GraphVisualizer {
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            ctx.strokeStyle = isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.2)';
+            ctx.strokeStyle = isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.25)';
             ctx.lineWidth = 1.5 * window.devicePixelRatio;
             ctx.stroke();
 
-            // Node Text Label
+            // Text Label
             ctx.font = `${11 * window.devicePixelRatio}px JetBrains Mono, monospace`;
-            ctx.fillStyle = isHovered ? '#ffffff' : (n.type === 'pruned' ? 'rgba(244, 114, 182, 0.6)' : '#f3f4f6');
+            ctx.fillStyle = isHovered ? '#ffffff' : (n.type === 'pruned' ? 'rgba(244, 114, 182, 0.8)' : '#f3f4f6');
             ctx.textAlign = 'center';
             ctx.fillText(n.label, n.x, n.y + n.radius + 14 * window.devicePixelRatio);
         }
@@ -295,7 +304,7 @@ class GraphVisualizer {
     }
 }
 
-// Global visualizer singleton
+// Global 2D Visualizer Singleton
 let globalGraphVisualizer = null;
 
 function initGraphVisualizer() {
