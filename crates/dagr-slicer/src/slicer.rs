@@ -168,20 +168,28 @@ impl SymbolicSlicer {
         for line in code.lines() {
             let trimmed = line.trim();
             if in_block_comment {
-                if trimmed.contains("*/") || trimmed.ends_with("\"\"\"") || trimmed.ends_with("'''") {
+                if trimmed.contains("*/") || trimmed.ends_with("\"\"\"") || trimmed.ends_with("'''")
+                {
                     in_block_comment = false;
                 }
                 continue;
             }
 
-            if trimmed.starts_with("/**") || trimmed.starts_with("/*") || trimmed.starts_with("\"\"\"") || trimmed.starts_with("'''") {
+            if trimmed.starts_with("/**")
+                || trimmed.starts_with("/*")
+                || trimmed.starts_with("\"\"\"")
+                || trimmed.starts_with("'''")
+            {
                 if !trimmed.ends_with("*/") && !trimmed[3..].contains("\"\"\"") {
                     in_block_comment = true;
                 }
                 continue;
             }
 
-            if trimmed.starts_with("///") || (trimmed.starts_with("//") && !trimmed.starts_with("// ⚡")) || (trimmed.starts_with('#') && !trimmed.starts_with("#[")) {
+            if trimmed.starts_with("///")
+                || (trimmed.starts_with("//") && !trimmed.starts_with("// ⚡"))
+                || (trimmed.starts_with('#') && !trimmed.starts_with("#["))
+            {
                 continue;
             }
 
@@ -206,23 +214,21 @@ impl SymbolicSlicer {
             .lines()
             .find_map(|line| {
                 if line.contains("::") {
-                    line.split("::")
-                        .last()
-                        .map(|s| {
-                            s.split(|c: char| c.is_whitespace() || c == '\'' || c == '"' || c == '(' || c == ':')
-                                .next()
-                                .unwrap_or("")
-                                .trim()
+                    line.split("::").last().map(|s| {
+                        s.split(|c: char| {
+                            c.is_whitespace() || c == '\'' || c == '"' || c == '(' || c == ':'
                         })
+                        .next()
+                        .unwrap_or("")
+                        .trim()
+                    })
                 } else if line.contains("at ") {
-                    line.split("at ")
-                        .nth(1)
-                        .map(|s| {
-                            s.split(|c: char| c.is_whitespace() || c == '(' || c == ':')
-                                .next()
-                                .unwrap_or("")
-                                .trim()
-                        })
+                    line.split("at ").nth(1).map(|s| {
+                        s.split(|c: char| c.is_whitespace() || c == '(' || c == ':')
+                            .next()
+                            .unwrap_or("")
+                            .trim()
+                    })
                 } else {
                     None
                 }
@@ -413,8 +419,10 @@ export function createClient(config: ApiConfig) {
 }
 "#;
 
-        let mut config = SlicerConfig::default();
-        config.tier = SliceTier::MultiRubric;
+        let config = SlicerConfig {
+            tier: SliceTier::MultiRubric,
+            ..Default::default()
+        };
         let slicer = SymbolicSlicer::new(config);
 
         let slice = slicer.slice(
@@ -442,12 +450,8 @@ pub fn calculate_total(subtotal: f64) -> f64 {
 "#;
         let slicer = SymbolicSlicer::new(SlicerConfig::default());
         let trace = "thread 'tests::calculate_total' panicked at src/lib.rs:10:5";
-        let slice = slicer.slice_from_test_failure(
-            Path::new("src/lib.rs"),
-            code,
-            Language::Rust,
-            trace,
-        )?;
+        let slice =
+            slicer.slice_from_test_failure(Path::new("src/lib.rs"), code, Language::Rust, trace)?;
 
         assert_eq!(slice.target_symbol, "calculate_total");
         Ok(())

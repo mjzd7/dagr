@@ -6,4 +6,4 @@ pub mod slicer;
 pub use contracts::ContractHoister;
 pub use extractor::{AstExtractor, SymbolDef};
 pub use parser::AstParser;
-pub use slicer::{SlicerConfig, SliceTier, SymbolicSlicer};
+pub use slicer::{SliceTier, SlicerConfig, SymbolicSlicer};

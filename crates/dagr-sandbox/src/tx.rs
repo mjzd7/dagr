@@ -167,7 +167,11 @@ impl CowSandbox {
     }
 
     /// Spawns K parallel speculative branch sandboxes in <350µs (BranchFS arXiv:2602.08199 / DeltaBox arXiv:2605.22781)
-    pub fn fork_branches(workspace_root: &Path, count: usize, task_name: &str) -> Result<Vec<BranchContext>> {
+    pub fn fork_branches(
+        workspace_root: &Path,
+        count: usize,
+        task_name: &str,
+    ) -> Result<Vec<BranchContext>> {
         let mut branches = Vec::with_capacity(count);
         for i in 1..=count {
             let tx = Self::begin(workspace_root)?;
@@ -182,9 +186,14 @@ impl CowSandbox {
     }
 
     /// First-commit-wins atomic resolution: Commits the winning branch and discards all sibling branches in <10ms
-    pub fn commit_winning_branch(winner_idx: usize, mut branches: Vec<BranchContext>) -> Result<()> {
+    pub fn commit_winning_branch(
+        winner_idx: usize,
+        mut branches: Vec<BranchContext>,
+    ) -> Result<()> {
         if winner_idx >= branches.len() {
-            return Err(DagrError::Sandbox("Invalid winning branch index".to_string()));
+            return Err(DagrError::Sandbox(
+                "Invalid winning branch index".to_string(),
+            ));
         }
 
         let winner = branches.remove(winner_idx);

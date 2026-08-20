@@ -663,11 +663,12 @@ pub fn handle_context(
         .filter(|s| !s.is_empty())
         .collect();
 
-    let slice_tier = if tier.to_lowercase().contains("multi") || tier.to_lowercase().contains("lamr") {
-        dagr_slicer::SliceTier::MultiRubric
-    } else {
-        dagr_slicer::SliceTier::Standard
-    };
+    let slice_tier =
+        if tier.to_lowercase().contains("multi") || tier.to_lowercase().contains("lamr") {
+            dagr_slicer::SliceTier::MultiRubric
+        } else {
+            dagr_slicer::SliceTier::Standard
+        };
 
     let mut slices = Vec::new();
     let slicer = SymbolicSlicer::new(SlicerConfig {
@@ -1317,7 +1318,15 @@ mod tests {
 
     #[test]
     fn test_cli_parsing_branch_fork_command() {
-        let args = vec!["dagr", "branch", "fork", "--count", "3", "--task", "fix_webhook"];
+        let args = vec![
+            "dagr",
+            "branch",
+            "fork",
+            "--count",
+            "3",
+            "--task",
+            "fix_webhook",
+        ];
         let cli = Cli::try_parse_from(args).expect("CLI parsing failed");
 
         assert_eq!(
