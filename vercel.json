@@ -1,5 +1,4 @@
 {
-  "name": "dagr",
   "public": true,
   "outputDirectory": "site",
   "cleanUrls": true,

@@ -107,6 +107,7 @@ impl SkillsInstaller {
     /// Resolves target skill installation paths based on target environment
     pub fn get_target_directories(target: &str) -> Vec<PathBuf> {
         let home = std::env::var("HOME")
+            .or_else(|_| std::env::var("USERPROFILE"))
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from("."));
 

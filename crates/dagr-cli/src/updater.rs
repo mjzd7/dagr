@@ -20,7 +20,10 @@ impl AutoUpdater {
 
     /// Resolves the cache file path for update checks
     fn get_cache_path() -> Option<PathBuf> {
-        let home = std::env::var("HOME").ok().map(PathBuf::from)?;
+        let home = std::env::var("HOME")
+            .or_else(|_| std::env::var("USERPROFILE"))
+            .ok()
+            .map(PathBuf::from)?;
         Some(home.join(".dagr").join("update_cache.json"))
     }
 
