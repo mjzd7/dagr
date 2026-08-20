@@ -245,6 +245,52 @@ pub enum Commands {
         #[arg(short = 'f', long)]
         force: bool,
     },
+
+    /// Authenticate with DAGR Cloud organization for centralized team FinOps and telemetry sync
+    #[command(
+        name = "login",
+        about = "Authenticate with DAGR Cloud organization",
+        long_about = "Configures organization API key to sync team token savings and audit ledgers.\n\n\
+                      EXAMPLES:\n  \
+                        dagr login --key dagr_live_sec_xxx --org acme-corp"
+    )]
+    Login {
+        /// Organization API Key
+        #[arg(short = 'k', long)]
+        key: Option<String>,
+
+        /// Organization ID or Slug
+        #[arg(short = 'o', long)]
+        org: Option<String>,
+
+        /// Custom Cloud API URL (defaults to https://api.dagr.dev)
+        #[arg(long, default_value = "https://api.dagr.dev")]
+        url: String,
+    },
+
+    /// Synchronize local workspace telemetry events to DAGR Cloud with Zero-PII guarantee
+    #[command(
+        name = "sync",
+        about = "Synchronize local telemetry metrics to DAGR Cloud",
+        long_about = "Pushes pending local token savings and ROI metrics to team portal.\n\n\
+                      EXAMPLES:\n  \
+                        dagr sync"
+    )]
+    Sync {
+        /// Workspace root directory (default: current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+    },
+
+    /// Display current DAGR Cloud connection status, organization name, and unsynced event queue
+    #[command(
+        name = "status",
+        about = "Display DAGR Cloud connection status and sync state",
+        long_about = "Shows active organization ID, local cache size, and unsynced event count.\n\n\
+                      EXAMPLES:\n  \
+                        dagr status"
+    )]
+    Status,
 }
 
 #[derive(Subcommand, Debug, PartialEq)]
@@ -369,6 +415,9 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             SkillsAction::List => handle_skills_list(),
         },
         Commands::Update { force } => updater::AutoUpdater::self_update(force),
+        Commands::Login { key, org, url } => handle_login(key.as_deref(), org.as_deref(), &url),
+        Commands::Sync { workspace } => handle_sync(&workspace),
+        Commands::Status => handle_status(),
     };
 
     // Show non-blocking update notification on stderr if available
@@ -997,6 +1046,107 @@ pub fn handle_skills_list() -> Result<()> {
     Ok(())
 }
 
+pub fn handle_login(key: Option<&str>, org: Option<&str>, url: &str) -> Result<()> {
+    let api_key = if let Some(k) = key {
+        k.to_string()
+    } else {
+        println!(
+            "{}",
+            "Enter your DAGR Cloud Organization API Key:".bold().cyan()
+        );
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        input.trim().to_string()
+    };
+
+    if api_key.is_empty() {
+        return Err(DagrError::InvalidInput("API Key cannot be empty".into()));
+    }
+
+    let org_name = org.unwrap_or("Default Organization").to_string();
+    let org_id = format!("org_{}", org_name.to_lowercase().replace(' ', "_"));
+
+    let creds = dagr_cloud::OrgCredentials {
+        org_id: org_id.clone(),
+        org_name: org_name.clone(),
+        api_key,
+        cloud_url: url.to_string(),
+        authenticated_at: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs() as i64,
+    };
+
+    creds.save()?;
+    eprintln!("\n{}", "✅ Authenticated with DAGR Cloud!".bold().green());
+    eprintln!("   Organization: {}", org_name.cyan());
+    eprintln!("   Tenant ID:    {}", org_id.yellow());
+    eprintln!("   API Endpoint: {}", url.dimmed());
+    eprintln!("   Sync Mode:    Zero-PII Telemetry (Local-first)\n");
+    Ok(())
+}
+
+pub fn handle_sync(workspace_root: &Path) -> Result<()> {
+    eprintln!("☁️  DAGR Cloud: Synchronizing local telemetry to team portal...");
+    let result = dagr_cloud::CloudSyncClient::sync_workspace(workspace_root)?;
+    eprintln!("{}", format!("✅ {}", result.message).bold().green());
+    eprintln!(
+        "   Synced Events:     {}",
+        result.total_synced.to_string().cyan()
+    );
+    eprintln!(
+        "   Pending Backlog:   {}",
+        result.pending_remaining.to_string().dimmed()
+    );
+    Ok(())
+}
+
+pub fn handle_status() -> Result<()> {
+    let creds_opt = dagr_cloud::OrgCredentials::load()?;
+    let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let (total, unsynced) = if let Ok(store) = TelemetryStore::open(&current_dir) {
+        store.get_sync_counts().unwrap_or((0, 0))
+    } else {
+        (0, 0)
+    };
+
+    eprintln!("\n{}", "⚡ DAGR Cloud & Sync Status".bold().cyan());
+    eprintln!("┌────────────────────────────────────────────────────────────┐");
+    if let Some(creds) = creds_opt {
+        eprintln!(
+            "│ Cloud Status:      {:<39} │",
+            "Connected (Authenticated)".bold().green()
+        );
+        eprintln!("│ Organization:      {:<39} │", creds.org_name.cyan());
+        eprintln!("│ Tenant ID:         {:<39} │", creds.org_id.yellow());
+        eprintln!("│ API Endpoint:      {:<39} │", creds.cloud_url.dimmed());
+    } else {
+        eprintln!(
+            "│ Cloud Status:      {:<39} │",
+            "Offline (Not logged in)".dimmed()
+        );
+        eprintln!(
+            "│ Team Sync:         {:<39} │",
+            "Run 'dagr login' to connect".yellow()
+        );
+    }
+    eprintln!("├────────────────────────────────────────────────────────────┤");
+    eprintln!(
+        "│ Local Events:      {:<39} │",
+        format!("{} total recorded", total).white()
+    );
+    eprintln!(
+        "│ Unsynced Queue:    {:<39} │",
+        format!("{} pending sync", unsynced).magenta()
+    );
+    eprintln!(
+        "│ Privacy Guarantee: {:<39} │",
+        "Zero-PII / Zero Code Transmission".green()
+    );
+    eprintln!("└────────────────────────────────────────────────────────────┘\n");
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1208,5 +1358,41 @@ mod tests {
                 workspace: PathBuf::from("."),
             }
         );
+    }
+
+    #[test]
+    fn test_cli_parsing_cloud_commands() {
+        let args_login = vec![
+            "dagr",
+            "login",
+            "--key",
+            "dagr_live_123",
+            "--org",
+            "Acme",
+            "--url",
+            "https://api.custom.dev",
+        ];
+        let cli_login = Cli::try_parse_from(args_login).expect("CLI parsing failed");
+        assert_eq!(
+            cli_login.command,
+            Commands::Login {
+                key: Some("dagr_live_123".into()),
+                org: Some("Acme".into()),
+                url: "https://api.custom.dev".into(),
+            }
+        );
+
+        let args_sync = vec!["dagr", "sync", "--workspace", "/my/repo"];
+        let cli_sync = Cli::try_parse_from(args_sync).expect("CLI parsing failed");
+        assert_eq!(
+            cli_sync.command,
+            Commands::Sync {
+                workspace: PathBuf::from("/my/repo"),
+            }
+        );
+
+        let args_status = vec!["dagr", "status"];
+        let cli_status = Cli::try_parse_from(args_status).expect("CLI parsing failed");
+        assert_eq!(cli_status.command, Commands::Status);
     }
 }

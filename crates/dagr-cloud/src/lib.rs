@@ -1,9 +1,13 @@
 pub mod acl;
+pub mod auth;
+pub mod client;
 pub mod graph_writer;
 pub mod outbox;
 pub mod webhook;
 
 pub use acl::{AntiCorruptionLayer, CodeGraphDelta, CodeGraphEdge, EdgeType};
+pub use auth::OrgCredentials;
+pub use client::{CloudSyncClient, SyncResult, ZeroPiiTelemetryPacket};
 pub use graph_writer::CypherQueryBuilder;
 pub use outbox::OutboxEventRecord;
 pub use webhook::{GitPushPayload, WebhookVerifier};

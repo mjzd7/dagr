@@ -53,3 +53,4 @@ dagr-slicer = { path = "crates/dagr-slicer" }
 dagr-guard = { path = "crates/dagr-guard" }
 dagr-sandbox = { path = "crates/dagr-sandbox" }
 dagr-mcp = { path = "crates/dagr-mcp" }
+dagr-cloud = { path = "crates/dagr-cloud" }

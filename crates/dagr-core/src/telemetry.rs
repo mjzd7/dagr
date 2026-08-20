@@ -177,12 +177,14 @@ impl TelemetryStore {
                  tokens_saved INTEGER NOT NULL DEFAULT 0,
                  latency_us INTEGER NOT NULL DEFAULT 0,
                  status TEXT NOT NULL DEFAULT 'success',
+                 synced INTEGER NOT NULL DEFAULT 0,
                  extra_json TEXT
              );
 
              CREATE INDEX IF NOT EXISTS idx_telemetry_time ON telemetry_events(timestamp);
              CREATE INDEX IF NOT EXISTS idx_telemetry_client ON telemetry_events(client_id);
-             CREATE INDEX IF NOT EXISTS idx_telemetry_type ON telemetry_events(event_type);",
+             CREATE INDEX IF NOT EXISTS idx_telemetry_type ON telemetry_events(event_type);
+             CREATE INDEX IF NOT EXISTS idx_telemetry_synced ON telemetry_events(synced);",
         )
         .map_err(|e| DagrError::Storage(format!("Failed to initialize telemetry schema: {}", e)))?;
 
@@ -446,6 +448,77 @@ impl TelemetryStore {
         }
 
         Ok(csv)
+    }
+
+    /// Fetches pending unsynced events for cloud batch synchronization
+    pub fn get_unsynced_events(&self, limit: usize) -> Result<Vec<TelemetryEvent>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, timestamp, client_id, event_type, file_path, symbol_name,
+                    raw_tokens, sliced_tokens, tokens_saved, latency_us, status, extra_json
+             FROM telemetry_events
+             WHERE synced = 0
+             ORDER BY timestamp ASC
+             LIMIT ?1",
+        )?;
+
+        let rows = stmt.query_map(params![limit as i64], |row| {
+            Ok(TelemetryEvent {
+                id: row.get(0)?,
+                timestamp: row.get(1)?,
+                client_id: row.get(2)?,
+                event_type: row.get(3)?,
+                file_path: row.get(4)?,
+                symbol_name: row.get(5)?,
+                raw_tokens: row.get::<_, i64>(6)? as usize,
+                sliced_tokens: row.get::<_, i64>(7)? as usize,
+                tokens_saved: row.get::<_, i64>(8)? as usize,
+                latency_us: row.get::<_, i64>(9)? as u64,
+                status: row.get(10)?,
+                extra_json: row.get(11)?,
+            })
+        })?;
+
+        let mut events = Vec::new();
+        for r in rows {
+            events.push(r?);
+        }
+        Ok(events)
+    }
+
+    /// Marks a batch of event IDs as synced
+    pub fn mark_events_synced(&self, event_ids: &[String]) -> Result<()> {
+        if event_ids.is_empty() {
+            return Ok(());
+        }
+
+        let mut stmt = self
+            .conn
+            .prepare("UPDATE telemetry_events SET synced = 1 WHERE id = ?1")?;
+
+        for id in event_ids {
+            stmt.execute(params![id])?;
+        }
+
+        Ok(())
+    }
+
+    /// Returns counts of (total_events, unsynced_events)
+    pub fn get_sync_counts(&self) -> Result<(usize, usize)> {
+        let total: i64 = self
+            .conn
+            .query_row("SELECT COUNT(*) FROM telemetry_events", [], |r| r.get(0))
+            .unwrap_or(0);
+
+        let unsynced: i64 = self
+            .conn
+            .query_row(
+                "SELECT COUNT(*) FROM telemetry_events WHERE synced = 0",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
+
+        Ok((total as usize, unsynced as usize))
     }
 }
 
