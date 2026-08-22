@@ -203,7 +203,9 @@ mod tests {
             json!({ "source_file": "src/x.ts" }),
         );
         assert_eq!(v["result"]["isError"], json!(true));
-        let text = v["result"]["content"][0]["text"].as_str().unwrap_or_default();
+        let text = v["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap_or_default();
         assert!(
             text.contains("Missing required argument 'proposed_imports'"),
             "was: {text}"
@@ -220,11 +222,10 @@ mod tests {
             json!({ "source_file": "src/x.ts", "proposed_imports": "not-an-array" }),
         );
         assert_eq!(v["result"]["isError"], json!(true));
-        let text = v["result"]["content"][0]["text"].as_str().unwrap_or_default();
-        assert!(
-            text.contains("must be an array of strings"),
-            "was: {text}"
-        );
+        let text = v["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap_or_default();
+        assert!(text.contains("must be an array of strings"), "was: {text}");
     }
 
     #[test]
@@ -232,7 +233,9 @@ mod tests {
         let server = McpServer::new(PathBuf::from("."));
         let v = call_tool(&server, 13, "dagr_execute_sandboxed", json!({}));
         assert_eq!(v["result"]["isError"], json!(true));
-        let text = v["result"]["content"][0]["text"].as_str().unwrap_or_default();
+        let text = v["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap_or_default();
         assert!(
             text.contains("Missing required argument 'command'"),
             "was: {text}"
@@ -248,7 +251,9 @@ mod tests {
         let server = McpServer::new(PathBuf::from("."));
         let v = call_tool(&server, 14, "dagr_a2a_handshake", json!({}));
         assert_eq!(v["result"]["isError"], json!(true));
-        let text = v["result"]["content"][0]["text"].as_str().unwrap_or_default();
+        let text = v["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap_or_default();
         assert!(
             text.contains("Missing required argument 'agent_id'"),
             "was: {text}"
@@ -267,11 +272,20 @@ mod tests {
                 "proposed_imports": ["node:fs"]
             }),
         );
-        assert!(v.get("error").is_none() || v["error"].is_null(), "rpc error: {v}");
+        assert!(
+            v.get("error").is_none() || v["error"].is_null(),
+            "rpc error: {v}"
+        );
         if v["result"]["isError"] != json!(true) {
-            let text = v["result"]["content"][0]["text"].as_str().unwrap_or_default();
+            let text = v["result"]["content"][0]["text"]
+                .as_str()
+                .unwrap_or_default();
             let inner: Value = serde_json::from_str(text).unwrap();
-            assert_eq!(inner["valid"], json!(true), "clean imports must be valid: {inner}");
+            assert_eq!(
+                inner["valid"],
+                json!(true),
+                "clean imports must be valid: {inner}"
+            );
             assert_eq!(inner["violations_count"], json!(0));
         }
     }
@@ -286,7 +300,9 @@ mod tests {
             "dagr_verify_architecture",
             json!({ "source_file": "src/x.ts", "proposed_imports": ["node:fs"] }),
         );
-        let text = v["result"]["content"][0]["text"].as_str().unwrap_or_default();
+        let text = v["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap_or_default();
         let inner: Value = serde_json::from_str(text).unwrap();
         assert_eq!(inner["rules_source"], json!("preset"));
         assert!(inner["active_rules"].as_u64().unwrap_or(0) > 0);
@@ -310,7 +326,9 @@ mod tests {
             "dagr_verify_architecture",
             json!({ "source_file": "src/ui/A.ts", "proposed_imports": ["src/db/client"] }),
         );
-        let text = v["result"]["content"][0]["text"].as_str().unwrap_or_default();
+        let text = v["result"]["content"][0]["text"]
+            .as_str()
+            .unwrap_or_default();
         let inner: Value = serde_json::from_str(text).unwrap();
         assert_eq!(inner["rules_source"], json!("file"));
         assert_eq!(inner["active_rules"], json!(1));
