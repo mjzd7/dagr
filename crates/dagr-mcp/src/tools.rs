@@ -30,9 +30,9 @@ impl ToolRegistry {
 
     fn required_str<'a>(&self, args: &'a Value, key: &str) -> Result<&'a str> {
         match args.get(key) {
-            Some(v) => v.as_str().ok_or_else(|| {
-                DagrError::Config(format!("Argument '{key}' must be a string"))
-            }),
+            Some(v) => v
+                .as_str()
+                .ok_or_else(|| DagrError::Config(format!("Argument '{key}' must be a string"))),
             None => Err(DagrError::Config(format!(
                 "Missing required argument '{key}'"
             ))),
@@ -52,13 +52,9 @@ impl ToolRegistry {
         };
         arr.iter()
             .map(|v| {
-                v.as_str()
-                    .map(|s| s.to_string())
-                    .ok_or_else(|| {
-                        DagrError::Config(format!(
-                            "Argument '{key}' must contain only strings"
-                        ))
-                    })
+                v.as_str().map(|s| s.to_string()).ok_or_else(|| {
+                    DagrError::Config(format!("Argument '{key}' must contain only strings"))
+                })
             })
             .collect()
     }
@@ -75,7 +71,7 @@ impl ToolRegistry {
                     "properties": {
                         "file_path": { "type": "string", "description": "Relative path to target file (e.g. src/billing/charge.ts)" },
                         "symbol_name": { "type": "string", "description": "Function, method, or class name (e.g. processPayment)" },
-                        "max_depth_hops": { "type": "number", "description": "Dependency traversal depth (default: 3)" }
+                        "max_depth_hops": { "type": "number", "description": "Reserved for cross-file contract hoisting (not yet implemented); currently has no effect on single-file slices" }
                     },
                     "required": ["file_path", "symbol_name"]
                 }),
@@ -236,7 +232,12 @@ impl ToolRegistry {
             let _ = store.record_event(&ev);
         }
 
-        let rules_source = if self.workspace_root.join(".dagr").join("rules.yaml").exists() {
+        let rules_source = if self
+            .workspace_root
+            .join(".dagr")
+            .join("rules.yaml")
+            .exists()
+        {
             "file"
         } else {
             "preset"

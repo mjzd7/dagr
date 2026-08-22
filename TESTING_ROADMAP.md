@@ -144,7 +144,9 @@ Post-fix automated checks promoted into `scripts/comprehensive_test_suite.py`:
 - [x] `src/db/**` does not match `src/db-migration/x` *(F2.1)*
 - [x] Relative import `../db/client` caught by canonical pattern after resolution layer *(F2.2)*
 - [x] `require()` / dynamic `import()` / side-effect / Rust `use` / Go block lines all yield modules; comment lines yield none *(F2.4)*
-- [ ] `--depth` either functional or emits explicit unsupported warning *(F3.1)*
+- [x] `@/lib/x` style aliases resolve via root tsconfig/jsconfig paths and violate absolute rules *(F2.3)*
+- [x] Barrel re-exports attribute violations one hop; plain imports inside barrels never taint importers *(F2.5)*
+- [x] `--depth` either functional or emits explicit unsupported warning *(F3.1)*
 - [ ] `dagr mcp install --client opencode` idempotent merge *(F4.1)*
 
 ---

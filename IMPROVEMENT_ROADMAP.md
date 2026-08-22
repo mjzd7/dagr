@@ -64,10 +64,10 @@
 - **Acceptance criteria:** field-session scenario (`text-filter.ts` importing `../db/client` vs pattern `packages/core/src/db/**`) now detected; unit tests per dialect.
 - **Status:** ✅ 2026-08-22 — `resolve_relative_candidates()` performs pure-lexical resolution (`./` and `../` only, no filesystem access, hot-path safe); `check_import` matches the raw specifier OR any canonical candidate (resolved path + `/index` variant). Alias/bare specifiers untouched (F2.3/F2.4). MCP `verify_architecture` inherits automatically via `check_file_imports`. 3 new tests.
 
-### ☐ F2.3 Alias resolution (tsconfig/jsconfig paths)
+### ✅ F2.3 Alias resolution (tsconfig/jsconfig paths)
 - **Approach:** parse `tsconfig.json`/`jsconfig.json` `compilerOptions.paths` + `baseUrl`; map `@/lib/x` → workspace-relative candidates pre-match. Cache parsed maps per workspace.
 - **Acceptance criteria:** alias-import violation scenario caught in a fixture repo with standard Next.js/Vite aliases.
-- **Status:** ☐
+- **Status:** ✅ 2026-08-22 — new `dagr-guard/src/alias.rs`: `AliasMap::load()` reads root `tsconfig.json` → `jsconfig.json` fallback; JSONC-tolerant (comment + trailing-comma stripping), accepts string-or-list path values, wildcard (`@/*`) and exact (`@auth`) keys; `baseUrl` folded lexically and targets kept **workspace-relative** (absolute bases degrade to literal matching). Graceful empty-map degrade on malformed configs. Wired into `check_import` candidates. Zero new dependencies (serde_json already present). Known v1 limitation: root-level configs only — per-package monorepo tsconfigs need nearest-config lookup from source_file (deferred to Wave-1 data). 5 fixture tests.
 
 ### ✅ F2.4 Importer coverage expansion `[N3, H-R1, H-GO1]`
 - **Root cause:** `extract_imported_module` (checker.rs:121) handles TS/JS via `"from "` substring and Python prefixes only. Misses: `require("x")`, dynamic `import("x")`, side-effect `import "x";`, Rust `use` statements (**possibly all Rust imports invisible — see H-R1**), Go import blocks (single-line works accidentally via the Python branch). The substring probe also fires inside comments/strings.
@@ -75,19 +75,19 @@
 - **Acceptance criteria:** per-dialect fixtures (TS variants, Rust `use`, Go blocks, comment traps) all yield correct extracted modules; Wave 3 confirms H-R1 resolution.
 - **Status:** ✅ 2026-08-22 — extractor rewritten as ordered dialect probes: comment-line guard (kills phantom imports), Rust `use` paths (`::`→`/`, brace-group + `as` handling — **H-R1 confirmed at code level and closed**), TS/JS side-effect imports, dynamic `import()` / `require()` calls, re-export forms, Go single-line AND block lines (bare + aliased). Crate-level Rust rules (preset `tokio`) now fire via segment matching on `tokio/...` candidates. Known heuristic edge: bare two-token `alias "path"` lines outside import blocks could false-hit (guarded against `=` and trailing `;`); tree-sitter extraction remains the long-term upgrade path. 5 new fixture tests.
 
-### ☐ F2.5 Barrel/re-export following (one hop)
+### ✅ F2.5 Barrel/re-export following (one hop)
 - **Approach:** when an import resolves to an `index.ts`/mod.rs barrel, follow its re-exports one hop to attribute violations to the underlying module.
-- **Status:** ☐ (deferred until F2.2/F2.4 land)
+- **Status:** ✅ 2026-08-22 — architecture decision: **lazy per-miss barrel cache** (no load-time scan, no FS on clean paths). `ArchitectureGuard` gains `workspace_root` + `Mutex` cache; `check_import` is two-phase — direct candidate match first, and only on a miss does it probe plausible barrel files (`<cand>.{ts,tsx,js,jsx}` + `/index.*`, or as-is when the candidate already names a file), parse their **re-exports only** (`export … from` — private imports never taint importers), resolve specs against the barrel's own directory (+ alias map), cache per candidate, and retry matching once. Original specifier preserved in violations. 2 fixture tests incl. negative-twin.
 
 ---
 
 ## 🟡 Phase F3 — Slicer Honesty & Contracts (P1)
 
-### ☐ F3.1 Make `--depth` truthful `[L4, L9.4]`
+### ✅ F3.1 Make `--depth` truthful `[L4, L9.4]`
 - **Root cause (confirmed harder than reported):** `SlicerConfig.max_depth_hops` (crates/dagr-slicer/src/slicer.rs:21) is **never read** anywhere in `slice()`; contract hoisting (`contracts.rs::extract_hoisted_contracts`) walks only the *same file's* AST. Cross-file hops do not exist — the flag is not merely weak intra-file, it is fully inert.
 - **Decision point:** (a) implement multi-hop collection (parse imported files up to `max_depth_hops`, hoist referenced contracts) — larger feature, or (b) short-term honesty: CLI warns "`--depth` has no effect for single-file slices; cross-file contracts land with F3.2" and/or hides the flag. Recommend (b) now, (a) via F3.2.
 - **Acceptance criteria:** no user-visible knob that does nothing without explanation; JSON output notes contract scope honestly.
-- **Status:** ☐
+- **Status:** ✅ 2026-08-22 — option (b) shipped: `-d/--depth` is now `Option<usize>` with clap help "Reserved for cross-file contract hoisting (F3.2); currently a no-op"; explicit use emits a stderr warning naming F3.2; MCP `max_depth_hops` schema description updated identically. `SlicerConfig.max_depth_hops` retained for F3.2 consumption. CLI parse test updated to `Some(4)`. Verified: warning fires only when the flag is passed; baseline stderr chatter identical pre/post change.
 
 ### ☐ F3.2 Cross-file type-contract hoisting (depends on Testing Waves 1–3 data)
 - **Approach:** resolve import map (reuses F2.2 resolver), fetch + parse referenced files (Blake3-cached), hoist contracts across hops bounded by `max_depth_hops` and token budget.
@@ -133,3 +133,6 @@
 - **2026-08-22 (cont.):** F1.4 shipped — `mcp start --workspace/-w` + `$DAGR_WORKSPACE` override via `resolve_workspace()` (flag > env > CWD), stderr preset-fallback banner, rules-provenance fields (`workspace`/`rules_source`/`active_rules`) in guard responses. F2.1 shipped — `module_under_prefix()` segment-boundary matcher replaces raw `starts_with`, eliminating sibling-prefix false positives while preserving bare-prefix convenience. Workspace: 25/25 suites green, 90 tests passing.
 - **2026-08-22 (cont.):** F2.2 shipped — relative import specifiers are lexically resolved to canonical workspace candidates before pattern matching, closing the L2 evasion (`../db/client` vs `packages/core/src/db/**`). Workspace: 25/25 suites, 93 tests passing.
 - **2026-08-22 (cont.):** F2.4 shipped — importer rewritten as per-dialect probes: Rust `use` visibility (H-R1 confirmed & fixed), `require()` / dynamic `import()` / side-effect imports, Go block lines, comment-trap rejection (N3). Workspace: 25/25 suites, 98 tests passing.
+- **2026-08-22 (cont.):** F2.3 shipped — tsconfig/jsconfig alias resolution (wildcard + exact keys, JSONC-tolerant, workspace-relative targets); alias evasions now caught when root path-mappings exist. Workspace: 25/25 suites, 103 tests passing.
+- **2026-08-22 (cont.):** F3.1 shipped — `--depth` honesty patch (`Option<usize>`, stderr no-op warning naming F3.2, honest clap/MCP descriptions). F2.5 explicitly deferred pending the barrel-index architecture decision. Workspace: 25/25 suites, 103 tests passing.
+- **2026-08-22 (cont.):** F2.5 shipped — one-hop barrel following via lazy cached re-export index (re-exports only, never private imports); `ArchitectureGuard` gains `workspace_root` + cache, expansion gated behind direct-miss so clean scans stay IO-free. Phase F2 (guard intelligence) complete. Workspace: 25/25 suites, 105 tests passing.

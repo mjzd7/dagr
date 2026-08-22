@@ -48,9 +48,9 @@ pub enum Commands {
         /// Target in format "path/to/file.ext:symbolName" or comma-separated symbols
         target: String,
 
-        /// Maximum dependency depth traversal hops
-        #[arg(short = 'd', long, default_value_t = 3)]
-        depth: usize,
+        /// Reserved for cross-file contract hoisting (F3.2); currently a no-op
+        #[arg(short = 'd', long)]
+        depth: Option<usize>,
 
         /// Multi-Rubric AST Slicing tier (standard, multi-rubric / lamr)
         #[arg(long, default_value = "standard")]
@@ -669,7 +669,7 @@ pub fn resolve_target_symbol(workspace_root: &Path, target: &str) -> Result<(Pat
 
 pub fn handle_context(
     target: &str,
-    depth: usize,
+    depth: Option<usize>,
     tier: &str,
     from_test: Option<&str>,
     format: OutputFormat,
@@ -689,9 +689,15 @@ pub fn handle_context(
             dagr_slicer::SliceTier::Standard
         };
 
+    if let Some(requested) = depth {
+        eprintln!(
+            "⚠️  --depth {requested} is currently a no-op: cross-file contract hoisting is not implemented yet (roadmap F3.2). Slices remain single-file."
+        );
+    }
+
     let mut slices = Vec::new();
     let slicer = SymbolicSlicer::new(SlicerConfig {
-        max_depth_hops: depth,
+        max_depth_hops: depth.unwrap_or(3),
         max_token_budget: 1500,
         include_comments: false,
         tier: slice_tier,
@@ -1327,7 +1333,7 @@ mod tests {
             cli.command,
             Commands::Context {
                 target: "src/billing.ts:charge".into(),
-                depth: 4,
+                depth: Some(4),
                 tier: "standard".into(),
                 from_test: None,
                 format: OutputFormat::Json,

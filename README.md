@@ -261,7 +261,7 @@ security:
 * **File missing** → falls back to the built-in `clean-architecture` preset (full enforcement).
 * **File present but invalid** → hard error naming the offending key and line; the guard refuses to run rather than silently passing.
 * **`preset:` set + empty `boundaries`** → preset boundaries are seeded automatically.
-* Patterns match **canonical workspace-relative paths**: relative specifiers (`../db/client`) are resolved against the importing file's directory before matching. Alias specifiers (`@/lib/x`) are still matched literally.
+* Patterns match **canonical workspace-relative paths**: relative specifiers (`../db/client`) are resolved against the importing file's directory, and alias specifiers (`@/lib/x`) against root `tsconfig.json`/`jsconfig.json` `paths` when present.
 
 ---
 

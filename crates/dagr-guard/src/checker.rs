@@ -3,7 +3,9 @@ use crate::sanitizer::ZeroTrustSanitizer;
 use dagr_core::Result;
 use glob::Pattern;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Violation {
@@ -22,6 +24,16 @@ fn module_under_prefix(module: &str, pattern: &str) -> bool {
         || (module.len() > prefix.len()
             && module.starts_with(prefix)
             && module.as_bytes()[prefix.len()] == b'/')
+}
+
+fn has_known_extension(candidate: &str, exts: &[&str]) -> bool {
+    candidate.rsplit('/').next().is_some_and(|segment| {
+        segment.contains('.')
+            && segment
+                .rsplit('.')
+                .next()
+                .is_some_and(|e| exts.contains(&e))
+    })
 }
 
 /// Lexically resolves TS/JS-style relative specifiers (`./x`, `../x`) against
@@ -68,25 +80,65 @@ fn probe_call_argument(line: &str, marker: &str) -> Option<String> {
 
 pub struct ArchitectureGuard {
     pub config: RuleConfig,
+    pub alias_map: crate::alias::AliasMap,
+    pub(crate) workspace_root: PathBuf,
+    pub(crate) barrel_cache: Mutex<HashMap<String, Option<Vec<String>>>>,
 }
 
 impl ArchitectureGuard {
-    /// Loads rule configuration for the given workspace
+    /// Loads rule configuration and the workspace alias map (tsconfig/jsconfig)
     pub fn load(workspace_root: &Path) -> Result<Self> {
         let config = RuleConfig::load_or_default(workspace_root)?;
-        Ok(Self { config })
+        let alias_map = crate::alias::AliasMap::load(workspace_root);
+        Ok(Self {
+            config,
+            alias_map,
+            workspace_root: workspace_root.to_path_buf(),
+            barrel_cache: Mutex::new(HashMap::new()),
+        })
     }
 
     /// Evaluates if a single import violates any boundary rule (<0.05ms)
     pub fn check_import(&self, source_file: &str, imported_module: &str) -> Option<Violation> {
+        let candidates = self.candidate_set(source_file, imported_module);
+        if let Some(v) = self.first_violation(source_file, imported_module, &candidates) {
+            return Some(v);
+        }
+
+        // One-hop barrel expansion runs only when nothing matched directly, so
+        // clean scans stay IO-free; per-candidate results are cached for the
+        // guard's lifetime.
+        let mut via_barrels = Vec::new();
+        for cand in &candidates {
+            via_barrels.extend(self.barrel_reexports(cand));
+        }
+        if via_barrels.is_empty() {
+            return None;
+        }
+        self.first_violation(source_file, imported_module, &via_barrels)
+    }
+
+    fn candidate_set(&self, source_file: &str, imported_module: &str) -> Vec<String> {
         let mut candidates: Vec<String> = vec![imported_module.to_string()];
         candidates.extend(resolve_relative_candidates(source_file, imported_module));
+        if !self.alias_map.is_empty() {
+            candidates.extend(self.alias_map.candidates(imported_module));
+        }
+        candidates
+    }
+
+    fn first_violation(
+        &self,
+        source_file: &str,
+        imported_module: &str,
+        specs: &[String],
+    ) -> Option<Violation> {
         for rule in &self.config.boundaries {
             if let Ok(from_pattern) = Pattern::new(&rule.from) {
                 if from_pattern.matches(source_file) {
                     for forbidden in &rule.cannot_import {
                         if let Ok(forbid_pattern) = Pattern::new(forbidden) {
-                            if candidates.iter().any(|cand| {
+                            if specs.iter().any(|cand| {
                                 forbid_pattern.matches(cand) || module_under_prefix(cand, forbidden)
                             }) {
                                 return Some(Violation {
@@ -102,6 +154,59 @@ impl ArchitectureGuard {
             }
         }
         None
+    }
+
+    /// Cached one-hop `export ... from "..."` targets for a resolved candidate;
+    /// empty when the candidate is not a readable barrel.
+    fn barrel_reexports(&self, candidate: &str) -> Vec<String> {
+        let mut cache = self.barrel_cache.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(hit) = cache.get(candidate) {
+            return hit.clone().unwrap_or_default();
+        }
+        let targets = self.read_barrel_reexports(candidate);
+        cache.insert(
+            candidate.to_string(),
+            (!targets.is_empty()).then_some(targets.clone()),
+        );
+        targets
+    }
+
+    fn read_barrel_reexports(&self, candidate: &str) -> Vec<String> {
+        const EXTS: [&str; 4] = ["ts", "tsx", "js", "jsx"];
+        let mut file_candidates: Vec<String> = if has_known_extension(candidate, &EXTS) {
+            vec![candidate.to_string()]
+        } else {
+            let mut v: Vec<String> = EXTS.iter().map(|e| format!("{candidate}.{e}")).collect();
+            if !candidate.ends_with("/index") {
+                v.extend(EXTS.iter().map(|e| format!("{candidate}/index.{e}")));
+            }
+            v
+        };
+
+        for rel in file_candidates.drain(..) {
+            let Ok(content) = std::fs::read_to_string(self.workspace_root.join(&rel)) else {
+                continue;
+            };
+            let mut out = Vec::new();
+            for line in content.lines() {
+                // Follow re-exports only: a barrel's own private imports must
+                // not taint importers (that would transitive-flag everything).
+                let trimmed = line.trim_start();
+                if !trimmed.starts_with("export") || !trimmed.contains(" from ") {
+                    continue;
+                }
+                if let Some(spec) = Self::extract_imported_module(trimmed) {
+                    out.extend(resolve_relative_candidates(&rel, &spec));
+                    if !self.alias_map.is_empty() {
+                        out.extend(self.alias_map.candidates(&spec));
+                    }
+                }
+            }
+            if !out.is_empty() {
+                return out;
+            }
+        }
+        Vec::new()
     }
 
     /// Batch checks a list of imports for a file
@@ -173,12 +278,12 @@ impl ArchitectureGuard {
         Ok(())
     }
 
-/// Line-level import extractor across dialects: TS/JS static + side-effect
-/// imports, dynamic `import()` / `require()` calls, re-exports, Python,
-/// Rust `use` paths, Go single-line and block lines. Comment lines never
-/// yield phantom imports (findings N3, H-R1, H-GO1).
-// ponytail: string-probe extraction, not tree-sitter AST (parsers live in dagr-slicer); upgrade when any dialect misfires during field-wave testing
-pub fn extract_imported_module(line: &str) -> Option<String> {
+    /// Line-level import extractor across dialects: TS/JS static + side-effect
+    /// imports, dynamic `import()` / `require()` calls, re-exports, Python,
+    /// Rust `use` paths, Go single-line and block lines. Comment lines never
+    /// yield phantom imports (findings N3, H-R1, H-GO1).
+    // ponytail: string-probe extraction, not tree-sitter AST (parsers live in dagr-slicer); upgrade when any dialect misfires during field-wave testing
+    pub fn extract_imported_module(line: &str) -> Option<String> {
         let trimmed = line.trim();
 
         if trimmed.is_empty()
@@ -194,8 +299,7 @@ pub fn extract_imported_module(line: &str) -> Option<String> {
             let path = rest.trim_end().trim_end_matches(';').trim();
             let base = path.split("::{").next()?.trim();
             let base = base.split(" as ").next()?.trim();
-            return (!base.is_empty())
-                .then(|| base.split("::").collect::<Vec<&str>>().join("/"));
+            return (!base.is_empty()).then(|| base.split("::").collect::<Vec<&str>>().join("/"));
         }
 
         if let Some(rest) = trimmed.strip_prefix("from ") {
@@ -213,14 +317,12 @@ pub fn extract_imported_module(line: &str) -> Option<String> {
 
         if let Some(rest) = trimmed.strip_prefix("import ") {
             let rest = rest.trim_start();
-            if let Some(module) =
-                quoted_content(rest).or_else(|| {
-                    rest.split_whitespace().next().map(|pkg| {
-                        pkg.trim_matches(|c| c == ';' || c == '\'' || c == '"')
-                            .to_string()
-                    })
+            if let Some(module) = quoted_content(rest).or_else(|| {
+                rest.split_whitespace().next().map(|pkg| {
+                    pkg.trim_matches(|c| c == ';' || c == '\'' || c == '"')
+                        .to_string()
                 })
-            {
+            }) {
                 return Some(module);
             }
         }
@@ -260,7 +362,12 @@ mod tests {
     #[test]
     fn test_boundary_violation_detection() {
         let config = RuleConfig::clean_architecture_preset();
-        let guard = ArchitectureGuard { config };
+        let guard = ArchitectureGuard {
+            config,
+            alias_map: Default::default(),
+            workspace_root: PathBuf::from("."),
+            barrel_cache: Mutex::new(HashMap::new()),
+        };
 
         // 1. Violation: UI importing DB
         let violation = guard.check_import("src/ui/Button.tsx", "src/db/client");
@@ -279,6 +386,9 @@ mod tests {
 
     fn guard_with(from: &str, forbidden: &str) -> ArchitectureGuard {
         ArchitectureGuard {
+            alias_map: Default::default(),
+            workspace_root: PathBuf::from("."),
+            barrel_cache: Mutex::new(HashMap::new()),
             config: RuleConfig {
                 version: "1.0".into(),
                 project_name: None,
@@ -316,8 +426,10 @@ mod tests {
 
     #[test]
     fn parent_relative_import_resolves_to_absolute_pattern() {
-        let guard =
-            guard_with("packages/core/src/content-filter/**", "packages/core/src/db/**");
+        let guard = guard_with(
+            "packages/core/src/content-filter/**",
+            "packages/core/src/db/**",
+        );
         assert!(guard
             .check_import(
                 "packages/core/src/content-filter/text-filter.ts",
@@ -351,70 +463,137 @@ mod tests {
             .is_none());
     }
 
+    fn barrel_guard(root: &std::path::Path, forbidden: &str) -> ArchitectureGuard {
+        ArchitectureGuard {
+            alias_map: Default::default(),
+            workspace_root: root.to_path_buf(),
+            barrel_cache: Mutex::new(HashMap::new()),
+            config: RuleConfig {
+                version: "1.0".into(),
+                project_name: None,
+                preset: None,
+                boundaries: vec![crate::rules::BoundaryRule {
+                    name: "No Internals".into(),
+                    from: "apps/**".into(),
+                    cannot_import: vec![forbidden.into()],
+                    message: "internals stay internal".into(),
+                }],
+                limits: Default::default(),
+                security: Default::default(),
+            },
+        }
+    }
+
     #[test]
-    fn rust_use_statements_are_visible() {
+    fn barrel_reexport_attributes_violation_one_hop() {
+        let temp = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(temp.path().join("internal")).unwrap();
+        std::fs::write(
+            temp.path().join("public_api.ts"),
+            "export { stash } from \"./internal/secret\";\n",
+        )
+        .unwrap();
+
+        let guard = barrel_guard(temp.path(), "internal/**");
+        let v = guard
+            .check_import("apps/web/a.ts", "../../public_api")
+            .expect("re-exported module must be attributed through the barrel");
         assert_eq!(
-            ArchitectureGuard::extract_imported_module("use tokio::runtime::Runtime;"),
-            Some("tokio/runtime/Runtime".to_string())
+            v.imported_module, "../../public_api",
+            "violation must report the original specifier"
         );
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module("use std::io::{self, Write};"),
-            Some("std/io".to_string())
-        );
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module("use crate::db::client as dbc;"),
-            Some("crate/db/client".to_string())
+
+        std::fs::write(
+            temp.path().join("public_api.ts"),
+            "export const stash = 1;\n",
+        )
+        .unwrap();
+        let fresh = barrel_guard(temp.path(), "internal/**");
+        assert!(
+            fresh
+                .check_import("apps/web/a.ts", "../../public_api")
+                .is_none(),
+            "barrel without re-exports must stay clean"
         );
     }
 
     #[test]
-    fn require_and_dynamic_import_calls_are_extracted() {
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module("const db = require(\"../db/client\");"),
-            Some("../db/client".to_string())
-        );
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module("const m = await import('./heavy');"),
-            Some("./heavy".to_string())
-        );
+    fn plain_modules_never_produce_barrel_hits() {
+        let temp = tempfile::tempdir().unwrap();
+        std::fs::write(
+            temp.path().join("utils.ts"),
+            "export const help = () => 1;\nimport { x } from \"./internal/nope\";\n",
+        )
+        .unwrap();
+        let guard = barrel_guard(temp.path(), "internal/**");
+        assert!(guard.check_import("apps/b.ts", "../utils").is_none());
     }
+}
 
-    #[test]
-    fn side_effect_import_is_extracted() {
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module("import \"./polyfill\";"),
-            Some("./polyfill".to_string())
-        );
-    }
+#[test]
+fn rust_use_statements_are_visible() {
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("use tokio::runtime::Runtime;"),
+        Some("tokio/runtime/Runtime".to_string())
+    );
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("use std::io::{self, Write};"),
+        Some("std/io".to_string())
+    );
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("use crate::db::client as dbc;"),
+        Some("crate/db/client".to_string())
+    );
+}
 
-    #[test]
-    fn go_block_import_lines_extract_paths() {
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module("\"fmt\""),
-            Some("fmt".to_string())
-        );
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module(
-                "mysql \"github.com/go-sql-driver/mysql\""
-            ),
-            Some("github.com/go-sql-driver/mysql".to_string())
-        );
-    }
+#[test]
+fn require_and_dynamic_import_calls_are_extracted() {
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("const db = require(\"../db/client\");"),
+        Some("../db/client".to_string())
+    );
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("const m = await import('./heavy');"),
+        Some("./heavy".to_string())
+    );
+}
 
-    #[test]
-    fn comment_lines_never_yield_phantom_imports() {
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module("// import { x } from \"../evil\""),
-            None
-        );
-        assert_eq!(ArchitectureGuard::extract_imported_module("# import os"), None);
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module("/* from somewhere */"),
-            None
-        );
-        assert_eq!(
-            ArchitectureGuard::extract_imported_module(" * see docs from elsewhere"),
-            None
-        );
-    }
+#[test]
+fn side_effect_import_is_extracted() {
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("import \"./polyfill\";"),
+        Some("./polyfill".to_string())
+    );
+}
+
+#[test]
+fn go_block_import_lines_extract_paths() {
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("\"fmt\""),
+        Some("fmt".to_string())
+    );
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("mysql \"github.com/go-sql-driver/mysql\""),
+        Some("github.com/go-sql-driver/mysql".to_string())
+    );
+}
+
+#[test]
+fn comment_lines_never_yield_phantom_imports() {
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("// import { x } from \"../evil\""),
+        None
+    );
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("# import os"),
+        None
+    );
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module("/* from somewhere */"),
+        None
+    );
+    assert_eq!(
+        ArchitectureGuard::extract_imported_module(" * see docs from elsewhere"),
+        None
+    );
 }
