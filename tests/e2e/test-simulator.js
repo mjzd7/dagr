@@ -12,7 +12,7 @@ const assert = require('assert');
 
     // 1. Check title and hero
     const heroText = await page.locator('h1').innerText();
-    assert(heroText.includes('Cut 95% AI Token Bloat'), 'Hero title text mismatch');
+    assert(heroText.includes('Give your AI assistant laser focus'), 'Hero title text mismatch');
 
     // 2. Check Visual Graph Canvas
     const isCanvasVisible = await page.locator('#astGraphCanvas').isVisible();

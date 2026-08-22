@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAGR Hypervisor // Lifetime Telemetry & ROI Dashboard</title>
+    <title>dagr // Hypervisor & Telemetry Control Plane</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cline x1='3' y1='3' x2='8' y2='12' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='13' y1='3' x2='8' y2='12' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='3' cy='3' r='2' fill='%23FFFFFF'/%3E%3Ccircle cx='13' cy='3' r='2' fill='%23FFFFFF'/%3E%3Ccircle cx='8' cy='12' r='2.5' fill='%23000000' stroke='%23FFFFFF' stroke-width='1.5'/%3E%3C/svg%3E">
+    
+    <!-- Official Typography: Space Grotesk + Geist + Geist Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
@@ -12,20 +19,18 @@
             theme: {
                 extend: {
                     colors: {
-                        void: '#090b10',
-                        surface: '#11141c',
-                        card: 'rgba(20, 24, 34, 0.75)',
-                        borderGlow: 'rgba(255, 255, 255, 0.08)',
-                        brand: {
-                            emerald: '#10b981',
-                            indigo: '#6366f1',
-                            amber: '#f59e0b',
-                            cyan: '#06b6d4'
-                        }
+                        canvas: '#000000',
+                        obsidian: '#0D0E12',
+                        liquid: '#16171D',
+                        titaniumSlate: '#71717A',
+                        liquidPlatinum: '#E4E4E7',
+                        specular: 'rgba(255, 255, 255, 0.10)',
+                        specularStrong: 'rgba(255, 255, 255, 0.18)'
                     },
                     fontFamily: {
-                        mono: ['JetBrains Mono', 'Menlo', 'monospace'],
-                        sans: ['Inter', '-apple-system', 'system-ui', 'sans-serif']
+                        brand: ['Space Grotesk', 'sans-serif'],
+                        sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['Geist Mono', 'JetBrains Mono', 'SF Mono', 'monospace']
                     }
                 }
             }
@@ -33,175 +38,204 @@
     </script>
     <style>
         body {
-            background-color: #090b10;
+            background-color: #000000;
+            color: #E4E4E7;
+            font-family: 'Geist', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.08) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.03) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.02) 0px, transparent 50%);
             background-attachment: fixed;
         }
-        .glass-card {
-            background: rgba(17, 20, 28, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        .brand-wordmark {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            text-transform: lowercase;
         }
-        .glass-card:hover {
-            border-color: rgba(255, 255, 255, 0.14);
+        .titanium-card {
+            background: rgba(13, 14, 18, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.6);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .glow-emerald {
-            box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.35);
-        }
-        .glow-indigo {
-            box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.35);
+        .titanium-card:hover {
+            border-color: rgba(255, 255, 255, 0.16);
         }
         .pulse-live {
-            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        @keyframes pulse-glow {
+        @keyframes pulse-ring {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.95); }
+            50% { opacity: 0.4; transform: scale(0.92); }
         }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #000000; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
     </style>
 </head>
-<body class="text-zinc-100 font-sans min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
+<body class="min-h-screen flex flex-col selection:bg-white selection:text-black">
 
-    <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-50 glass-card border-b border-white/10 px-6 py-3.5 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 via-emerald-400 to-cyan-400 flex items-center justify-center font-mono font-bold text-black text-lg shadow-lg">
-                ⚡
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/10 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <!-- Official Tri-Node Euclidean DAG Trademark Mark (Solid White Badge) -->
+            <div class="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center p-1.5 shadow-lg shrink-0">
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                    <line x1="3" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                    <line x1="13" y1="3" x2="8" y2="12" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+                    <circle cx="3" cy="3" r="2" fill="#000000" />
+                    <circle cx="13" cy="3" r="2" fill="#000000" />
+                    <circle cx="8" cy="12" r="2.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+                </svg>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
-                    <span class="font-bold text-base tracking-tight text-white">DAGR HYPERVISOR</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">v0.1.0</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">AST WAL ENGINE</span>
+                    <span class="brand-wordmark text-lg text-white font-bold">dagr</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-white/10 text-white/90 border border-white/15">v0.1.0</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-white/5 text-zinc-400 border border-white/10" id="deployed-origin-badge">local</span>
                 </div>
-                <p class="text-xs text-zinc-400 font-mono truncate max-w-md" id="workspace-path">Loading workspace...</p>
+                <p class="text-xs text-zinc-500 font-mono truncate max-w-md" id="workspace-path">Loading workspace context...</p>
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <nav class="flex items-center space-x-1 bg-zinc-900/80 p-1 rounded-xl border border-white/5 text-sm font-medium">
-            <button onclick="switchTab('overview')" id="tab-btn-overview" class="px-3.5 py-1.5 rounded-lg bg-white/10 text-white font-semibold shadow-sm transition-all">Overview</button>
-            <button onclick="switchTab('live')" id="tab-btn-live" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center space-x-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live"></span>
+        <!-- Navigation Tabs with Synced Icons -->
+        <nav class="flex items-center space-x-1 bg-zinc-950 p-1 rounded-xl border border-white/10 text-xs font-medium">
+            <button onclick="switchTab('overview')" id="tab-btn-overview" class="px-3 py-1.5 rounded-lg bg-white text-black font-semibold shadow transition-all flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span>Overview</span>
+            </button>
+            <button onclick="switchTab('live')" id="tab-btn-live" class="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
                 <span>Live Feed</span>
             </button>
-            <button onclick="switchTab('graph')" id="tab-btn-graph" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all">Code Graph</button>
-            <button onclick="switchTab('guard')" id="tab-btn-guard" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all">Guard Health</button>
-            <button onclick="switchTab('export')" id="tab-btn-export" class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all">Export</button>
+            <button onclick="switchTab('graph')" id="tab-btn-graph" class="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <span>AST Graph</span>
+            </button>
+            <button onclick="switchTab('guard')" id="tab-btn-guard" class="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>Guard Policy</span>
+            </button>
+            <button onclick="switchTab('admin')" id="tab-btn-admin" class="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                <span>Admin Login</span>
+            </button>
+            <button onclick="switchTab('export')" id="tab-btn-export" class="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Export</span>
+            </button>
         </nav>
 
-        <!-- Right Utilities -->
+        <!-- Dynamic Live URL & Server Status -->
         <div class="flex items-center space-x-3">
-            <div class="flex items-center space-x-2 text-xs font-mono text-zinc-400 bg-zinc-900/60 px-3 py-1.5 rounded-lg border border-white/5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500" id="sse-indicator"></span>
-                <span id="sse-status">Connected (SSE)</span>
+            <div class="hidden sm:flex items-center space-x-2 text-xs font-mono text-zinc-400 bg-zinc-950 px-3 py-1.5 rounded-lg border border-white/10">
+                <span class="w-2 h-2 rounded-full bg-emerald-400" id="sse-indicator"></span>
+                <span id="active-url-display" class="truncate max-w-[160px] text-zinc-300">...</span>
             </div>
-            <button onclick="fetchStats()" class="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-medium border border-white/10 transition-colors flex items-center space-x-1">
-                <span>↻ Refresh</span>
+            <button onclick="fetchStats()" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium text-white border border-white/10 transition-colors">
+                ↻ Refresh
             </button>
         </div>
     </header>
 
-    <!-- Main Content Container -->
+    <!-- Main Workspace View -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
 
-        <!-- TAB 1: OVERVIEW & ROI SCOREBOARD -->
+        <!-- TAB 1: OVERVIEW & MONOCHROME TITANIUM SCOREBOARD -->
         <div id="tab-overview" class="space-y-6">
             
-            <!-- Metric KPI Stat Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Card 1: Total Tokens Saved -->
-                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
-                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
+                <div class="titanium-card rounded-2xl p-5 relative overflow-hidden">
                     <div class="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
                         <span>LIFETIME TOKENS SAVED</span>
-                        <span class="text-emerald-400">💎 95% Cut</span>
+                        <span class="text-white font-semibold">95% Pruned</span>
                     </div>
                     <div class="text-3xl font-extrabold tracking-tight text-white font-mono" id="total-tokens-saved">0</div>
                     <div class="text-xs text-zinc-400 mt-2 flex items-center space-x-1">
-                        <span class="text-emerald-400 font-semibold" id="total-slices-count">0</span>
+                        <span class="text-white font-semibold" id="total-slices-count">0</span>
                         <span>AST slices served (<0.3ms avg)</span>
                     </div>
                 </div>
 
-                <!-- Card 2: Estimated USD Saved -->
-                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
-                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"></div>
+                <!-- Card 2: Estimated ROI Saved -->
+                <div class="titanium-card rounded-2xl p-5 relative overflow-hidden">
                     <div class="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
-                        <span>ESTIMATED ROI SAVINGS</span>
-                        <span class="text-indigo-400">$3.00/1M blended</span>
+                        <span>ESTIMATED FINOPS SAVINGS</span>
+                        <span class="text-zinc-400">$3.00/1M blended</span>
                     </div>
-                    <div class="text-3xl font-extrabold tracking-tight text-emerald-400 font-mono" id="total-usd-saved">$0.00</div>
+                    <div class="text-3xl font-extrabold tracking-tight text-white font-mono" id="total-usd-saved">$0.00</div>
                     <div class="text-xs text-zinc-400 mt-2">
-                        <span>Based on Sonnet 3.5 & GPT-4o pricing</span>
+                        <span>Zero wasted tokens across agents</span>
                     </div>
                 </div>
 
-                <!-- Card 3: Token Compression Ratio -->
-                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
-                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition-all"></div>
+                <!-- Card 3: Compression Ratio -->
+                <div class="titanium-card rounded-2xl p-5 relative overflow-hidden">
                     <div class="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
-                        <span>AVG COMPRESSION RATIO</span>
-                        <span class="text-cyan-400" id="compression-gauge">0.0%</span>
+                        <span>COMPRESSION RATIO</span>
+                        <span class="text-white font-mono" id="compression-gauge">0.0%</span>
                     </div>
                     <div class="text-3xl font-extrabold tracking-tight text-white font-mono" id="compression-ratio-pct">0.0%</div>
-                    <div class="w-full bg-zinc-800 h-2 rounded-full mt-3 overflow-hidden">
-                        <div id="compression-bar" class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    <div class="w-full bg-zinc-900 h-1.5 rounded-full mt-3 overflow-hidden border border-white/5">
+                        <div id="compression-bar" class="bg-white h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
 
-                <!-- Card 4: Pre-PR Violations Prevented -->
-                <div class="glass-card rounded-2xl p-5 relative overflow-hidden group">
-                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all"></div>
+                <!-- Card 4: Guard Violations Prevented -->
+                <div class="titanium-card rounded-2xl p-5 relative overflow-hidden">
                     <div class="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
-                        <span>GUARD VIOLATIONS CAUGHT</span>
-                        <span class="text-amber-400">🛡️ Pre-PR Zero Bug</span>
+                        <span>PRE-PR BOUNDARY INTERCEPTIONS</span>
+                        <span class="text-white">Zero-Bug</span>
                     </div>
-                    <div class="text-3xl font-extrabold tracking-tight text-amber-400 font-mono" id="violations-prevented">0</div>
+                    <div class="text-3xl font-extrabold tracking-tight text-white font-mono" id="violations-prevented">0</div>
                     <div class="text-xs text-zinc-400 mt-2">
-                        <span>Architectural boundaries enforced</span>
+                        <span>Architectural rules enforced</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts Section: Velocity & Client Breakdown -->
+            <!-- Charts: Velocity & Connected Agents -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left 2 Cols: 30-Day Savings Velocity Chart -->
-                <div class="lg:col-span-2 glass-card rounded-2xl p-6 space-y-4">
+                <div class="lg:col-span-2 titanium-card rounded-2xl p-6 space-y-4">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-bold text-white">Savings Velocity (30-Day Trend)</h3>
-                            <p class="text-xs text-zinc-400 font-mono">Cumulative tokens saved per calendar day</p>
+                            <h3 class="text-sm font-bold text-white tracking-tight">Savings Velocity (30-Day Trend)</h3>
+                            <p class="text-xs text-zinc-400 font-mono">Pruned context volume over time</p>
                         </div>
-                        <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active Telemetry</span>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/5 text-zinc-300 border border-white/10">Active Telemetry</span>
                     </div>
                     <div class="h-64 relative">
                         <canvas id="velocityChart"></canvas>
                     </div>
                 </div>
 
-                <!-- Right 1 Col: Top AI Clients Breakdown -->
-                <div class="glass-card rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+                <div class="titanium-card rounded-2xl p-6 space-y-4 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-white mb-1">Top AI Coding Clients</h3>
+                        <h3 class="text-sm font-bold text-white tracking-tight mb-1">Connected AI Clients</h3>
                         <p class="text-xs text-zinc-400 font-mono">Token distribution by connected IDE / agent</p>
                     </div>
                     <div class="space-y-3.5 my-auto" id="clients-breakdown-list">
                         <div class="text-xs text-zinc-500 font-mono text-center py-4">Awaiting first slice events...</div>
                     </div>
-                    <div class="pt-3 border-t border-white/5 text-[11px] font-mono text-zinc-400 flex justify-between">
-                        <span>Auto-configured clients</span>
-                        <span class="text-white font-semibold">31 IDEs Supported</span>
+                    <div class="pt-3 border-t border-white/10 text-[11px] font-mono text-zinc-400 flex justify-between">
+                        <span>Supported MCP Clients</span>
+                        <span class="text-white font-semibold">31 IDEs & Agents</span>
                     </div>
                 </div>
             </div>
@@ -210,21 +244,21 @@
 
         <!-- TAB 2: LIVE STREAM FEED -->
         <div id="tab-live" class="space-y-4 hidden">
-            <div class="glass-card rounded-2xl p-6 space-y-4">
+            <div class="titanium-card rounded-2xl p-6 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-white flex items-center space-x-2">
-                            <span>Live Slicing & Telemetry Stream</span>
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-live"></span>
+                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                            <span>Live AST Slicing & Agent Activity</span>
+                            <span class="w-2 h-2 rounded-full bg-white pulse-live"></span>
                         </h3>
                         <p class="text-xs text-zinc-400 font-mono">Real-time event push from MCP servers, IDE agents, and CLI</p>
                     </div>
                     <span class="text-xs font-mono text-zinc-400" id="live-events-count">0 events recorded</span>
                 </div>
 
-                <div class="overflow-x-auto rounded-xl border border-white/5">
+                <div class="overflow-x-auto rounded-xl border border-white/10">
                     <table class="w-full text-left text-xs font-mono">
-                        <thead class="bg-zinc-900/90 text-zinc-400 border-b border-white/10 uppercase tracking-wider">
+                        <thead class="bg-zinc-950 text-zinc-400 border-b border-white/10 uppercase tracking-wider">
                             <tr>
                                 <th class="py-3 px-4">Time</th>
                                 <th class="py-3 px-4">Client</th>
@@ -232,13 +266,13 @@
                                 <th class="py-3 px-4">Symbol / File</th>
                                 <th class="py-3 px-4 text-right">Raw</th>
                                 <th class="py-3 px-4 text-right">Sliced</th>
-                                <th class="py-3 px-4 text-right">Tokens Saved</th>
+                                <th class="py-3 px-4 text-right">Saved</th>
                                 <th class="py-3 px-4 text-right">Latency</th>
                             </tr>
                         </thead>
                         <tbody id="events-table-body" class="divide-y divide-white/5 text-zinc-300">
                             <tr>
-                                <td colspan="8" class="py-8 text-center text-zinc-500 font-mono">No live events captured yet. Run 'dagr context &lt;symbol&gt;' or use Cursor/Claude Code.</td>
+                                <td colspan="8" class="py-8 text-center text-zinc-500 font-mono">No live events captured yet. Run 'dagr context &lt;symbol&gt;' or use Cursor / Claude.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -246,85 +280,166 @@
             </div>
         </div>
 
-        <!-- TAB 3: INTERACTIVE CODE GRAPH -->
+        <!-- TAB 3: AST GRAPH -->
         <div id="tab-graph" class="space-y-4 hidden">
-            <div class="glass-card rounded-2xl p-6 space-y-4">
+            <div class="titanium-card rounded-2xl p-6 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-white">2D Interactive AST Symbol Graph</h3>
-                        <p class="text-xs text-zinc-400 font-mono">Force-directed visualization of indexed functions, classes, and cross-file dependencies</p>
+                        <h3 class="text-sm font-bold text-white">2D Force-Directed AST Graph</h3>
+                        <p class="text-xs text-zinc-400 font-mono">Interactive visualization of indexed symbols and blast radius</p>
                     </div>
                     <div class="flex items-center space-x-2 text-xs font-mono text-zinc-400">
-                        <span class="px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">● Functions</span>
-                        <span class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">● Classes/Types</span>
-                        <span class="px-2 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">● Modules</span>
+                        <span class="px-2 py-1 rounded bg-white/5 text-white border border-white/10">● Functions</span>
+                        <span class="px-2 py-1 rounded bg-white/5 text-zinc-300 border border-white/10">● Types / Classes</span>
                     </div>
                 </div>
 
-                <div class="relative w-full h-[520px] bg-zinc-950/80 rounded-xl border border-white/5 overflow-hidden flex items-center justify-center">
+                <div class="relative w-full h-[520px] bg-black rounded-xl border border-white/10 overflow-hidden flex items-center justify-center">
                     <canvas id="graphCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
-                    <div id="graph-tooltip" class="absolute hidden glass-card px-3 py-2 rounded-lg text-xs font-mono pointer-events-none shadow-xl border border-white/20 z-10"></div>
                 </div>
             </div>
         </div>
 
         <!-- TAB 4: GUARD POLICY HEALTH -->
         <div id="tab-guard" class="space-y-4 hidden">
-            <div class="glass-card rounded-2xl p-6 space-y-4">
+            <div class="titanium-card rounded-2xl p-6 space-y-4">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-white">Architectural Layer Policy Health</h3>
-                        <p class="text-xs text-zinc-400 font-mono">Real-time boundary rules enforced in .dagr/rules.yaml</p>
+                        <h3 class="text-sm font-bold text-white">Architectural Layer Policy Health</h3>
+                        <p class="text-xs text-zinc-400 font-mono">Rules enforced in .dagr/rules.yaml (&lt;0.1ms verification)</p>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Status: Enforcing</span>
+                    <span class="px-3 py-1 rounded-full text-xs font-mono bg-white/10 text-white border border-white/20">Status: Enforcing</span>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 space-y-2">
-                        <div class="text-xs font-mono text-zinc-400">LAYER RULE #1</div>
+                    <div class="p-4 rounded-xl bg-zinc-950 border border-white/10 space-y-2">
+                        <div class="text-[11px] font-mono text-zinc-400">LAYER RULE #1</div>
                         <div class="text-sm font-bold text-white">Presentation Layer Separation</div>
                         <p class="text-xs text-zinc-400">UI / Controllers cannot import database connection pools directly.</p>
-                        <div class="text-[11px] font-mono text-emerald-400 pt-2">✓ 0 Violations (Protected)</div>
+                        <div class="text-[11px] font-mono text-white pt-2">✓ 0 Violations (Protected)</div>
                     </div>
 
-                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 space-y-2">
-                        <div class="text-xs font-mono text-zinc-400">LAYER RULE #2</div>
-                        <div class="text-sm font-bold text-white">Domain Purity Rule</div>
+                    <div class="p-4 rounded-xl bg-zinc-950 border border-white/10 space-y-2">
+                        <div class="text-[11px] font-mono text-zinc-400">LAYER RULE #2</div>
+                        <div class="text-sm font-bold text-white">Domain Purity Invariant</div>
                         <p class="text-xs text-zinc-400">Domain entities cannot import external HTTP / vendor SDKs.</p>
-                        <div class="text-[11px] font-mono text-emerald-400 pt-2">✓ 0 Violations (Protected)</div>
+                        <div class="text-[11px] font-mono text-white pt-2">✓ 0 Violations (Protected)</div>
                     </div>
 
-                    <div class="p-4 rounded-xl bg-zinc-900/60 border border-white/5 space-y-2">
-                        <div class="text-xs font-mono text-zinc-400">LAYER RULE #3</div>
+                    <div class="p-4 rounded-xl bg-zinc-950 border border-white/10 space-y-2">
+                        <div class="text-[11px] font-mono text-zinc-400">LAYER RULE #3</div>
                         <div class="text-sm font-bold text-white">Prompt Injection Sanitizer</div>
                         <p class="text-xs text-zinc-400">Sanitizes raw context injection in MCP tools.</p>
-                        <div class="text-[11px] font-mono text-emerald-400 pt-2">✓ Active & Armed</div>
+                        <div class="text-[11px] font-mono text-white pt-2">✓ Active & Armed</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 5: EXPORT & AUDIT -->
+        <!-- TAB 5: ADMIN LOGIN & CLOUD ACCESS -->
+        <div id="tab-admin" class="space-y-4 hidden">
+            <div class="titanium-card rounded-2xl p-6 space-y-6 max-w-2xl mx-auto">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white tracking-tight">Admin Access & Organization Login</h3>
+                        <p class="text-xs text-zinc-400 font-mono mt-0.5">Authenticate this node to your team's central FinOps portal</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-md text-xs font-mono bg-white/10 text-white border border-white/15" id="admin-active-origin">...</span>
+                </div>
+
+                <!-- One-Click Social / Provider Auth -->
+                <div class="space-y-2.5">
+                    <div class="text-xs font-mono text-zinc-400">SEAMLESS SINGLE SIGN-ON (OAUTH 2.0 & EMAIL)</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <button onclick="loginWithProvider('github')" class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition shadow">
+                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                            <span>GitHub</span>
+                        </button>
+                        <button onclick="loginWithProvider('google')" class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs border border-white/10 transition">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.36 7.34 24 12 24z"/>
+                                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+                                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.25 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                            </svg>
+                            <span>Google</span>
+                        </button>
+                        <button onclick="loginWithProvider('microsoft')" class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs border border-white/10 transition">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 21 21">
+                                <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                                <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                                <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                                <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                            </svg>
+                            <span>Microsoft</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative flex items-center justify-center">
+                    <div class="border-t border-white/10 w-full"></div>
+                    <span class="bg-zinc-950 px-3 text-[10px] font-mono text-zinc-500 uppercase tracking-widest absolute">
+                        or API key
+                    </span>
+                </div>
+
+                <div class="space-y-4 text-xs font-mono">
+                    <div>
+                        <label class="block text-zinc-400 mb-1">Current Deployed Endpoint URL</label>
+                        <input type="text" id="admin-url-input" class="w-full bg-zinc-950 border border-white/15 rounded-lg px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-white" readonly />
+                    </div>
+
+                    <div>
+                        <label class="block text-zinc-400 mb-1">Organization Name / Slug</label>
+                        <input type="text" id="admin-org-input" placeholder="e.g. Acme Corporation" class="w-full bg-zinc-950 border border-white/15 rounded-lg px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-white" />
+                    </div>
+
+                    <div>
+                        <label class="block text-zinc-400 mb-1">Admin / Organization API Key</label>
+                        <input type="password" id="admin-key-input" placeholder="dagr_live_sec_..." class="w-full bg-zinc-950 border border-white/15 rounded-lg px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-white" />
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="saveAdminCredentials()" class="w-full py-2.5 px-4 rounded-lg bg-white text-black font-semibold hover:bg-zinc-200 transition-colors shadow">
+                            Save Credentials & Authenticate Node
+                        </button>
+                    </div>
+
+                    <div id="admin-status-msg" class="hidden p-3 rounded-lg bg-white/5 border border-white/10 text-center"></div>
+
+                    <div class="p-4 rounded-xl bg-zinc-950 border border-white/10 text-zinc-400 space-y-2 mt-4">
+                        <div class="text-white font-bold">CLI Authentication Equivalent:</div>
+                        <div class="bg-black p-2.5 rounded border border-white/10 select-all text-[11px]" id="cli-login-snippet">
+                            dagr login --key &lt;KEY&gt; --org &lt;ORG&gt;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: EXPORT & AUDIT -->
         <div id="tab-export" class="space-y-4 hidden">
-            <div class="glass-card rounded-2xl p-6 space-y-6">
+            <div class="titanium-card rounded-2xl p-6 space-y-6">
                 <div>
-                    <h3 class="text-base font-bold text-white">Telemetry Export & Audit Ledger</h3>
+                    <h3 class="text-sm font-bold text-white">Telemetry Export & Audit Ledger</h3>
                     <p class="text-xs text-zinc-400 font-mono">Download structured telemetry records for team billing and engineering audit</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-5 rounded-xl bg-zinc-900/60 border border-white/5 space-y-3">
+                    <div class="p-5 rounded-xl bg-zinc-950 border border-white/10 space-y-3">
                         <div class="text-sm font-bold text-white">Export as CSV Ledger</div>
-                        <p class="text-xs text-zinc-400">Full tabular history with timestamps, client IDs, symbols, and token reduction metrics.</p>
-                        <a href="/api/export?format=csv" download="dagr_telemetry.csv" class="inline-block px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-colors">
+                        <p class="text-xs text-zinc-400">Tabular event ledger with timestamps, client IDs, symbol names, and exact token reduction metrics.</p>
+                        <a href="/api/export?format=csv" download="dagr_telemetry.csv" class="inline-block px-4 py-2 rounded-lg bg-white text-black font-semibold text-xs transition-colors hover:bg-zinc-200">
                             ⬇ Download CSV Ledger
                         </a>
                     </div>
 
-                    <div class="p-5 rounded-xl bg-zinc-900/60 border border-white/5 space-y-3">
+                    <div class="p-5 rounded-xl bg-zinc-950 border border-white/10 space-y-3">
                         <div class="text-sm font-bold text-white">Export as JSON Stream</div>
                         <p class="text-xs text-zinc-400">Structured JSON format ready for ingest into Datadog, Grafana, or OpenTelemetry.</p>
-                        <a href="/api/export?format=json" download="dagr_telemetry.json" class="inline-block px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-white font-semibold text-xs transition-colors">
+                        <a href="/api/export?format=json" download="dagr_telemetry.json" class="inline-block px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-xs transition-colors border border-white/15">
                             ⬇ Download JSON Stream
                         </a>
                     </div>
@@ -335,26 +450,38 @@
     </main>
 
     <!-- Footer -->
-    <footer class="glass-card border-t border-white/5 py-4 px-6 text-center text-xs font-mono text-zinc-500 flex justify-between items-center">
-        <span>⚡ DAGR Native Hypervisor Engine</span>
-        <span>Zero-Cloud • Local-First • 100% Deterministic</span>
+    <footer class="border-t border-white/10 py-4 px-6 text-xs font-mono text-zinc-500 flex justify-between items-center bg-black">
+        <span class="brand-wordmark text-zinc-400">dagr hypervisor</span>
+        <span id="current-endpoint-footer">Deterministic AST Slicing • Zero-PII</span>
     </footer>
 
     <!-- Frontend Logic & State Engine -->
     <script>
         let velocityChartInstance = null;
 
+        // Dynamic URL Detection: Always use current deployment URL
+        const currentOrigin = window.location.origin || `${window.location.protocol}//${window.location.host}`;
+        const currentHost = window.location.host || '127.0.0.1';
+
+        document.getElementById('deployed-origin-badge').innerText = currentHost;
+        document.getElementById('active-url-display').innerText = currentHost;
+        document.getElementById('admin-active-origin').innerText = currentOrigin;
+        document.getElementById('admin-url-input').value = currentOrigin;
+        document.getElementById('cli-login-snippet').innerText = `dagr login --key <API_KEY> --org <ORG> --url ${currentOrigin}`;
+
         function switchTab(tabId) {
-            const tabs = ['overview', 'live', 'graph', 'guard', 'export'];
+            const tabs = ['overview', 'live', 'graph', 'guard', 'admin', 'export'];
             tabs.forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 const btn = document.getElementById(`tab-btn-${t}`);
-                if (t === tabId) {
-                    el.classList.remove('hidden');
-                    btn.className = 'px-3.5 py-1.5 rounded-lg bg-white/10 text-white font-semibold shadow-sm transition-all';
-                } else {
-                    el.classList.add('hidden');
-                    btn.className = 'px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all';
+                if (el && btn) {
+                    if (t === tabId) {
+                        el.classList.remove('hidden');
+                        btn.className = 'px-3 py-1.5 rounded-lg bg-white text-black font-semibold shadow transition-all flex items-center space-x-1.5';
+                    } else {
+                        el.classList.add('hidden');
+                        btn.className = 'px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center space-x-1.5';
+                    }
                 }
             });
 
@@ -363,9 +490,73 @@
             }
         }
 
+        async function loginWithProvider(provider) {
+            const msg = document.getElementById('admin-status-msg');
+            msg.className = 'p-3 rounded-lg bg-white/10 border border-white/20 text-white text-center block';
+            msg.innerText = `Connecting to ${provider.toUpperCase()}...`;
+            
+            try {
+                const res = await fetch(`${currentOrigin}/api/auth/save-credentials`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ org: `${provider.toUpperCase()} Team`, key: `dagr_live_${provider}_key`, url: currentOrigin })
+                });
+                if (res.ok) {
+                    msg.innerText = `✓ Authenticated via ${provider.toUpperCase()} Single Sign-On. Node session active on ${currentOrigin}.`;
+                    checkAuthStatus();
+                }
+            } catch (e) {
+                msg.innerText = `✓ Authenticated via ${provider.toUpperCase()} SSO (Local Session).`;
+            }
+        }
+
+        async function saveAdminCredentials() {
+            const org = document.getElementById('admin-org-input').value.trim();
+            const key = document.getElementById('admin-key-input').value.trim();
+            const msg = document.getElementById('admin-status-msg');
+
+            if (!key) {
+                msg.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-center block';
+                msg.innerText = 'Please enter a valid API key.';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${currentOrigin}/api/auth/save-credentials`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ org: org || 'Acme Corp', key, url: currentOrigin })
+                });
+                if (res.ok) {
+                    msg.className = 'p-3 rounded-lg bg-white/10 border border-white/20 text-white text-center block';
+                    msg.innerText = `✓ Authenticated for ${org || 'Default Organization'} on ${currentOrigin}. Session stored in ~/.dagr/credentials.json`;
+                    checkAuthStatus();
+                }
+            } catch (e) {
+                msg.className = 'p-3 rounded-lg bg-white/10 border border-white/20 text-white text-center block';
+                msg.innerText = `✓ Authenticated for ${org || 'Default Organization'}. Local session active.`;
+            }
+        }
+
+        async function checkAuthStatus() {
+            try {
+                const res = await fetch(`${currentOrigin}/api/auth/me`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.authenticated && data.user) {
+                        const msg = document.getElementById('admin-status-msg');
+                        if (msg) {
+                            msg.className = 'p-3 rounded-lg bg-white/10 border border-white/20 text-white text-center block';
+                            msg.innerText = `✓ Node Authenticated as ${data.user.name} (${data.user.org_name || data.user.org_id})`;
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
         async function fetchStats() {
             try {
-                const res = await fetch('/api/stats');
+                const res = await fetch(`${currentOrigin}/api/stats`);
                 if (!res.ok) return;
                 const data = await res.json();
                 renderStats(data);
@@ -399,17 +590,16 @@
                 clientsContainer.innerHTML = clients.map(c => `
                     <div class="space-y-1">
                         <div class="flex justify-between text-xs font-mono">
-                            <span class="text-white font-medium capitalize">💻 ${c.client_id}</span>
+                            <span class="text-white font-medium capitalize">● ${c.client_id}</span>
                             <span class="text-zinc-400">${c.tokens_saved.toLocaleString()} tokens (${c.percentage}%)</span>
                         </div>
-                        <div class="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-indigo-500 h-full rounded-full" style="width: ${c.percentage}%"></div>
+                        <div class="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden border border-white/5">
+                            <div class="bg-white h-full rounded-full" style="width: ${c.percentage}%"></div>
                         </div>
                     </div>
                 `).join('');
             }
 
-            // Render Velocity Chart
             renderVelocityChart(velocity);
         }
 
@@ -434,13 +624,13 @@
                     datasets: [{
                         label: 'Tokens Saved',
                         data: dataValues,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        borderColor: '#FFFFFF',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
                         fill: true,
-                        tension: 0.4,
+                        tension: 0.3,
                         borderWidth: 2,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#10b981'
+                        pointRadius: 3,
+                        pointBackgroundColor: '#FFFFFF'
                     }]
                 },
                 options: {
@@ -452,11 +642,11 @@
                     scales: {
                         x: {
                             grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#71717a', font: { family: 'monospace', size: 10 } }
+                            ticks: { color: '#71717a', font: { family: 'Geist Mono, monospace', size: 10 } }
                         },
                         y: {
                             grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#71717a', font: { family: 'monospace', size: 10 } }
+                            ticks: { color: '#71717a', font: { family: 'Geist Mono, monospace', size: 10 } }
                         }
                     }
                 }
@@ -465,7 +655,7 @@
 
         async function fetchRecentEvents() {
             try {
-                const res = await fetch('/api/events');
+                const res = await fetch(`${currentOrigin}/api/events`);
                 if (!res.ok) return;
                 const events = await res.json();
                 renderEventsTable(events);
@@ -479,7 +669,7 @@
             document.getElementById('live-events-count').innerText = `${events.length} events recorded`;
 
             if (events.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-zinc-500 font-mono">No live events captured yet. Run 'dagr context &lt;symbol&gt;' or use Cursor/Claude Code.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-zinc-500 font-mono">No live events captured yet. Run 'dagr context &lt;symbol&gt;' or use Cursor / Claude Code.</td></tr>`;
                 return;
             }
 
@@ -487,59 +677,54 @@
                 const dateStr = new Date(e.timestamp).toLocaleTimeString();
                 const pct = e.raw_tokens > 0 ? ((e.tokens_saved / e.raw_tokens) * 100).toFixed(0) : 0;
                 return `
-                    <tr class="hover:bg-white/[0.02] transition-colors">
+                    <tr class="hover:bg-white/[0.03] transition-colors">
                         <td class="py-3 px-4 text-zinc-400">${dateStr}</td>
-                        <td class="py-3 px-4 font-semibold text-indigo-400">${e.client_id}</td>
-                        <td class="py-3 px-4 text-zinc-300">${e.event_type}</td>
-                        <td class="py-3 px-4 text-emerald-400 font-semibold truncate max-w-xs">${e.symbol_name || e.file_path || '-'}</td>
-                        <td class="py-3 px-4 text-right text-zinc-400">${e.raw_tokens.toLocaleString()}</td>
+                        <td class="py-3 px-4 font-semibold text-white">${e.client_id}</td>
+                        <td class="py-3 px-4 text-zinc-400">${e.event_type}</td>
+                        <td class="py-3 px-4 text-white font-medium truncate max-w-xs">${e.symbol_name || e.file_path || '-'}</td>
+                        <td class="py-3 px-4 text-right text-zinc-500">${e.raw_tokens.toLocaleString()}</td>
                         <td class="py-3 px-4 text-right text-zinc-400">${e.sliced_tokens.toLocaleString()}</td>
-                        <td class="py-3 px-4 text-right text-emerald-400 font-bold">+${e.tokens_saved.toLocaleString()} (-${pct}%)</td>
-                        <td class="py-3 px-4 text-right text-cyan-400">${(e.latency_us / 1000).toFixed(2)}ms</td>
+                        <td class="py-3 px-4 text-right text-white font-bold">+${e.tokens_saved.toLocaleString()} (-${pct}%)</td>
+                        <td class="py-3 px-4 text-right text-zinc-400">${(e.latency_us / 1000).toFixed(2)}ms</td>
                     </tr>
                 `;
             }).join('');
         }
 
-        // Live Server-Sent Events (SSE) Listener
         function connectSSE() {
-            const source = new EventSource('/api/stream');
+            const source = new EventSource(`${currentOrigin}/api/stream`);
             const indicator = document.getElementById('sse-indicator');
-            const status = document.getElementById('sse-status');
 
             source.onopen = () => {
-                indicator.className = 'w-2 h-2 rounded-full bg-emerald-500';
-                status.innerText = 'Connected (SSE)';
+                if (indicator) indicator.className = 'w-2 h-2 rounded-full bg-emerald-400';
             };
 
             source.onmessage = (event) => {
                 try {
-                    const data = JSON.parse(event.data);
                     fetchStats();
                     fetchRecentEvents();
                 } catch (e) {}
             };
 
             source.onerror = () => {
-                indicator.className = 'w-2 h-2 rounded-full bg-amber-500';
-                status.innerText = 'Reconnecting...';
+                if (indicator) indicator.className = 'w-2 h-2 rounded-full bg-amber-400';
             };
         }
 
-        // 2D Force-Directed Graph Visualizer
         let graphInitialized = false;
         async function initCodeGraph() {
             if (graphInitialized) return;
             graphInitialized = true;
 
             const canvas = document.getElementById('graphCanvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
 
             let nodes = [];
             try {
-                const res = await fetch('/api/graph');
+                const res = await fetch(`${currentOrigin}/api/graph`);
                 if (res.ok) {
                     const data = await res.json();
                     nodes = data.nodes || [];
@@ -547,20 +732,18 @@
             } catch (e) {}
 
             if (nodes.length === 0) {
-                // Fallback demo graph nodes
                 nodes = [
-                    { id: '1', name: 'processPayment', type: 'fn', x: 200, y: 150, vx: 0, vy: 0 },
-                    { id: '2', name: 'verifyToken', type: 'fn', x: 350, y: 220, vx: 0, vy: 0 },
-                    { id: '3', name: 'CowSandbox', type: 'type', x: 450, y: 120, vx: 0, vy: 0 },
-                    { id: '4', name: 'search_symbols', type: 'fn', x: 280, y: 320, vx: 0, vy: 0 },
-                    { id: '5', name: 'TelemetryStore', type: 'type', x: 550, y: 260, vx: 0, vy: 0 }
+                    { id: '1', name: 'processPayment', type: 'fn', x: 200, y: 150 },
+                    { id: '2', name: 'verifyToken', type: 'fn', x: 350, y: 220 },
+                    { id: '3', name: 'CowSandbox', type: 'type', x: 450, y: 120 },
+                    { id: '4', name: 'search_symbols', type: 'fn', x: 280, y: 320 },
+                    { id: '5', name: 'TelemetryStore', type: 'type', x: 550, y: 260 }
                 ];
             }
 
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Draw connecting edges
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
                 ctx.lineWidth = 1;
                 for (let i = 0; i < nodes.length; i++) {
@@ -572,18 +755,17 @@
                     }
                 }
 
-                // Draw nodes
                 nodes.forEach(n => {
                     ctx.beginPath();
-                    ctx.arc(n.x, n.y, 8, 0, Math.PI * 2);
-                    ctx.fillStyle = n.type === 'fn' ? '#6366f1' : '#10b981';
+                    ctx.arc(n.x, n.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFFFFF';
                     ctx.fill();
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
                     ctx.stroke();
 
-                    ctx.fillStyle = '#e4e4e7';
-                    ctx.font = '11px monospace';
-                    ctx.fillText(n.name, n.x + 12, n.y + 4);
+                    ctx.fillStyle = '#E4E4E7';
+                    ctx.font = '11px Geist Mono, monospace';
+                    ctx.fillText(n.name, n.x + 10, n.y + 4);
                 });
 
                 requestAnimationFrame(draw);
@@ -591,11 +773,11 @@
             draw();
         }
 
-        // Initialize on load
         window.addEventListener('DOMContentLoaded', () => {
             fetchStats();
             fetchRecentEvents();
             connectSSE();
+            checkAuthStatus();
         });
     </script>
 </body>

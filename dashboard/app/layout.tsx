@@ -1,9 +1,15 @@
 import './globals.css';
 import React from 'react';
+import { BrandLogo, BrandLogoBadge } from '../components/BrandLogo';
+import { UserNav } from '../components/UserNav';
+import Link from 'next/link';
 
 export const metadata = {
-  title: '⚡ DAGR — 3D AST Knowledge Graph & Hypervisor Control Plane',
+  title: 'dagr // 3D AST Knowledge Graph & Control Plane',
   description: 'Real-time telemetry, 3D AST knowledge graph, and proof-of-correctness control plane for AI coding agents.',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -13,31 +19,45 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col antialiased">
-        <header className="border-b border-slate-800/80 bg-[#0f172a]/70 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-cyan-500/20">
-              ⚡
-            </div>
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="min-h-screen bg-black text-[#E4E4E7] flex flex-col font-sans antialiased selection:bg-white selection:text-black">
+        <header className="border-b border-white/10 bg-black/90 backdrop-blur-xl sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 group">
+            {/* Official Tri-Node Euclidean DAG Logo Badge */}
+            <BrandLogoBadge size={32} />
             <div>
-              <div className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">
-                DAGR Hypervisor
+              <div className="font-bold text-lg tracking-tight font-brand text-white lowercase group-hover:text-zinc-200 transition">
+                dagr
               </div>
-              <div className="text-xs text-slate-400 font-mono">v0.1.0 • Cold Plane Node: #01</div>
+              <div className="text-xs text-zinc-500 font-mono">v0.1.0 • Control Plane</div>
             </div>
-          </div>
+          </Link>
+          
           <div className="flex items-center gap-4 text-xs font-mono">
-            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-full">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Redpanda CDC: Active
+            <div className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 text-white px-3 py-1.5 rounded-full">
+              <span className="h-2 w-2 rounded-full bg-white animate-pulse"></span>
+              CDC WAL: Active
             </div>
-            <div className="flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-3 py-1.5 rounded-full">
-              <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <div className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 text-zinc-300 px-3 py-1.5 rounded-full">
+              <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
               Memgraph Bolt: Connected
             </div>
+            {/* User Session & Login Button */}
+            <UserNav />
           </div>
         </header>
+        
         <main className="flex-1 p-6 max-w-7xl mx-auto w-full">{children}</main>
+        
+        <footer className="border-t border-white/10 py-4 px-6 text-xs font-mono text-zinc-500 flex justify-between items-center bg-black">
+          <span className="font-brand font-bold text-zinc-400">dagr hypervisor</span>
+          <span>Zero-PII • Deterministic Program Slicing</span>
+        </footer>
       </body>
     </html>
   );

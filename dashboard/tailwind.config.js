@@ -8,12 +8,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#090d16',
-        surface: '#0f172a',
-        surfaceBorder: '#1e293b',
-        dagrCyan: '#06b6d4',
-        dagrGreen: '#10b981',
-        dagrPurple: '#8b5cf6',
+        canvas: '#000000',
+        obsidian: '#0D0E12',
+        liquid: '#16171D',
+        titaniumSlate: '#71717A',
+        liquidPlatinum: '#E4E4E7',
+        specular: 'rgba(255, 255, 255, 0.10)',
+        specularStrong: 'rgba(255, 255, 255, 0.18)',
+      },
+      fontFamily: {
+        brand: ['Space Grotesk', 'sans-serif'],
+        sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['Geist Mono', 'JetBrains Mono', 'SF Mono', 'monospace'],
       },
     },
   },

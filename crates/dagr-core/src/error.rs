@@ -37,6 +37,15 @@ pub enum DagrError {
 
     #[error("Tokenizer Error: {0}")]
     Tokenizer(String),
+
+    #[error("Internal Error: {0}")]
+    Internal(String),
+
+    #[error("Not Found: {0}")]
+    NotFound(String),
+
+    #[error("Rate Limit Exceeded: {0}")]
+    RateLimit(String),
 }
 
 pub type Result<T> = std::result::Result<T, DagrError>;

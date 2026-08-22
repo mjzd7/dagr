@@ -10,6 +10,8 @@ description = "Tree-sitter AST parsing and symbolic backwards data-flow slicing 
 [dependencies]
 dagr-core = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+blake3 = { workspace = true }
 thiserror = { workspace = true }
 async-trait = { workspace = true }
 tree-sitter = "0.24"
@@ -18,3 +20,4 @@ tree-sitter-javascript = "0.23"
 tree-sitter-python = "0.23"
 tree-sitter-go = "0.23"
 tree-sitter-rust = "0.23"
+

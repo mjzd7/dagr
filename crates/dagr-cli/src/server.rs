@@ -96,7 +96,7 @@ async fn handle_http_connection(
     workspace: Arc<PathBuf>,
     tx: broadcast::Sender<String>,
 ) -> Result<()> {
-    let mut buffer = [0u8; 4096];
+    let mut buffer = [0u8; 8192];
     let n = stream.read(&mut buffer).await.map_err(DagrError::Io)?;
     if n == 0 {
         return Ok(());
@@ -113,16 +113,15 @@ async fn handle_http_connection(
     let method = parts[0];
     let path = parts[1];
 
-    if method != "GET" {
-        let resp = "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: 0\r\n\r\n";
-        stream
-            .write_all(resp.as_bytes())
-            .await
-            .map_err(DagrError::Io)?;
-        return Ok(());
-    }
+    // Split body if present
+    let body_str = if let Some(idx) = request_str.find("\r\n\r\n") {
+        &request_str[idx + 4..]
+    } else {
+        ""
+    };
 
-    if path == "/" || path == "/index.html" {
+    // Serve HTML dashboard
+    if method == "GET" && (path == "/" || path == "/index.html" || path == "/login") {
         let resp = format!(
             "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
             DASHBOARD_HTML.len(),
@@ -133,6 +132,151 @@ async fn handle_http_connection(
             .await
             .map_err(DagrError::Io)?;
         return Ok(());
+    }
+
+    // GET /api/auth/me or /api/auth/status
+    if method == "GET" && (path == "/api/auth/me" || path == "/api/auth/status") {
+        let creds_opt = dagr_cloud::OrgCredentials::load().unwrap_or(None);
+        let payload = match creds_opt {
+            Some(creds) => json!({
+                "authenticated": true,
+                "user": {
+                    "id": format!("usr_{}", creds.org_id),
+                    "name": creds.org_name,
+                    "email": format!("admin@{}.dagr.local", creds.org_id),
+                    "org_id": creds.org_id,
+                    "org_name": creds.org_name,
+                    "cloud_url": creds.cloud_url,
+                    "provider": "apikey",
+                    "authenticated_at": creds.authenticated_at
+                }
+            }),
+            None => json!({
+                "authenticated": false,
+                "user": null
+            }),
+        };
+
+        let body = serde_json::to_string(&payload)?;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream
+            .write_all(resp.as_bytes())
+            .await
+            .map_err(DagrError::Io)?;
+        return Ok(());
+    }
+
+    // POST /api/auth/login or /api/auth/save-credentials
+    if (method == "POST" || method == "GET")
+        && (path.starts_with("/api/auth/login") || path.starts_with("/api/auth/save-credentials"))
+    {
+        let mut org = "Default Organization".to_string();
+        let mut key = "dagr_live_sec_local".to_string();
+        let mut url = "http://127.0.0.1:3333".to_string();
+
+        if let Ok(json_val) = serde_json::from_str::<serde_json::Value>(body_str) {
+            if let Some(o) = json_val.get("org").and_then(|v| v.as_str()) {
+                if !o.is_empty() {
+                    org = o.to_string();
+                }
+            }
+            if let Some(k) = json_val.get("key").and_then(|v| v.as_str()) {
+                if !k.is_empty() {
+                    key = k.to_string();
+                }
+            }
+            if let Some(u) = json_val.get("url").and_then(|v| v.as_str()) {
+                if !u.is_empty() {
+                    url = u.to_string();
+                }
+            }
+        }
+
+        let org_id = format!("org_{}", org.to_lowercase().replace(' ', "_"));
+        let creds = dagr_cloud::OrgCredentials {
+            org_id: org_id.clone(),
+            org_name: org.clone(),
+            api_key: key,
+            cloud_url: url,
+            authenticated_at: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs() as i64,
+        };
+        let _ = creds.save();
+
+        let payload = json!({
+            "success": true,
+            "message": format!("Authenticated for {}", org),
+            "org_id": org_id,
+            "org_name": org
+        });
+        let body = serde_json::to_string(&payload)?;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream
+            .write_all(resp.as_bytes())
+            .await
+            .map_err(DagrError::Io)?;
+        return Ok(());
+    }
+
+    // POST /api/auth/logout
+    if method == "POST" && path == "/api/auth/logout" {
+        let _ = dagr_cloud::OrgCredentials::clear();
+        let payload = json!({ "success": true, "message": "Logged out successfully" });
+        let body = serde_json::to_string(&payload)?;
+        let resp = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        stream
+            .write_all(resp.as_bytes())
+            .await
+            .map_err(DagrError::Io)?;
+        return Ok(());
+    }
+
+    // GET /api/auth/:provider (github, google, microsoft, email)
+    if path.starts_with("/api/auth/") {
+        let provider = path.trim_start_matches("/api/auth/");
+        let provider_clean = provider.split('?').next().unwrap_or(provider);
+
+        if ["github", "google", "microsoft", "email"].contains(&provider_clean) {
+            let provider_name = match provider_clean {
+                "github" => "GitHub Engineering",
+                "google" => "Google Workspace",
+                "microsoft" => "Microsoft Entra ID",
+                _ => "Verified Email",
+            };
+
+            let creds = dagr_cloud::OrgCredentials {
+                org_id: format!("org_{}", provider_clean),
+                org_name: provider_name.to_string(),
+                api_key: format!("dagr_live_sec_{}_oauth", provider_clean),
+                cloud_url: "http://127.0.0.1:3333".to_string(),
+                authenticated_at: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs() as i64,
+            };
+            let _ = creds.save();
+
+            let resp = "HTTP/1.1 302 Found\r\nLocation: /?auth_success=true\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+            stream
+                .write_all(resp.as_bytes())
+                .await
+                .map_err(DagrError::Io)?;
+            return Ok(());
+        }
     }
 
     if path == "/api/stats" {
@@ -150,7 +294,7 @@ async fn handle_http_connection(
         let body = serde_json::to_string(&payload)?;
 
         let resp = format!(
-            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
             body.len(),
             body
         );
@@ -167,7 +311,7 @@ async fn handle_http_connection(
         let body = serde_json::to_string(&events)?;
 
         let resp = format!(
-            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
             body.len(),
             body
         );
@@ -211,7 +355,7 @@ async fn handle_http_connection(
 
         let body = serde_json::to_string(&json!({ "nodes": nodes }))?;
         let resp = format!(
-            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
             body.len(),
             body
         );
@@ -280,7 +424,6 @@ async fn handle_http_connection(
                     }
                 }
                 _ = tokio::time::sleep(tokio::time::Duration::from_secs(15)) => {
-                    // Send periodic SSE heartbeat ping
                     if stream.write_all(b": ping\n\n").await.is_err() {
                         break;
                     }

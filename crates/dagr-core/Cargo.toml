@@ -15,3 +15,6 @@ blake3 = { workspace = true }
 rusqlite = { workspace = true }
 tiktoken-rs = { workspace = true }
 uuid = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+
