@@ -13,7 +13,11 @@ else
     cargo run -q -p dagr -- guard
 fi
 
-# 2. Run fast workspace check & clippy
+# 2. Ponytail governance gate (.ponytail.md) — fail-closed on new deps & containers
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "$SCRIPT_DIR/ponytail_guard.sh"
+
+# 3. Run fast workspace check & clippy
 cargo check --workspace -q
 
 echo "✅ [DAGR] Pre-commit verification passed with 0 violations."

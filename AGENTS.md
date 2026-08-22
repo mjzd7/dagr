@@ -70,6 +70,7 @@ Every coding agent working on DAGR MUST adhere to this 5-stage lifecycle:
        - Standards Axis: Conformance to Rust idioms & deep module design.
        - Spec Axis: Conformance to milestone requirements without scope creep.
     2. Verify with `dagr guard` and ensure working tree is clean (`git status --porcelain`).
+    3. Confirm Ponytail compliance (.ponytail.md): zero unreviewed dependencies, zero container artifacts, every deliberate simplification tagged inline (`// ponytail: <what>, upgrade when <trigger>`). Gate runs automatically via pre-commit hook (`scripts/githooks`) and CI (`ponytail-guard.yml`).
 ```
 
 ---
@@ -80,3 +81,4 @@ Before concluding any task:
 1. `cargo test --workspace` MUST return exit code `0` with 100% tests passing.
 2. `dagr guard` MUST report 0 architectural boundary violations.
 3. No lingering temporary files in `.dagr/shadow/`.
+4. `scripts/ponytail_guard.sh` MUST pass: zero new dependencies, zero container artifacts, all deliberate simplifications tagged (`// ponytail:`).

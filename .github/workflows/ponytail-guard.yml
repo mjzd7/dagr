@@ -1,0 +1,22 @@
+name: ponytail-guard
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  governance:
+    name: Ponytail governance (.ponytail.md)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce dependency & container prohibitions
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          bash scripts/ponytail_guard.sh "origin/$BASE_REF"

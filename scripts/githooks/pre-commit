@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Git pre-commit entrypoint. Activate repo-wide with:
+#   git config core.hooksPath scripts/githooks
+exec "$(dirname "$0")/../dagr-pre-commit.sh" "$@"
