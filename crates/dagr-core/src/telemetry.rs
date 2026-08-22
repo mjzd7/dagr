@@ -179,9 +179,32 @@ impl TelemetryStore {
                  status TEXT NOT NULL DEFAULT 'success',
                  synced INTEGER NOT NULL DEFAULT 0,
                  extra_json TEXT
-             );
+             );",
+        )
+        .map_err(|e| DagrError::Storage(format!("Failed to initialize telemetry schema: {}", e)))?;
 
-             CREATE INDEX IF NOT EXISTS idx_telemetry_time ON telemetry_events(timestamp);
+        // Legacy-DB migration: databases created before the cloud-sync feature
+        // lack the `synced` column; CREATE INDEX below would fail on them.
+        let synced_columns: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('telemetry_events') WHERE name = 'synced'",
+                [],
+                |row| row.get(0),
+            )
+            .map_err(|e| {
+                DagrError::Storage(format!("telemetry schema introspection failed: {}", e))
+            })?;
+        if synced_columns == 0 {
+            conn.execute_batch(
+                "ALTER TABLE telemetry_events ADD COLUMN synced INTEGER NOT NULL DEFAULT 0;",
+            )
+            .map_err(|e| {
+                DagrError::Storage(format!("telemetry migration to `synced` failed: {}", e))
+            })?;
+        }
+
+        conn.execute_batch(
+            "CREATE INDEX IF NOT EXISTS idx_telemetry_time ON telemetry_events(timestamp);
              CREATE INDEX IF NOT EXISTS idx_telemetry_client ON telemetry_events(client_id);
              CREATE INDEX IF NOT EXISTS idx_telemetry_type ON telemetry_events(event_type);
              CREATE INDEX IF NOT EXISTS idx_telemetry_synced ON telemetry_events(synced);",
@@ -565,6 +588,49 @@ mod tests {
         let csv = store.export_csv()?;
         assert!(csv.contains("verifyToken"));
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_legacy_db_without_synced_column_migrates() -> Result<()> {
+        let root = std::env::temp_dir().join(format!("dagr_telem_mig_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let db_dir = root.join(".dagr");
+        std::fs::create_dir_all(&db_dir)?;
+        let db_path = db_dir.join("index.db");
+
+        {
+            let conn = rusqlite::Connection::open(&db_path)?;
+            conn.execute_batch(
+                "CREATE TABLE telemetry_events (
+                     id TEXT PRIMARY KEY,
+                     timestamp INTEGER NOT NULL,
+                     client_id TEXT NOT NULL,
+                     event_type TEXT NOT NULL,
+                     file_path TEXT,
+                     symbol_name TEXT,
+                     raw_tokens INTEGER NOT NULL DEFAULT 0,
+                     sliced_tokens INTEGER NOT NULL DEFAULT 0,
+                     tokens_saved INTEGER NOT NULL DEFAULT 0,
+                     latency_us INTEGER NOT NULL DEFAULT 0,
+                     status TEXT NOT NULL DEFAULT 'success',
+                     extra_json TEXT
+                 );
+                 INSERT INTO telemetry_events (id, timestamp, client_id, event_type, raw_tokens, sliced_tokens, tokens_saved, latency_us)
+                 VALUES ('legacy-1', 1, 'cursor', 'slice', 100, 10, 90, 5);",
+            )?;
+        }
+
+        let store = TelemetryStore::open(&root)?;
+        let ev = TelemetryEvent::new_slice("cursor", "src/x.ts", "sym", 10, 2, 8);
+        store.record_event(&ev)?;
+
+        let (total, unsynced) = store.get_sync_counts()?;
+        assert_eq!(total, 2);
+        assert_eq!(unsynced, 2, "legacy rows must default to synced=0");
+
+        drop(store);
+        let _ = std::fs::remove_dir_all(&root);
         Ok(())
     }
 }

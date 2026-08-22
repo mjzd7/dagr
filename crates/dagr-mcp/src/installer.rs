@@ -293,6 +293,27 @@ impl McpInstaller {
         Ok(())
     }
 
+    /// OpenCode uses its own schema: a top-level "mcp" object keyed by server
+    /// name, each entry shaped { type: "local", command: [bin, ...args] }.
+    pub fn inject_dagr_config_opencode(root_json: &mut Value, binary_command: &str) -> Result<()> {
+        if !root_json.is_object() {
+            *root_json = json!({});
+        }
+        let map = root_json.as_object_mut().unwrap();
+        if !map.contains_key("mcp") || !map["mcp"].is_object() {
+            map.insert("mcp".to_string(), json!({}));
+        }
+        let mcp = map.get_mut("mcp").unwrap().as_object_mut().unwrap();
+        mcp.insert(
+            "dagr".to_string(),
+            json!({
+                "type": "local",
+                "command": [binary_command, "mcp", "start"]
+            }),
+        );
+        Ok(())
+    }
+
     /// Returns list of all 30+ supported clients
     pub fn list_supported_clients() -> &'static [SupportedClientInfo] {
         SUPPORTED_CLIENTS
@@ -349,6 +370,13 @@ impl McpInstaller {
                 paths.push(home.join(".claude").join("mcp.json"));
                 paths.push(home.join(".claude.json"));
                 paths.push(PathBuf::from(".claude").join("mcp.json"));
+            }
+            "opencode" => {
+                paths.push(
+                    home.join(".config")
+                        .join("opencode")
+                        .join("opencode.json"),
+                );
             }
             "windsurf" => {
                 paths.push(
@@ -554,6 +582,7 @@ impl McpInstaller {
         });
 
         let target_paths = Self::get_client_config_paths(client);
+        let opencode_shape = client.eq_ignore_ascii_case("opencode");
         let mut updated_paths = Vec::new();
 
         for path in target_paths {
@@ -568,7 +597,11 @@ impl McpInstaller {
                 json!({})
             };
 
-            Self::inject_dagr_config(&mut root_json, &binary_cmd)?;
+            if opencode_shape {
+                Self::inject_dagr_config_opencode(&mut root_json, &binary_cmd)?;
+            } else {
+                Self::inject_dagr_config(&mut root_json, &binary_cmd)?;
+            }
 
             let formatted = serde_json::to_string_pretty(&root_json).map_err(|e| {
                 dagr_core::DagrError::Serialization(format!("JSON format error: {}", e))
@@ -633,6 +666,56 @@ mod tests {
         let parsed: Value = serde_json::from_str(&content).unwrap();
         assert_eq!(parsed["mcpServers"]["dagr"]["command"], "dagr");
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_inject_dagr_config_opencode_schema_and_merge() -> Result<()> {
+        let mut json = serde_json::from_str(
+            r#"{
+                "$schema": "https://opencode.ai/config.json",
+                "mcp": { "fetch": { "type": "local", "command": ["uvx", "mcp-fetch"] } },
+                "theme": "dark"
+            }"#,
+        )?;
+
+        McpInstaller::inject_dagr_config_opencode(&mut json, "/usr/local/bin/dagr")?;
+
+        assert_eq!(json["theme"], "dark");
+        assert_eq!(
+            json["mcp"]["fetch"]["command"][0],
+            "uvx",
+            "sibling opencode servers must survive the merge"
+        );
+        assert_eq!(json["mcp"]["dagr"]["type"], "local");
+        assert_eq!(json["mcp"]["dagr"]["command"][0], "/usr/local/bin/dagr");
+        assert_eq!(json["mcp"]["dagr"]["command"][1], "mcp");
+        assert_eq!(json["mcp"]["dagr"]["command"][2], "start");
+
+        // Idempotent re-run: dagr entry replaced in place, siblings intact.
+        // Idempotent re-run: dagr replaced in place, siblings intact.
+        McpInstaller::inject_dagr_config_opencode(&mut json, "dagr")?;
+        assert_eq!(json["mcp"]["dagr"]["command"][0], "dagr");
+        assert!(json["mcp"]["fetch"].is_object());
+        Ok(())
+    }
+
+    #[test]
+    fn test_install_opencode_writes_opencode_schema() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let target = temp.path().join("opencode.json");
+
+        let paths = McpInstaller::get_client_config_paths("opencode");
+        assert!(
+            paths.iter().any(|p| p.ends_with(".config/opencode/opencode.json")),
+            "opencode path arm must resolve ~/.config/opencode/opencode.json"
+        );
+
+        let mut root = json!({});
+        McpInstaller::inject_dagr_config_opencode(&mut root, "dagr")?;
+        std::fs::write(&target, serde_json::to_string_pretty(&root)?)?;
+        let parsed: Value = serde_json::from_str(&std::fs::read_to_string(&target)?)?;
+        assert_eq!(parsed["mcp"]["dagr"]["type"], "local");
         Ok(())
     }
 }

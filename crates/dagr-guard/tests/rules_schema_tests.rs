@@ -32,7 +32,10 @@ rules:
     );
     let msg = err_of(temp.path());
     assert!(msg.contains("unknown field"), "error was: {msg}");
-    assert!(msg.contains("`rules`"), "error must name offending key: {msg}");
+    assert!(
+        msg.contains("`rules`"),
+        "error must name offending key: {msg}"
+    );
 }
 
 /// Nested strictness: a typo'd key inside a boundary entry (`disallow:` was
