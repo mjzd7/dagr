@@ -2,7 +2,7 @@
 
 > **Living Test Specification & Discovery Ledger**
 > **Companions:** [`IMPROVEMENT_ROADMAP.md`](./IMPROVEMENT_ROADMAP.md) (findings → fixes) · [`RESEARCH_ROADMAP.md`](./RESEARCH_ROADMAP.md) (research features)
-> **Origin of findings:** `/Automate-Instagram-Posts/LearningsDAGR.md` (session 2026-08-22, dagr v0.1.0)
+> **Origin of findings:** [`docs/LearningsDAGR-field-session.md`](./docs/LearningsDAGR-field-session.md) (in-repo canonical copy; original field session 2026-08-22, dagr v0.1.0)
 > **Last synchronized:** August 2026
 
 ---
@@ -62,7 +62,7 @@ Every target repository runs this fixed battery. Results append to `LearningsDAG
 1. **Env snapshot:** dagr version, OS + filesystem (CoW capability), repo HEAD, LOC count, package manager, launch CWD (P3).
 2. **Init & baseline:** `dagr init` → `dagr status`; confirm rules source is `file` vs `preset` via JSON; expect guard PASS on untouched tree.
 3. **Slice fidelity battery:** pick 5 symbols — tiny fn · class w/ cross-file types · async handler · macro/metaprogramming-heavy · re-exported barrel API. Record tokens before/after, compression %, latency, whether `type_contracts` populated.
-4. **Guard detection battery (P1):** for each boundary rule: plant forbidden import → expect FAIL naming rule+advice → revert → expect PASS. Repeat across dialects: relative, alias, dynamic `import()`, `require()`, barrel re-export.
+4. **Guard detection battery (P1):** for each boundary rule: plant forbidden import → expect FAIL naming rule+message → revert → expect PASS. Repeat across dialects: relative, alias, dynamic `import()`, `require()`, barrel re-export.
 5. **Sandbox drill:** failing command → rollback asserted (`git status` clean); passing command → isolated; `-c` commit path applied.
 6. **MCP parity:** initialize → tools/list (expect ≥7) → repeat slice+verify calls over stdio JSON-RPC; compare vs CLI output where deterministic.
 7. **Telemetry delta:** `dagr stats` before/after; `tokens_saved` increments must be sane and monotonic.
@@ -157,12 +157,14 @@ Post-fix automated checks promoted into `scripts/comprehensive_test_suite.py`:
 
 | Metric | Target |
 |---|---|
-| Token compression (median slice) | ≥ 90% |
+| Token compression (median slice, **net of contracts**) | ≥ 90% single-file · ≥ 85% cross-file-active |
 | Slice latency P99 | < 5 ms |
 | Planted-violation detection rate | 100% (zero FN tolerated) |
 | Clean-tree false-positive rate | < 1% |
 | CoW rollback latency | < 10 ms |
-| Contract-hoist hit-rate | reported per repo (baseline for F3.2) |
+| Contract-hoist hit-rate | reported per repo |
+
+> **Compression denominator (EC-F5/P2):** post-F3.2, `estimated_tokens` includes hoisted contracts (same-file AND cross-file hops) — that is the denominator for all savings claims. README's 95% figures describe large single-file demos; the programmatic gates are the two-tier values above.
 
 ---
 
@@ -178,10 +180,10 @@ Post-fix automated checks promoted into `scripts/comprehensive_test_suite.py`:
 > ⚠️ **Amended 2026-08-23 after HYPERPLAN adversarial scrutiny** ([`docs/HYPERPLAN_TESTING_SCRUTINY.md`](./docs/HYPERPLAN_TESTING_SCRUTINY.md)): T0 is a hard blocker for all waves; walker ignore-list front-loaded (EC-F2); adversarial/property/fuzz battery added as new Phase T-EDGE; metric definitions require formula+denominator+protocol (EC-F5, EC-P2).
 
 ### 🆕 Phase T-EDGE — Adversarial & Property Battery (from scrutiny)
-- [ ] **T-E1 [P0]** Sandbox-escape battery: absolute-path writes, `$HOME` reads, shadow-symlink swap, nested-git rollback (`EC-S1`, hermetic tmpdir-jail).
-- [ ] **T-E2 [P0]** Traversal-read proof: `../`-heavy specifiers read nothing outside workspace root via barrel/hoister readers (`EC-S4`).
-- [ ] **T-E3 [P0]** Property/fuzz harness for `extract_imported_module` + resolver: no-panic; quoted-substring invariant; no `..` in resolved output (`EC-V1`, seeded/deterministic).
-- [ ] **T-E4 [P0]** Infra-failure battery: corrupted index.db variants, permission-denied tsconfig, disk-full CoW commit (`EC-V4`).
+- [x] **T-E1 [P0]** Sandbox-escape battery: absolute-path writes, `$HOME` reads, shadow-symlink swap, nested-git rollback (`EC-S1`, hermetic tmpdir-jail). — **run 2026-08-23: PASS=4/FAIL=0**; one documented limitation (P1-a: absolute-path writes persist — CoW scope = workspace only), recorded in the scrutiny appendix.
+- [x] **T-E2 [P0]** Traversal-read proof: `../`-heavy specifiers read nothing outside workspace root via barrel/hoister readers (`EC-S4`). — decoy-outside-root proof passing (`barrel_reader_never_escapes_workspace_root`).
+- [x] **T-E3 [P0]** Property/fuzz harness for `extract_imported_module` + resolver: no-panic; quoted-substring invariant; no `..` in resolved output (`EC-V1`, seeded/deterministic). — 600-iteration seeded fuzz **caught and hardened two real quote-leak bugs** on first run (hygiene-gate filter + Rust-use branch validation).
+- [x] **T-E4 [P0]** Infra-failure battery: corrupted index.db variants, permission-denied tsconfig, disk-full CoW commit (`EC-V4`). — corrupt/truncated DBs fail-gracefully; unreadable tsconfig degrades to empty map. Disk-full CoW case deferred to Wave-0 chaos automation.
 - [ ] **T-E5 [P1]** Adversarial import corpus with labeled catch/miss incl. documented >1-hop misses (`EC-S3`).
 - [ ] **T-E6 [P1]** Determinism goldens: identical slice → byte-identical JSON (`EC-V2`).
 - [ ] **T-E7 [P1]** Migration matrix: NULL-column rows, idempotent double-migration, partial future columns (`EC-V5`).

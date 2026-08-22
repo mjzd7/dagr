@@ -338,4 +338,39 @@ mod tests {
             "planted violation must be caught"
         );
     }
+
+    /// EC-P7: tools/list is asserted against an exact allowlist so additions
+    /// and renames are deliberate, reviewed events.
+    #[test]
+    fn tools_list_matches_exact_allowlist() {
+        let server = McpServer::new(PathBuf::from("."));
+        let resp = server
+            .handle_request(JsonRpcRequest {
+                jsonrpc: "2.0".into(),
+                id: Some(json!(20)),
+                method: "tools/list".into(),
+                params: None,
+            })
+            .unwrap();
+        let v = serde_json::to_value(resp).unwrap();
+        let mut names: Vec<&str> = v["result"]["tools"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|t| t["name"].as_str().unwrap())
+            .collect();
+        names.sort_unstable();
+        assert_eq!(
+            names,
+            vec![
+                "dagr_a2a_handshake",
+                "dagr_a2a_transfer_context",
+                "dagr_a2a_verify_peer_patch",
+                "dagr_execute_sandboxed",
+                "dagr_get_context_slice",
+                "dagr_get_lifetime_stats",
+                "dagr_verify_architecture",
+            ]
+        );
+    }
 }

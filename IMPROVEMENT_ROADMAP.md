@@ -2,7 +2,7 @@
 
 > **Living Fix Specification**
 > **Companion:** [`TESTING_ROADMAP.md`](./TESTING_ROADMAP.md) (discovery program feeding this ledger)
-> **Findings origin:** `/Automate-Instagram-Posts/LearningsDAGR.md` (L-series, 2026-08-22) + source audit (N-series, 2026-08-22)
+> **Findings origin:** [`docs/LearningsDAGR-field-session.md`](./docs/LearningsDAGR-field-session.md) (in-repo canonical copy; L-series from field session 2026-08-22) + source audit (N-series, 2026-08-22)
 > **Last synchronized:** August 2026
 
 ---
@@ -139,3 +139,4 @@
 - **2026-08-22 (cont.):** F4.1 + F4.3 shipped — opencode MCP installer (own schema, merge-preserving, e2e-probed) and SIGPIPE exit-code hygiene (`libc` SIG_DFL + BrokenPipe branch; libc reused from in-tree dagr-sandbox, gate-flagged consciously). Verification extended beyond fixtures: repo E2E harness 10/10, clippy/fmt clean on all touched code. Workspace: 25/25 suites, 107 tests passing.
 - **2026-08-22 (cont.):** F4.2 shipped — `dagr schema rules` emits draft-2020-12 JSON Schema for `.dagr/rules.yaml` (strict-contract mirror, anti-drift-tested). L9.2 fully closed: schema documented AND machine-readable. Workspace: 25/25 suites, 110 tests passing.
 - **2026-08-22 (cont.):** F3.2 shipped (v1, single hop, relative imports) — cross-file type-contract hoisting via tree-sitter-native import extraction; `--depth` now truthful (one effective hop). Phase F3 complete except multi-hop/alias extensions pending Wave data. Workspace: 26/26 suites, 111 tests passing; E2E harness 10/10; live CLI probe hoists PaymentPayload across files.
+- **2026-08-23:** HYPERPLAN adversarial scrutiny executed inline (5 hostile personas, cross-critique, full transcript persisted). Phase T-EDGE P0 batteries shipped — sandbox-escape (documented CoW-scope limitation P1-a), traversal-read proof, seeded fuzz that **hardened two real extractor quote-leaks**, infra-failure battery; walker ignore-list front-loaded (EC-F2); net-of-contracts metric definition (EC-F5); tools/list allowlist test (EC-P7); field findings copied in-repo (EC-P6); T0 harness skeleton with self-smoke PASS. Prior-session WIP preserved via `agent-os-wip` branch and merged to main — main restored to a self-contained build (`cargo install` verified end-to-end, catching a broken-packaging state). Workspace: 27/27 suites, 119 tests; E2E harness 10/10.

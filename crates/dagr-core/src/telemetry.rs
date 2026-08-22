@@ -633,4 +633,29 @@ mod tests {
         let _ = std::fs::remove_dir_all(&root);
         Ok(())
     }
+
+    #[test]
+    fn corrupted_index_db_fails_gracefully_not_panic() {
+        let root = std::env::temp_dir().join(format!("dagr_telem_corrupt_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let db_dir = root.join(".dagr");
+        std::fs::create_dir_all(&db_dir).unwrap();
+        std::fs::write(db_dir.join("index.db"), b"NOT A DATABASE \xFF\xFE garbage").unwrap();
+
+        let result = TelemetryStore::open(&root);
+        assert!(result.is_err(), "corrupt DB must error, not panic");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn truncated_db_file_fails_gracefully() {
+        let root = std::env::temp_dir().join(format!("dagr_telem_trunc_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let db_dir = root.join(".dagr");
+        std::fs::create_dir_all(&db_dir).unwrap();
+        std::fs::write(db_dir.join("index.db"), b"SQLi").unwrap();
+
+        assert!(TelemetryStore::open(&root).is_err());
+        let _ = std::fs::remove_dir_all(&root);
+    }
 }

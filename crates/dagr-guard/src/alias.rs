@@ -291,4 +291,20 @@ mod tests {
         assert!(map.is_empty());
         assert!(map.candidates("@/x").is_empty());
     }
+
+    /// EC-V4: unreadable config (permission-denied) must degrade to an empty
+    /// map exactly like a missing file — never fail the guard.
+    #[cfg(unix)]
+    #[test]
+    fn unreadable_tsconfig_degrades_to_empty() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("tsconfig.json");
+        std::fs::write(&path, r#"{"compilerOptions":{"paths":{"@/*":["./src/*"]}}}"#).unwrap();
+        let mut perms = std::fs::metadata(&path).unwrap().permissions();
+        std::os::unix::fs::PermissionsExt::set_mode(&mut perms, 0o000);
+        std::fs::set_permissions(&path, perms).unwrap();
+
+        let map = AliasMap::load(temp.path());
+        assert!(map.is_empty(), "unreadable config must degrade silently");
+    }
 }

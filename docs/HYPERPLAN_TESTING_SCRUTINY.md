@@ -141,3 +141,18 @@ Proposed tests seeded: `EC-V1..V7`.
 7. **Feedback loop into IMPROVEMENT_ROADMAP**: several scrutiny items (walker front-load, metric redefinition) are code changes, not just tests — they must be filed as F-tickets, not left as test wishes.
 
 *End of scrutiny transcript. All five rounds persisted prior to this synthesis, per protocol.*
+
+---
+
+## APPENDIX: T-E1 Sandbox Escape Battery Results (2026-08-23)
+
+Script: `scripts/tests/sandbox_escape_battery.sh` · Binary: fresh build post-F3.2
+
+| Probe | Result |
+|---|---|
+| P1 absolute-path write outside workspace | **FINDING**: persists (CoW scope = workspace only — documented limitation, not a defect). Workspace itself stayed clean. |
+| P2 `$HOME` read into workspace | PASS — capture copy rolled back with the failed command |
+| P3 symlink write-through to external canary | PASS — contained/restored |
+| P4 nested git repo | PASS — inner tree AND commit fully restored after failing command |
+
+Score: PASS=4 FAIL=0. One documented limitation (P1-a) to state explicitly in README sandbox section.

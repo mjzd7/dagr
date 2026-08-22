@@ -15,6 +15,11 @@ pub struct Violation {
     pub message: String,
 }
 
+/// Public test/harness surface for the lexical relative-specifier resolver.
+pub fn checker_relative_candidates(source_file: &str, specifier: &str) -> Vec<String> {
+    resolve_relative_candidates(source_file, specifier)
+}
+
 /// Segment-boundary prefix match: kills sibling-prefix false positives
 /// (`src/db/**` vs `src/db-migration/x`) while bare prefixes like `src/db`
 /// still catch `src/db/client` (finding N1).
@@ -96,6 +101,21 @@ impl ArchitectureGuard {
             workspace_root: workspace_root.to_path_buf(),
             barrel_cache: Mutex::new(HashMap::new()),
         })
+    }
+
+    /// Full-control constructor for harnesses/tests that supply their own
+    /// config, alias map and workspace root.
+    pub fn with_parts(
+        config: RuleConfig,
+        alias_map: crate::alias::AliasMap,
+        workspace_root: PathBuf,
+    ) -> Self {
+        Self {
+            config,
+            alias_map,
+            workspace_root,
+            barrel_cache: Mutex::new(HashMap::new()),
+        }
     }
 
     /// Evaluates if a single import violates any boundary rule (<0.05ms)
@@ -246,6 +266,15 @@ impl ArchitectureGuard {
                 || name == ".dagr"
                 || name == ".next"
                 || name == "dist"
+                || name == "build"
+                || name == "out"
+                || name == ".output"
+                || name == ".turbo"
+                || name == ".venv"
+                || name == "venv"
+                || name == "__pycache__"
+                || name == "vendor"
+                || name == "coverage"
             {
                 return Ok(());
             }
@@ -284,6 +313,15 @@ impl ArchitectureGuard {
     /// yield phantom imports (findings N3, H-R1, H-GO1).
     // ponytail: string-probe extraction, not tree-sitter AST (parsers live in dagr-slicer); upgrade when any dialect misfires during field-wave testing
     pub fn extract_imported_module(line: &str) -> Option<String> {
+        // Final hygiene gate: a legitimate specifier never embeds its own
+        // delimiter quotes; anything carrying them is soup, not an import.
+        // Final hygiene gate: a legitimate specifier never embeds its own
+        // delimiter quotes; anything carrying them is soup, not an import.
+        Self::extract_imported_module_inner(line)
+            .filter(|m| !m.contains('"') && !m.contains('\''))
+    }
+
+    fn extract_imported_module_inner(line: &str) -> Option<String> {
         let trimmed = line.trim();
 
         if trimmed.is_empty()
@@ -299,7 +337,13 @@ impl ArchitectureGuard {
             let path = rest.trim_end().trim_end_matches(';').trim();
             let base = path.split("::{").next()?.trim();
             let base = base.split(" as ").next()?.trim();
-            return (!base.is_empty()).then(|| base.split("::").collect::<Vec<&str>>().join("/"));
+            if base.is_empty()
+                || base.contains(['"', '\'', '\n'])
+                || !base.chars().next().is_some_and(|c| c.is_alphabetic() || c == '_')
+            {
+                return None;
+            }
+            return Some(base.split("::").collect::<Vec<&str>>().join("/"));
         }
 
         if let Some(rest) = trimmed.strip_prefix("from ") {
