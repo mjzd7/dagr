@@ -89,6 +89,8 @@ Every target repository runs this fixed battery. Results append to `LearningsDAG
 | Repo | Size class | Primary stressors |
 |---|---|---|
 | vercel/next.js | ~1M LOC | tsconfig `paths` aliases everywhere; packages/* internal imports; examples tree noise |
+
+> **Pinning policy (EC-P4/EC-R5):** every wave run records repo HEAD SHA + dagr version; comparable runs use dagr release tags, `main` runs are labeled exploratory. Clones use `--depth 1` (+sparse-checkout where noted) per EC-R1.
 | pnpm/pnpm | large | workspace-native resolution; generated code dirs |
 | vitejs/vite | medium-large | TS+Rust mix (rolldown); barrel re-exports |
 
@@ -173,7 +175,23 @@ Post-fix automated checks promoted into `scripts/comprehensive_test_suite.py`:
 
 ## 📋 Phased Execution Ledger
 
-- [ ] **T0:** Codify protocol as harness script; migrate existing probes from `comprehensive_test_suite.py`.
+> ⚠️ **Amended 2026-08-23 after HYPERPLAN adversarial scrutiny** ([`docs/HYPERPLAN_TESTING_SCRUTINY.md`](./docs/HYPERPLAN_TESTING_SCRUTINY.md)): T0 is a hard blocker for all waves; walker ignore-list front-loaded (EC-F2); adversarial/property/fuzz battery added as new Phase T-EDGE; metric definitions require formula+denominator+protocol (EC-F5, EC-P2).
+
+### 🆕 Phase T-EDGE — Adversarial & Property Battery (from scrutiny)
+- [ ] **T-E1 [P0]** Sandbox-escape battery: absolute-path writes, `$HOME` reads, shadow-symlink swap, nested-git rollback (`EC-S1`, hermetic tmpdir-jail).
+- [ ] **T-E2 [P0]** Traversal-read proof: `../`-heavy specifiers read nothing outside workspace root via barrel/hoister readers (`EC-S4`).
+- [ ] **T-E3 [P0]** Property/fuzz harness for `extract_imported_module` + resolver: no-panic; quoted-substring invariant; no `..` in resolved output (`EC-V1`, seeded/deterministic).
+- [ ] **T-E4 [P0]** Infra-failure battery: corrupted index.db variants, permission-denied tsconfig, disk-full CoW commit (`EC-V4`).
+- [ ] **T-E5 [P1]** Adversarial import corpus with labeled catch/miss incl. documented >1-hop misses (`EC-S3`).
+- [ ] **T-E6 [P1]** Determinism goldens: identical slice → byte-identical JSON (`EC-V2`).
+- [ ] **T-E7 [P1]** Migration matrix: NULL-column rows, idempotent double-migration, partial future columns (`EC-V5`).
+- [ ] **T-E8 [P1]** Two-process concurrency pair-test on one workspace (`EC-V6`).
+- [ ] **T-E9 [P1]** Hostile filesystem matrix: unicode/space/long-path/CRLF/BOM sources through extractor+walker (`EC-V7`).
+- [ ] **T-E10 [P1]** Net-token metric definition (contracts included) + per-fixture regression thresholds (`EC-F5`, fixes 90-vs-95% drift).
+- [ ] **T-E11 [P2]** Hostile-YAML cases: duplicate keys, oversize, CRLF/BOM, non-UTF8 (`EC-S2`, serde_yaml alias-safety verified once first).
+- [ ] **T-E12 [P2]** Memory measurement on synthetic 10k-import repo → cap only if over budget (`EC-F3`).
+
+- [ ] **T0:** Codify protocol as harness script; migrate existing probes from `comprehensive_test_suite.py`. **⛔ HARD BLOCKER for T1–T6** (per EC-R2).
 - [ ] **T1 (Wave 1):** next.js + pnpm + vite runs; confirm H-TS1, H-W1; file F-tickets for confirmed items.
 - [ ] **T2 (Wave 3):** rust-analyzer/tokio/self-host; confirm/refute H-R1 immediately (highest information gain).
 - [ ] **T3 (Wave 2):** vscode/deno/supabase scale runs; capture perf metrics at 1M LOC.
