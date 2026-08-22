@@ -372,11 +372,14 @@ impl McpInstaller {
                 paths.push(PathBuf::from(".claude").join("mcp.json"));
             }
             "opencode" => {
+                // Canonical OpenCode config plus legacy/alternate locations.
                 paths.push(
                     home.join(".config")
                         .join("opencode")
                         .join("opencode.json"),
                 );
+                paths.push(home.join(".opencode").join("mcp.json"));
+                paths.push(PathBuf::from(".opencode").join("mcp.json"));
             }
             "windsurf" => {
                 paths.push(
