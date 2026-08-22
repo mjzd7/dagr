@@ -24,6 +24,45 @@ impl ToolRegistry {
         }
     }
 
+    pub fn has_tool(&self, name: &str) -> bool {
+        self.list_tools().iter().any(|t| t.name == name)
+    }
+
+    fn required_str<'a>(&self, args: &'a Value, key: &str) -> Result<&'a str> {
+        match args.get(key) {
+            Some(v) => v.as_str().ok_or_else(|| {
+                DagrError::Config(format!("Argument '{key}' must be a string"))
+            }),
+            None => Err(DagrError::Config(format!(
+                "Missing required argument '{key}'"
+            ))),
+        }
+    }
+
+    fn required_str_list(&self, args: &Value, key: &str) -> Result<Vec<String>> {
+        let arr = match args.get(key) {
+            Some(v) if !v.is_null() => v.as_array().ok_or_else(|| {
+                DagrError::Config(format!("Argument '{key}' must be an array of strings"))
+            })?,
+            _ => {
+                return Err(DagrError::Config(format!(
+                    "Missing required argument '{key}'"
+                )))
+            }
+        };
+        arr.iter()
+            .map(|v| {
+                v.as_str()
+                    .map(|s| s.to_string())
+                    .ok_or_else(|| {
+                        DagrError::Config(format!(
+                            "Argument '{key}' must contain only strings"
+                        ))
+                    })
+            })
+            .collect()
+    }
+
     /// Returns the complete list of tools exposed to MCP IDEs and A2A swarms
     pub fn list_tools(&self) -> Vec<ToolDefinition> {
         vec![
@@ -185,15 +224,8 @@ impl ToolRegistry {
 
     fn handle_verify_architecture(&self, args: &Value) -> Result<Value> {
         let start = Instant::now();
-        let source_file = args["source_file"].as_str().unwrap_or("");
-        let imports: Vec<String> = args["proposed_imports"]
-            .as_array()
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let source_file = self.required_str(args, "source_file")?;
+        let imports = self.required_str_list(args, "proposed_imports")?;
 
         let guard = ArchitectureGuard::load(&self.workspace_root)?;
         let violations = guard.check_file_imports(source_file, &imports);
@@ -204,17 +236,24 @@ impl ToolRegistry {
             let _ = store.record_event(&ev);
         }
 
+        let rules_source = if self.workspace_root.join(".dagr").join("rules.yaml").exists() {
+            "file"
+        } else {
+            "preset"
+        };
+
         Ok(json!({
             "valid": violations.is_empty(),
             "violations_count": violations.len(),
-            "violations": violations
+            "violations": violations,
+            "workspace": self.workspace_root.display().to_string(),
+            "rules_source": rules_source,
+            "active_rules": guard.config.boundaries.len()
         }))
     }
 
     fn handle_execute_sandboxed(&self, args: &Value) -> Result<Value> {
-        let command = args["command"]
-            .as_str()
-            .unwrap_or("echo 'no command provided'");
+        let command = self.required_str(args, "command")?;
         let tx = CowSandbox::begin(&self.workspace_root)?;
 
         let result = CowSandbox::verify(&tx, command)?;
@@ -246,16 +285,12 @@ impl ToolRegistry {
     }
 
     fn handle_a2a_handshake(&self, args: &Value) -> Result<Value> {
-        let agent_id = args["agent_id"].as_str().unwrap_or("unknown_agent");
-        let role = args["role"].as_str().unwrap_or("worker");
-        let files: Vec<String> = args["files_to_lock"]
-            .as_array()
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let agent_id = self.required_str(args, "agent_id")?;
+        let role = self.required_str(args, "role")?;
+        let files: Vec<String> = match args.get("files_to_lock") {
+            Some(v) if !v.is_null() => self.required_str_list(args, "files_to_lock")?,
+            _ => Vec::new(),
+        };
 
         let mut locks = self.active_agent_locks.lock().unwrap();
         locks.insert(agent_id.to_string(), files.clone());
@@ -270,9 +305,10 @@ impl ToolRegistry {
     }
 
     fn handle_a2a_transfer_context(&self, args: &Value) -> Result<Value> {
-        let to_agent = args["to_agent"].as_str().unwrap_or("");
-        let file_path = args["file_path"].as_str().unwrap_or("");
-        let symbol_name = args["symbol_name"].as_str().unwrap_or("");
+        let from_agent = self.required_str(args, "from_agent")?;
+        let to_agent = self.required_str(args, "to_agent")?;
+        let file_path = self.required_str(args, "file_path")?;
+        let symbol_name = self.required_str(args, "symbol_name")?;
 
         let slice_value = self.handle_get_context_slice(&json!({
             "file_path": file_path,
@@ -280,15 +316,16 @@ impl ToolRegistry {
         }))?;
 
         Ok(json!({
+            "transferred_from": from_agent,
             "transferred_to": to_agent,
             "context_envelope": slice_value
         }))
     }
 
     fn handle_a2a_verify_peer_patch(&self, args: &Value) -> Result<Value> {
-        let reviewer = args["reviewer_agent"].as_str().unwrap_or("");
-        let tx_id_str = args["target_tx_id"].as_str().unwrap_or("");
-        let command = args["test_command"].as_str().unwrap_or("");
+        let reviewer = self.required_str(args, "reviewer_agent")?;
+        let tx_id_str = self.required_str(args, "target_tx_id")?;
+        let command = self.required_str(args, "test_command")?;
 
         let tx_id = Uuid::parse_str(tx_id_str)
             .map_err(|e| DagrError::Config(format!("Invalid tx_id: {}", e)))?;

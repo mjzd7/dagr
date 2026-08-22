@@ -224,6 +224,47 @@ Checking 48 staged files against .dagr/rules.yaml...
 
 ---
 
+## 🛡️ Guard Rules Schema (`.dagr/rules.yaml`)
+
+Created automatically by `dagr init`. Parsing is **strict (fail-closed)**: unknown or mistyped keys are a hard error that names the offending key — a silently-dropped mistyped `boundaries` list would otherwise produce a zero-rule guard that always reports PASS.
+
+| Level | Allowed keys |
+| :--- | :--- |
+| **Top level** | `version` *(required)* · `project_name` · `preset` · `boundaries` · `limits` · `security` |
+| **`boundaries[]` entry** | `name` *(required)* · `from` *(required)* · `cannot_import` *(required)* · `message` *(optional — default: `"Architectural layer boundary violation detected"`)* |
+| **`limits`** | `max_file_lines` · `max_function_lines` · `disallow_eval` |
+| **`security`** | `sanitize_prompt_injections` *(default `true`)* · `strip_control_tokens` *(default: common LLM control tokens)* |
+
+### Minimal example
+
+```yaml
+version: "1.0"
+project_name: my-monorepo
+preset: clean-architecture   # optional; seeds boundaries when none are defined
+boundaries:
+  - name: UI-to-DB Boundary
+    from: "packages/web/src/**"
+    cannot_import:
+      - "packages/core/src/db/**"
+    message: Presentation layer must not import database clients directly.
+limits:
+  max_file_lines: 500
+  max_function_lines: 60
+  disallow_eval: true
+security:
+  sanitize_prompt_injections: true
+  strip_control_tokens: ["[INST]", "[/INST]"]
+```
+
+### Behavior notes
+
+* **File missing** → falls back to the built-in `clean-architecture` preset (full enforcement).
+* **File present but invalid** → hard error naming the offending key and line; the guard refuses to run rather than silently passing.
+* **`preset:` set + empty `boundaries`** → preset boundaries are seeded automatically.
+* Patterns match against **workspace-relative paths as literally written in imports**; author rules in your repository's own import dialect (relative specifiers like `../db/**` vs aliases like `@/lib/**`).
+
+---
+
 ## 📊 Live Lifetime Telemetry & ROI Dashboard
 
 DAGR features a built-in, local-first analytics engine and embedded zero-cloud web dashboard to track cumulative token savings, estimated dollar ROI ($3.00/1M blended LLM pricing), compression ratios, and client usage across all connected AI coding tools.

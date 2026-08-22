@@ -13,6 +13,17 @@ pub struct Violation {
     pub message: String,
 }
 
+/// Segment-boundary prefix match: kills sibling-prefix false positives
+/// (`src/db/**` vs `src/db-migration/x`) while bare prefixes like `src/db`
+/// still catch `src/db/client` (finding N1).
+fn module_under_prefix(module: &str, pattern: &str) -> bool {
+    let prefix = pattern.trim_end_matches("/**").trim_end_matches('/');
+    module == prefix
+        || (module.len() > prefix.len()
+            && module.starts_with(prefix)
+            && module.as_bytes()[prefix.len()] == b'/')
+}
+
 pub struct ArchitectureGuard {
     pub config: RuleConfig,
 }
@@ -32,7 +43,7 @@ impl ArchitectureGuard {
                     for forbidden in &rule.cannot_import {
                         if let Ok(forbid_pattern) = Pattern::new(forbidden) {
                             if forbid_pattern.matches(imported_module)
-                                || imported_module.starts_with(forbidden.trim_end_matches("/**"))
+                                || module_under_prefix(imported_module, forbidden)
                             {
                                 return Some(Violation {
                                     rule_name: rule.name.clone(),
@@ -170,5 +181,42 @@ mod tests {
         // 3. Violation: Domain importing Express
         let domain_violation = guard.check_import("src/domain/User.ts", "express");
         assert!(domain_violation.is_some());
+    }
+
+    fn guard_with_cannot_import(forbidden: &str) -> ArchitectureGuard {
+        ArchitectureGuard {
+            config: RuleConfig {
+                version: "1.0".into(),
+                project_name: None,
+                preset: None,
+                boundaries: vec![crate::rules::BoundaryRule {
+                    name: "UI-to-DB".into(),
+                    from: "src/ui/**".into(),
+                    cannot_import: vec![forbidden.to_string()],
+                    message: "no db".into(),
+                }],
+                limits: Default::default(),
+                security: Default::default(),
+            },
+        }
+    }
+
+    #[test]
+    fn sibling_directory_prefix_is_not_a_violation() {
+        let guard = guard_with_cannot_import("src/db/**");
+        assert!(guard.check_import("src/ui/A.ts", "src/db/client").is_some());
+        assert!(guard
+            .check_import("src/ui/A.ts", "src/db-migration/client")
+            .is_none());
+    }
+
+    #[test]
+    fn bare_prefix_requires_segment_boundary() {
+        let guard = guard_with_cannot_import("src/db");
+        assert!(guard.check_import("src/ui/A.ts", "src/db").is_some());
+        assert!(guard.check_import("src/ui/A.ts", "src/db/client").is_some());
+        assert!(guard
+            .check_import("src/ui/A.ts", "src/database/engine")
+            .is_none());
     }
 }

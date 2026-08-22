@@ -353,7 +353,11 @@ pub enum SkillsAction {
 #[derive(Subcommand, Debug, PartialEq)]
 pub enum McpAction {
     /// Start stdio MCP JSON-RPC 2.0 listener
-    Start,
+    Start {
+        /// Workspace root to serve; falls back to $DAGR_WORKSPACE, then current directory
+        #[arg(short = 'w', long)]
+        workspace: Option<PathBuf>,
+    },
 
     /// Automatically configure DAGR into Cursor, Claude Desktop, Windsurf, or Workspace MCP settings
     Install {
@@ -378,12 +382,17 @@ pub enum OutputFormat {
     Markdown,
 }
 
+/// Resolves the active DAGR workspace: explicit flag > $DAGR_WORKSPACE env > process CWD.
+pub fn resolve_workspace(flag: Option<PathBuf>, env: Option<String>, cwd: PathBuf) -> PathBuf {
+    flag.or_else(|| env.map(PathBuf::from)).unwrap_or(cwd)
+}
+
 /// Executes the resolved CLI command
 pub async fn execute_cli(cli: Cli) -> Result<()> {
     let is_mcp_start = matches!(
         &cli.command,
         Commands::Mcp {
-            action: McpAction::Start
+            action: McpAction::Start { .. }
         }
     );
     let is_update = matches!(&cli.command, Commands::Update { .. });
@@ -452,9 +461,19 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             watcher.watch()
         }
         Commands::Mcp { action } => match action {
-            McpAction::Start => {
-                let server = McpServer::new(std::env::current_dir()?);
-                server.run_stdio()
+            McpAction::Start { workspace } => {
+                let root = resolve_workspace(
+                    workspace,
+                    std::env::var("DAGR_WORKSPACE").ok(),
+                    std::env::current_dir()?,
+                );
+                if !root.join(".dagr").join("rules.yaml").exists() {
+                    eprintln!(
+                        "⚠️  No .dagr/rules.yaml found at '{}' — guard falls back to the built-in clean-architecture preset.",
+                        root.display()
+                    );
+                }
+                McpServer::new(root).run_stdio()
             }
             McpAction::Install { client, bin_path } => {
                 handle_mcp_install(&client, bin_path.as_deref())

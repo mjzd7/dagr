@@ -1,8 +1,10 @@
 use dagr_core::{DagrError, Result};
+use glob::Pattern;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct BoundaryRule {
     pub name: String,
     pub from: String,
@@ -16,6 +18,7 @@ fn default_boundary_message() -> String {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[serde(deny_unknown_fields)]
 pub struct LimitsConfig {
     pub max_file_lines: Option<usize>,
     pub max_function_lines: Option<usize>,
@@ -23,6 +26,7 @@ pub struct LimitsConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct SecurityConfig {
     #[serde(default = "default_true")]
     pub sanitize_prompt_injections: bool,
@@ -61,7 +65,11 @@ impl Default for SecurityConfig {
     }
 }
 
+/// Root configuration for `.dagr/rules.yaml`. Strict schema: unknown keys are
+/// rejected at parse time so a mistyped `boundaries` list can never silently
+/// yield a zero-rule guard that always passes (field finding L1).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct RuleConfig {
     pub version: String,
     #[serde(default)]
@@ -85,8 +93,15 @@ impl RuleConfig {
         }
 
         let content = std::fs::read_to_string(&rule_path)?;
-        let mut config: RuleConfig = serde_yaml::from_str(&content)
-            .map_err(|e| DagrError::Config(format!("Invalid .dagr/rules.yaml: {}", e)))?;
+        let mut config: RuleConfig = serde_yaml::from_str(&content).map_err(|e| {
+            DagrError::Config(format!(
+                "Invalid .dagr/rules.yaml: {e}\n  \
+                 Strict schema: unknown or mistyped keys are rejected (fail-closed). \
+                 Top-level keys: version | project_name | preset | boundaries | limits | security. \
+                 Boundary entries accept: name | from | cannot_import | message. \
+                 See README.md § 'Guard Rules Schema (.dagr/rules.yaml)'."
+            ))
+        })?;
 
         // Apply preset boundaries if specified and boundaries list is empty
         if let Some(ref preset) = config.preset {
@@ -95,7 +110,31 @@ impl RuleConfig {
             }
         }
 
+        config.validate_patterns()?;
         Ok(config)
+    }
+
+    /// Validates every boundary pattern compiles as a glob. Fail-closed: an
+    /// uncompilable pattern would otherwise be skipped by check_import as a
+    /// dead rule that never fires (finding N2).
+    pub fn validate_patterns(&self) -> Result<()> {
+        for rule in &self.boundaries {
+            Pattern::new(&rule.from).map_err(|e| {
+                DagrError::Config(format!(
+                    "Invalid .dagr/rules.yaml: rule '{}' has invalid 'from' pattern '{}': {}",
+                    rule.name, rule.from, e
+                ))
+            })?;
+            for forbidden in &rule.cannot_import {
+                Pattern::new(forbidden).map_err(|e| {
+                    DagrError::Config(format!(
+                        "Invalid .dagr/rules.yaml: rule '{}' has invalid cannot_import pattern '{}': {}",
+                        rule.name, forbidden, e
+                    ))
+                })?;
+            }
+        }
+        Ok(())
     }
 
     pub fn clean_architecture_preset() -> Self {
