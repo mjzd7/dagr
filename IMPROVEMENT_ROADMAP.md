@@ -58,22 +58,22 @@
 - **Acceptance criteria:** `src/db/**` does NOT match `src/db-migration/x` but DOES match `src/db/x` and `src/db/sub/x`; regression test added.
 - **Status:** ✅ 2026-08-22 — `module_under_prefix()` segment-boundary matcher replaces the raw `starts_with`; bare prefixes (`src/db`) still catch exact matches and `src/db/client`; glob matching untouched as primary path. Tests in `checker.rs::tests`.
 
-### ☐ F2.2 Import resolution layer (relative → canonical workspace paths) `[L2]`
+### ✅ F2.2 Import resolution layer (relative → canonical workspace paths) `[L2]`
 - **Root cause:** matching compares the literal string inside the import statement against workspace-relative glob patterns. Relative imports (`../db/client`) can never match absolute patterns (`packages/core/src/db/**`) — the exact failure observed in the field.
 - **Fix approach:** introduce a resolution step between extraction and matching: given importing-file workspace path + relative import specifier, compute the candidate workspace-relative target path (handling `./`, `../`, extension probing `.ts/.tsx/.js/index.*`) and match against THAT, keeping raw-specifier matching as a secondary pass.
 - **Acceptance criteria:** field-session scenario (`text-filter.ts` importing `../db/client` vs pattern `packages/core/src/db/**`) now detected; unit tests per dialect.
-- **Status:** ☐
+- **Status:** ✅ 2026-08-22 — `resolve_relative_candidates()` performs pure-lexical resolution (`./` and `../` only, no filesystem access, hot-path safe); `check_import` matches the raw specifier OR any canonical candidate (resolved path + `/index` variant). Alias/bare specifiers untouched (F2.3/F2.4). MCP `verify_architecture` inherits automatically via `check_file_imports`. 3 new tests.
 
 ### ☐ F2.3 Alias resolution (tsconfig/jsconfig paths)
 - **Approach:** parse `tsconfig.json`/`jsconfig.json` `compilerOptions.paths` + `baseUrl`; map `@/lib/x` → workspace-relative candidates pre-match. Cache parsed maps per workspace.
 - **Acceptance criteria:** alias-import violation scenario caught in a fixture repo with standard Next.js/Vite aliases.
 - **Status:** ☐
 
-### ☐ F2.4 Importer coverage expansion `[N3, H-R1, H-GO1]`
+### ✅ F2.4 Importer coverage expansion `[N3, H-R1, H-GO1]`
 - **Root cause:** `extract_imported_module` (checker.rs:121) handles TS/JS via `"from "` substring and Python prefixes only. Misses: `require("x")`, dynamic `import("x")`, side-effect `import "x";`, Rust `use` statements (**possibly all Rust imports invisible — see H-R1**), Go import blocks (single-line works accidentally via the Python branch). The substring probe also fires inside comments/strings.
 - **Fix approach:** dialect-specific extractors (regex set or reuse tree-sitter queries already available via dagr-slicer); strip comments before line-probing.
 - **Acceptance criteria:** per-dialect fixtures (TS variants, Rust `use`, Go blocks, comment traps) all yield correct extracted modules; Wave 3 confirms H-R1 resolution.
-- **Status:** ☐
+- **Status:** ✅ 2026-08-22 — extractor rewritten as ordered dialect probes: comment-line guard (kills phantom imports), Rust `use` paths (`::`→`/`, brace-group + `as` handling — **H-R1 confirmed at code level and closed**), TS/JS side-effect imports, dynamic `import()` / `require()` calls, re-export forms, Go single-line AND block lines (bare + aliased). Crate-level Rust rules (preset `tokio`) now fire via segment matching on `tokio/...` candidates. Known heuristic edge: bare two-token `alias "path"` lines outside import blocks could false-hit (guarded against `=` and trailing `;`); tree-sitter extraction remains the long-term upgrade path. 5 new fixture tests.
 
 ### ☐ F2.5 Barrel/re-export following (one hop)
 - **Approach:** when an import resolves to an `index.ts`/mod.rs barrel, follow its re-exports one hop to attribute violations to the underlying module.
@@ -131,3 +131,5 @@
 - **2026-08-22:** Ledger created from L1–L10 field findings + N1–N3 source-audit findings; F1.1 implemented and verified (`deny_unknown_fields` on `RuleConfig` + `BoundaryRule`, enriched config errors, README schema section, regression tests).
 - **2026-08-22 (cont.):** F1.2 shipped — `RuleConfig::validate_patterns()` rejects uncompilable globs at load with rule name + pattern in the error; runtime matching untouched. F1.3 shipped — all five lenient MCP handlers hardened to required-arg + type validation; unknown tool → `-32602`; `execute_sandboxed` echo-default side effect eliminated. Workspace: 24/24 suites green.
 - **2026-08-22 (cont.):** F1.4 shipped — `mcp start --workspace/-w` + `$DAGR_WORKSPACE` override via `resolve_workspace()` (flag > env > CWD), stderr preset-fallback banner, rules-provenance fields (`workspace`/`rules_source`/`active_rules`) in guard responses. F2.1 shipped — `module_under_prefix()` segment-boundary matcher replaces raw `starts_with`, eliminating sibling-prefix false positives while preserving bare-prefix convenience. Workspace: 25/25 suites green, 90 tests passing.
+- **2026-08-22 (cont.):** F2.2 shipped — relative import specifiers are lexically resolved to canonical workspace candidates before pattern matching, closing the L2 evasion (`../db/client` vs `packages/core/src/db/**`). Workspace: 25/25 suites, 93 tests passing.
+- **2026-08-22 (cont.):** F2.4 shipped — importer rewritten as per-dialect probes: Rust `use` visibility (H-R1 confirmed & fixed), `require()` / dynamic `import()` / side-effect imports, Go block lines, comment-trap rejection (N3). Workspace: 25/25 suites, 98 tests passing.

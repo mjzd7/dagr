@@ -104,8 +104,8 @@ Every target repository runs this fixed battery. Results append to `LearningsDAG
 | supabase/supabase | mixed-language monorepo; deep nesting |
 
 **Hypotheses:**
-- **H-N3a:** dynamic `import()` / `require()` imports are entirely invisible to `extract_imported_module` → planted violations escape detection.
-- **H-N3b:** comment lines containing `from '` create phantom imports (substring matcher).
+- **H-N3a:** dynamic `import()` / `require()` imports are entirely invisible to `extract_imported_module` → planted violations escape detection. — **✅ fixed by F2.4**
+- **H-N3b:** comment lines containing `from '` create phantom imports (substring matcher). — **✅ fixed by F2.4**
 
 ### Wave 3 — Rust Dogfooding (DAGR's home turf)
 | Repo | Stressors |
@@ -115,13 +115,13 @@ Every target repository runs this fixed battery. Results append to `LearningsDAG
 | mjzd7/dagr (**self-host**) | eat own dog food on our own binary |
 
 **Hypotheses:**
-- **H-R1 (high priority):** Rust `use crate::foo::Bar;` statements contain no `"from "` and no Python prefix → **Rust imports may be entirely invisible to `scan_workspace` today**. Derived from source read of `extract_imported_module` (checker.rs); needs runtime confirmation. If true → new S1 finding + F-ticket (extends F2.4).
+- **H-R1 (high priority):** Rust `use crate::foo::Bar;` statements contain no `"from "` and no Python prefix → **Rust imports may be entirely invisible to `scan_workspace` today**. Derived from source read of `extract_imported_module` (checker.rs); needs runtime confirmation. If true → new S1 finding + F-ticket (extends F2.4). — **✅ CONFIRMED & FIXED via F2.4 (2026-08-22):** Rust imports were fully invisible pre-fix; now extracted as `::`→`/` paths with brace/alias handling, unit-tested. Runtime re-verification still due in Wave 3.
 - **H-R2:** trait/struct contract hoisting behaves differently for generic bounds; measure `type_contracts` hit-rate.
 
 ### Wave 4 — Other Ecosystems (breadth proof)
 | Repo | Language | Expected outcome |
 |---|---|---|
-| kubernetes/kubernetes (or golang/go stdlib subset) | Go | H-GO1: single-line `import "x"` accidentally works via the Python branch; **import blocks (`import ( ... )`) fully missed** |
+| kubernetes/kubernetes (or golang/go stdlib subset) | Go | H-GO1: single-line `import "x"` accidentally works via the Python branch; **import blocks (`import ( ... )`) fully missed** — ◐ partially fixed by F2.4, runtime confirmation pending Wave 4 |
 | spring-projects/spring-boot | Java | Java `import com.x.y;` accidentally matches the Python branch — verify semicolon trimming holds |
 | python/cpython or pydantic | C + Python | mixed-language parsing; `from . import x` relative forms |
 
@@ -142,7 +142,8 @@ Post-fix automated checks promoted into `scripts/comprehensive_test_suite.py`:
 - [x] MCP verify_architecture rejects unknown/missing required args with `-32602` / precise `isError` content; unknown tool → `-32602` *(F1.3)*
 - [x] Server honors `DAGR_WORKSPACE` env override; responses embed resolved root + rules source *(F1.4)*
 - [x] `src/db/**` does not match `src/db-migration/x` *(F2.1)*
-- [ ] Relative import `../db/client` caught by canonical pattern after resolution layer *(F2.2)*
+- [x] Relative import `../db/client` caught by canonical pattern after resolution layer *(F2.2)*
+- [x] `require()` / dynamic `import()` / side-effect / Rust `use` / Go block lines all yield modules; comment lines yield none *(F2.4)*
 - [ ] `--depth` either functional or emits explicit unsupported warning *(F3.1)*
 - [ ] `dagr mcp install --client opencode` idempotent merge *(F4.1)*
 
