@@ -223,6 +223,20 @@ pub enum Commands {
         preset: String,
     },
 
+    /// Emit machine-readable schemas for DAGR configuration artifacts
+    #[command(
+        name = "schema",
+        about = "Emit JSON Schema for DAGR configuration artifacts",
+        long_about = "Prints JSON Schema (draft 2020-12) describing .dagr/rules.yaml to stdout so editors can validate and autocomplete rule files.\n\n\
+                      EXAMPLES:\n  \
+                        dagr schema rules | jq ."
+    )]
+    Schema {
+        /// Which configuration artifact to emit
+        #[arg(value_enum)]
+        artifact: SchemaArtifact,
+    },
+
     /// Manage and install self-steering Agent Skills (Antigravity, Cursor, Claude Code, Workspace)
     #[command(
         name = "skills",
@@ -382,6 +396,82 @@ pub enum OutputFormat {
     Markdown,
 }
 
+#[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SchemaArtifact {
+    Rules,
+}
+
+/// Hand-maintained JSON Schema mirroring RuleConfig's strict contract.
+// ponytail: static schema instead of schemars codegen - struct surface is small/stable and the anti-drift test pins drift; upgrade if the config surface grows
+pub fn rules_schema() -> serde_json::Value {
+    serde_json::json!({
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "DAGR Guard Rules (.dagr/rules.yaml)",
+        "description": "Strict schema: unknown keys are rejected at parse time.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version"],
+        "properties": {
+            "version": { "type": "string" },
+            "project_name": { "type": ["string", "null"] },
+            "preset": {
+                "type": ["string", "null"],
+                "enum": [
+                    "clean-architecture",
+                    "nextjs",
+                    "nextjs-app",
+                    "fastapi",
+                    "python",
+                    "rust",
+                    "rust-monorepo"
+                ]
+            },
+            "boundaries": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "from", "cannot_import"],
+                    "properties": {
+                        "name": { "type": "string" },
+                        "from": { "type": "string" },
+                        "cannot_import": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                        },
+                        "message": { "type": "string" }
+                    }
+                }
+            },
+            "limits": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "max_file_lines": { "type": ["integer", "null"] },
+                    "max_function_lines": { "type": ["integer", "null"] },
+                    "disallow_eval": { "type": ["boolean", "null"] }
+                }
+            },
+            "security": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "sanitize_prompt_injections": { "type": "boolean" },
+                    "strip_control_tokens": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                }
+            }
+        }
+    })
+}
+
+pub fn handle_schema_rules() -> Result<()> {
+    println!("{}", serde_json::to_string_pretty(&rules_schema())?);
+    Ok(())
+}
+
 /// Resolves the active DAGR workspace: explicit flag > $DAGR_WORKSPACE env > process CWD.
 pub fn resolve_workspace(flag: Option<PathBuf>, env: Option<String>, cwd: PathBuf) -> PathBuf {
     flag.or_else(|| env.map(PathBuf::from)).unwrap_or(cwd)
@@ -481,6 +571,9 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             McpAction::ListClients => handle_mcp_list_clients(),
         },
         Commands::Init { preset } => handle_init(&preset),
+        Commands::Schema { artifact } => match artifact {
+            SchemaArtifact::Rules => handle_schema_rules(),
+        },
         Commands::Skills { action } => match action {
             SkillsAction::Install { target } => handle_skills_install(&target),
             SkillsAction::List => handle_skills_list(),
@@ -1339,6 +1432,64 @@ mod tests {
                 format: OutputFormat::Json,
             }
         );
+    }
+
+    #[test]
+    fn test_cli_parsing_schema_command() {
+        let cli = Cli::try_parse_from(["dagr", "schema", "rules"]).expect("CLI parsing failed");
+        assert_eq!(
+            cli.command,
+            Commands::Schema {
+                artifact: SchemaArtifact::Rules
+            }
+        );
+    }
+
+    #[test]
+    fn rules_schema_matches_strict_ruleconfig_contract() {
+        let s = rules_schema();
+        assert_eq!(s["type"], serde_json::json!("object"));
+        assert_eq!(s["additionalProperties"], serde_json::json!(false));
+        assert_eq!(s["required"], serde_json::json!(["version"]));
+
+        let mut top_keys: Vec<&str> = s["properties"]
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(|k| k.as_str())
+            .collect();
+        top_keys.sort_unstable();
+        assert_eq!(
+            top_keys,
+            vec![
+                "boundaries",
+                "limits",
+                "preset",
+                "project_name",
+                "security",
+                "version"
+            ]
+        );
+
+        let boundary = &s["properties"]["boundaries"]["items"];
+        assert_eq!(boundary["additionalProperties"], serde_json::json!(false));
+        assert_eq!(
+            boundary["required"],
+            serde_json::json!(["name", "from", "cannot_import"])
+        );
+        let bkeys: Vec<&str> = boundary["properties"]
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(|k| k.as_str())
+            .collect();
+        assert_eq!(bkeys.len(), 4);
+
+        assert!(s["properties"]["preset"]["enum"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v == "nextjs-app"));
     }
 
     #[test]

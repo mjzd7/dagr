@@ -102,9 +102,9 @@
 - Merge-write `~/.config/opencode/opencode.json` mcp object (`{"mcp": {"dagr": {"type": "local", "command": ["dagr","mcp","start"]}}}`), merge-not-clobber, idempotent. Note: takes effect on next opencode start; docs must repeat the CWD caveat from F1.4.
 - **Status:** ✅ 2026-08-22 — path arm added (`~/.config/opencode/opencode.json`); dedicated `inject_dagr_config_opencode()` writes OpenCode's own schema (top-level `mcp` object, array-form command, `type: local`) while preserving sibling servers and foreign keys; `install()` branches per client shape. E2E-probed with isolated HOME: written config matches L10's required shape exactly. 2 unit tests (schema+merge+idempotency, path-arm resolution).
 
-### ◐ F4.2 Schema documentation + JSON-Schema emitter `[L9.2]`
+### ✅ F4.2 Schema documentation + JSON-Schema emitter `[L9.2]`
 - README schema section ships with F1.1 ✅. Remaining: `dagr schema rules` emitting JSON Schema for editor autocomplete/validation.
-- **Status:** ◐ (docs done; emitter pending)
+- **Status:** ✅ 2026-08-22 — `dagr schema rules` emits draft-2020-12 JSON Schema mirroring RuleConfig's strict contract (`additionalProperties:false` at every level, required keys, preset enum). Hand-maintained static builder — no schemars dependency; an anti-drift test pins key-sets, requireds and the preset enum against drift. E2E-probed valid via python json.tool.
 
 ### ✅ F4.3 Exit-code hygiene under SIGPIPE `[L9.5]`
 - Guard exit codes masked when stdout piped through `head`. Handle SIGPIPE explicitly / detect closed pipe and preserve meaningful exit semantics.
@@ -137,3 +137,4 @@
 - **2026-08-22 (cont.):** F3.1 shipped — `--depth` honesty patch (`Option<usize>`, stderr no-op warning naming F3.2, honest clap/MCP descriptions). F2.5 explicitly deferred pending the barrel-index architecture decision. Workspace: 25/25 suites, 103 tests passing.
 - **2026-08-22 (cont.):** F2.5 shipped — one-hop barrel following via lazy cached re-export index (re-exports only, never private imports); `ArchitectureGuard` gains `workspace_root` + cache, expansion gated behind direct-miss so clean scans stay IO-free. Phase F2 (guard intelligence) complete. Workspace: 25/25 suites, 105 tests passing.
 - **2026-08-22 (cont.):** F4.1 + F4.3 shipped — opencode MCP installer (own schema, merge-preserving, e2e-probed) and SIGPIPE exit-code hygiene (`libc` SIG_DFL + BrokenPipe branch; libc reused from in-tree dagr-sandbox, gate-flagged consciously). Verification extended beyond fixtures: repo E2E harness 10/10, clippy/fmt clean on all touched code. Workspace: 25/25 suites, 107 tests passing.
+- **2026-08-22 (cont.):** F4.2 shipped — `dagr schema rules` emits draft-2020-12 JSON Schema for `.dagr/rules.yaml` (strict-contract mirror, anti-drift-tested). L9.2 fully closed: schema documented AND machine-readable. Workspace: 25/25 suites, 110 tests passing.

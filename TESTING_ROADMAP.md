@@ -46,7 +46,7 @@ DAGR v0.1.0 has been validated end-to-end on exactly **one** external codebase (
 | L4/L9.4 | `--depth` flag inert; `type_contracts` empty for TS intra-file slices | S2 | F3.1 | open |
 | L6 | MCP tools silently default wrong/missing args to empty → `valid: true` | S0 | F1.3 | open |
 | L7 | MCP server resolves rules/telemetry from launch CWD; IDEs get silent preset fallback | S1 | F1.4 | open |
-| L9.2 | rules.yaml schema undocumented in README | S2 | F4.2 | partial (docs shipped with F1.1) |
+| L9.2 | rules.yaml schema undocumented in README | S2 | F4.2 | ✅ closed (README docs + emitter) |
 | L9.5 | Guard exit code masked when piped through `head` | S3 | F4.3 | open |
 | L10 | dagr MCP not registered in opencode by installer | S2 | F4.1 | open |
 | N1 | Sibling-prefix false positives: `starts_with(trim_end_matches("/**"))` makes `src/db/**` match `src/db-migration/x` | S1 | F2.1 | open |
