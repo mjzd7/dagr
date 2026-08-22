@@ -48,7 +48,7 @@ pub enum Commands {
         /// Target in format "path/to/file.ext:symbolName" or comma-separated symbols
         target: String,
 
-        /// Reserved for cross-file contract hoisting (F3.2); currently a no-op
+        /// Cross-file contract hoist hops (v1: one effective hop)
         #[arg(short = 'd', long)]
         depth: Option<usize>,
 
@@ -783,9 +783,11 @@ pub fn handle_context(
         };
 
     if let Some(requested) = depth {
-        eprintln!(
-            "⚠️  --depth {requested} is currently a no-op: cross-file contract hoisting is not implemented yet (roadmap F3.2). Slices remain single-file."
-        );
+        if requested > 1 {
+            eprintln!(
+                "⚠️  --depth {requested}: v1 performs a single cross-file contract hop; deeper traversal is not yet supported."
+            );
+        }
     }
 
     let mut slices = Vec::new();
@@ -794,6 +796,7 @@ pub fn handle_context(
         max_token_budget: 1500,
         include_comments: false,
         tier: slice_tier,
+        workspace_root: current_dir.clone(),
     });
 
     for t in targets {

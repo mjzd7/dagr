@@ -71,7 +71,7 @@ impl ToolRegistry {
                     "properties": {
                         "file_path": { "type": "string", "description": "Relative path to target file (e.g. src/billing/charge.ts)" },
                         "symbol_name": { "type": "string", "description": "Function, method, or class name (e.g. processPayment)" },
-                        "max_depth_hops": { "type": "number", "description": "Reserved for cross-file contract hoisting (not yet implemented); currently has no effect on single-file slices" }
+                        "max_depth_hops": { "type": "number", "description": "Cross-file contract hoist hops (v1: one effective hop for relative imports)" }
                     },
                     "required": ["file_path", "symbol_name"]
                 }),
@@ -188,7 +188,10 @@ impl ToolRegistry {
             .unwrap_or("");
         let lang = Language::from_extension(ext);
 
-        let slicer = SymbolicSlicer::new(SlicerConfig::default());
+        let slicer = SymbolicSlicer::new(SlicerConfig {
+            workspace_root: self.workspace_root.clone(),
+            ..SlicerConfig::default()
+        });
         let slice = slicer.slice(Path::new(file_path), &content, lang, symbol_name)?;
 
         let latency_us = start.elapsed().as_micros() as u64;

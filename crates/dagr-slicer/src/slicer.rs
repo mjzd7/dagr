@@ -22,6 +22,8 @@ pub struct SlicerConfig {
     pub max_token_budget: usize,
     pub include_comments: bool,
     pub tier: SliceTier,
+    /// Workspace root used to resolve cross-file contract hops (F3.2).
+    pub workspace_root: std::path::PathBuf,
 }
 
 impl Default for SlicerConfig {
@@ -31,6 +33,7 @@ impl Default for SlicerConfig {
             max_token_budget: 800,
             include_comments: false,
             tier: SliceTier::Standard,
+            workspace_root: std::path::PathBuf::from("."),
         }
     }
 }
@@ -111,7 +114,7 @@ impl SymbolicSlicer {
         );
 
         // Apply Multi-Rubric docstring/comment stripping if tier is MultiRubric (LaMR arXiv:2605.15315)
-        let hoisted_contracts = if self.config.tier == SliceTier::MultiRubric {
+        let mut hoisted_contracts = if self.config.tier == SliceTier::MultiRubric {
             raw_hoisted_contracts
                 .into_iter()
                 .map(|contract| Self::strip_docstrings_and_comments(&contract))
@@ -120,6 +123,17 @@ impl SymbolicSlicer {
         } else {
             raw_hoisted_contracts
         };
+
+        // F3.2: one hop of cross-file contract hoisting, gated by max_depth_hops.
+        if self.config.max_depth_hops > 0 {
+            let cross =
+                self.hoist_imported_file_contracts(root_node, file_path, source_code, &identifiers);
+            for contract in cross {
+                if !hoisted_contracts.contains(&contract) {
+                    hoisted_contracts.push(contract);
+                }
+            }
+        }
 
         // 6. Assemble sparse lines from target implementation
         let all_lines: Vec<&str> = source_code.lines().collect();
@@ -158,6 +172,70 @@ impl SymbolicSlicer {
             compression_ratio,
             syntax_degraded: root_node.has_error(),
         })
+    }
+
+    /// One hop of cross-file contract hoisting (F3.2): resolves TS/JS import
+    /// specifiers from the source AST to sibling files, parses each with the
+    /// same tree-sitter pipeline, and lifts contract nodes matching the
+    /// target symbol's referenced identifiers.
+    // ponytail: single-hop relative-import scope only - alias resolution and deeper traversal land once Wave-1 data quantifies demand; extraction is tree-sitter-native rather than line probes
+    fn hoist_imported_file_contracts(
+        &self,
+        root_node: tree_sitter::Node,
+        file_path: &Path,
+        source_code: &str,
+        identifiers: &std::collections::HashSet<String>,
+    ) -> Vec<String> {
+        let mut contracts = Vec::new();
+        for spec in collect_import_sources(root_node, source_code) {
+            let rels = resolve_spec_candidates(file_path, &spec);
+            for rel_path in &rels {
+                for path in self.workspace_file_candidates(rel_path) {
+                    if !path.exists() {
+                        continue;
+                    }
+                    let Ok(content) = std::fs::read_to_string(&path) else { continue };
+                    let ext = path.extension().and_then(|s| s.to_str()).unwrap_or_default();
+                    let lang = Language::from_extension(ext);
+                    let Ok(mut parser) = AstParser::new(lang) else {
+                        continue;
+                    };
+                    let Ok(tree) = parser.parse(&content, None) else {
+                        continue;
+                    };
+                    let found = ContractHoister::extract_hoisted_contracts(
+                        tree.root_node(),
+                        &content,
+                        identifiers,
+                        // Sentinel range that excludes nothing: every node in
+                        // the foreign file is eligible for hoisting.
+                        usize::MAX,
+                        0,
+                    );
+                    contracts.extend(found);
+                }
+            }
+        }
+        contracts
+    }
+
+    fn workspace_file_candidates(&self, rel_path: &str) -> Vec<std::path::PathBuf> {
+        const EXTS: [&str; 4] = ["ts", "tsx", "js", "jsx"];
+        let direct: Vec<String> = if has_known_ext(rel_path, &EXTS) {
+            vec![rel_path.to_string()]
+        } else {
+            let mut v: Vec<String> = EXTS.iter().map(|e| format!("{rel_path}.{e}")).collect();
+            if !rel_path.ends_with("/index") {
+                v.extend(EXTS.iter().map(|e| format!("{rel_path}/index.{e}")));
+            }
+            v
+        };
+        let mut out = Vec::new();
+        for c in direct {
+            out.push(self.config.workspace_root.join(&c));
+            out.push(std::path::PathBuf::from(&c));
+        }
+        out
     }
 
     /// Strips docstrings, JSDoc, and non-critical comments from hoisted satellite contracts (LaMR arXiv:2605.15315)
@@ -291,6 +369,66 @@ impl SymbolicSlicer {
             syntax_degraded: true,
         })
     }
+}
+
+fn collect_import_sources(root_node: tree_sitter::Node, source_code: &str) -> Vec<String> {
+    let mut specs = Vec::new();
+    let mut stack = vec![root_node];
+    while let Some(node) = stack.pop() {
+        if matches!(node.kind(), "import_statement" | "export_statement") {
+            if let Some(src) = node.child_by_field_name("source") {
+                if let Ok(text) = src.utf8_text(source_code.as_bytes()) {
+                    let cleaned = text.trim_matches('"').trim_matches('\'');
+                    if !cleaned.is_empty() {
+                        specs.push(cleaned.to_string());
+                    }
+                }
+            }
+        }
+        let mut cursor = node.walk();
+        for child in node.children(&mut cursor) {
+            stack.push(child);
+        }
+    }
+    specs
+}
+
+fn resolve_spec_candidates(source_file: &Path, specifier: &str) -> Vec<String> {
+    if !(specifier.starts_with("./") || specifier.starts_with("../")) {
+        return Vec::new();
+    }
+    let parent = source_file
+        .parent()
+        .map(|p| p.display().to_string())
+        .unwrap_or_default();
+    // Preserve absoluteness: joining segments must not strip a leading '/'
+    // from absolute importer paths (the CLI passes absolute files).
+    let absolute = parent.starts_with('/');
+    let mut parts: Vec<&str> = parent.split('/').filter(|s| !s.is_empty()).collect();
+    for seg in specifier.split('/') {
+        match seg {
+            "." | "" => {}
+            ".." => {
+                parts.pop();
+            }
+            s => parts.push(s),
+        }
+    }
+    if parts.is_empty() {
+        return Vec::new();
+    }
+    let joined = parts.join("/");
+    vec![if absolute {
+        format!("/{joined}")
+    } else {
+        joined
+    }]
+}
+
+fn has_known_ext(path_str: &str, exts: &[&str]) -> bool {
+    path_str.rsplit('/').next().is_some_and(|segment| {
+        segment.contains('.') && segment.rsplit('.').next().is_some_and(|e| exts.contains(&e))
+    })
 }
 
 #[cfg(test)]

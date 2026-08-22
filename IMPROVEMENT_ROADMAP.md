@@ -89,10 +89,10 @@
 - **Acceptance criteria:** no user-visible knob that does nothing without explanation; JSON output notes contract scope honestly.
 - **Status:** ✅ 2026-08-22 — option (b) shipped: `-d/--depth` is now `Option<usize>` with clap help "Reserved for cross-file contract hoisting (F3.2); currently a no-op"; explicit use emits a stderr warning naming F3.2; MCP `max_depth_hops` schema description updated identically. `SlicerConfig.max_depth_hops` retained for F3.2 consumption. CLI parse test updated to `Some(4)`. Verified: warning fires only when the flag is passed; baseline stderr chatter identical pre/post change.
 
-### ☐ F3.2 Cross-file type-contract hoisting (depends on Testing Waves 1–3 data)
+### ✅ F3.2 Cross-file type-contract hoisting (v1: single hop, relative imports)
 - **Approach:** resolve import map (reuses F2.2 resolver), fetch + parse referenced files (Blake3-cached), hoist contracts across hops bounded by `max_depth_hops` and token budget.
 - **Acceptance criteria:** billing_service-style fixture with external interface shows populated `type_contracts`; compression stays ≥85%; latency budget respected (<5ms warm cache).
-- **Status:** ☐
+- **Status:** ✅ 2026-08-22 (v1) — `SlicerConfig.workspace_root` added; `slice()` now walks the source AST (tree-sitter-native, not line probes) for TS/JS `import`/`export-from` specifiers, resolves relative candidates against the importer directory (absoluteness-preserving), probes sibling files (+ext/index variants), parses each via the same AstParser pipeline, and merges identifier-matched contracts from the foreign file with dedupe against same-file hoists. Gated by `max_depth_hops > 0`; sentinel range fix required in the hoister call. F3.1 surfaces updated to truth: clap/MCP descriptions + a warn only when depth>1 (v1 = one effective hop). Known v1 scope: relative imports only (aliases/multi-hop tagged for Wave data); parse-cache deferred. Wired into CLI (CWD) and MCP (workspace_root). Integration test: crossfile_contracts.rs (hoist + depth-gate negative).
 
 ---
 
@@ -138,3 +138,4 @@
 - **2026-08-22 (cont.):** F2.5 shipped — one-hop barrel following via lazy cached re-export index (re-exports only, never private imports); `ArchitectureGuard` gains `workspace_root` + cache, expansion gated behind direct-miss so clean scans stay IO-free. Phase F2 (guard intelligence) complete. Workspace: 25/25 suites, 105 tests passing.
 - **2026-08-22 (cont.):** F4.1 + F4.3 shipped — opencode MCP installer (own schema, merge-preserving, e2e-probed) and SIGPIPE exit-code hygiene (`libc` SIG_DFL + BrokenPipe branch; libc reused from in-tree dagr-sandbox, gate-flagged consciously). Verification extended beyond fixtures: repo E2E harness 10/10, clippy/fmt clean on all touched code. Workspace: 25/25 suites, 107 tests passing.
 - **2026-08-22 (cont.):** F4.2 shipped — `dagr schema rules` emits draft-2020-12 JSON Schema for `.dagr/rules.yaml` (strict-contract mirror, anti-drift-tested). L9.2 fully closed: schema documented AND machine-readable. Workspace: 25/25 suites, 110 tests passing.
+- **2026-08-22 (cont.):** F3.2 shipped (v1, single hop, relative imports) — cross-file type-contract hoisting via tree-sitter-native import extraction; `--depth` now truthful (one effective hop). Phase F3 complete except multi-hop/alias extensions pending Wave data. Workspace: 26/26 suites, 111 tests passing; E2E harness 10/10; live CLI probe hoists PaymentPayload across files.
