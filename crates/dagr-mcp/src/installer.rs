@@ -505,10 +505,6 @@ impl McpInstaller {
                 paths.push(PathBuf::from(".devin").join("mcp.json"));
                 paths.push(home.join(".devin").join("mcp.json"));
             }
-            "opencode" => {
-                paths.push(home.join(".opencode").join("mcp.json"));
-                paths.push(PathBuf::from(".opencode").join("mcp.json"));
-            }
             "melty" => {
                 paths.push(home.join(".melty").join("mcp.json"));
                 paths.push(PathBuf::from(".melty").join("mcp.json"));
