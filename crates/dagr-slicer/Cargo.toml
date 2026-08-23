@@ -9,6 +9,7 @@ description = "Tree-sitter AST parsing and symbolic backwards data-flow slicing 
 
 [dependencies]
 dagr-core = { workspace = true }
+dagr-guard = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 blake3 = { workspace = true }

@@ -187,8 +187,14 @@ impl SymbolicSlicer {
         identifiers: &std::collections::HashSet<String>,
     ) -> Vec<String> {
         let mut contracts = Vec::new();
+        // v1.1: alias-aware — non-relative specifiers resolve through the
+        // workspace's tsconfig/jsconfig path mappings (reused from dagr-guard).
+        let alias_map = dagr_guard::alias::AliasMap::load(&self.config.workspace_root);
         for spec in collect_import_sources(root_node, source_code) {
-            let rels = resolve_spec_candidates(file_path, &spec);
+            let mut rels = resolve_spec_candidates(file_path, &spec);
+            if !alias_map.is_empty() {
+                rels.extend(alias_map.candidates(&spec));
+            }
             for rel_path in &rels {
                 for path in self.workspace_file_candidates(rel_path) {
                     if !path.exists() {
