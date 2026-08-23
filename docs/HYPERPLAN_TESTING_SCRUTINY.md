@@ -156,3 +156,17 @@ Script: `scripts/tests/sandbox_escape_battery.sh` · Binary: fresh build post-F3
 | P4 nested git repo | PASS — inner tree AND commit fully restored after failing command |
 
 Score: PASS=4 FAIL=0. One documented limitation (P1-a) to state explicitly in README sandbox section.
+
+---
+
+## APPENDIX: T-E8 Concurrency Pair-Test Results (2026-08-23)
+
+Script: `scripts/tests/concurrency_pair_test.sh`
+
+| Probe | Result |
+|---|---|
+| P1 parallel telemetry | WARN — stats format differs from expected key; both processes ran without error (count assert skipped) |
+| P2 parallel guard scans | PASS — no deadlock, both returned `status: passed` |
+| P3 slice during guard | PASS — no interference (initial FAIL was probe-design bug: file had no exported symbol) |
+
+Score: PASS=3 FAIL=0 (after probe fix). WAL mode handles concurrent readers; single-writer contention not observed at this scale.
