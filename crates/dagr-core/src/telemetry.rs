@@ -663,8 +663,7 @@ mod tests {
     /// idempotent — no duplicate column error, no data loss.
     #[test]
     fn migration_is_idempotent_on_second_open() -> Result<()> {
-        let root =
-            std::env::temp_dir().join(format!("dagr_telem_idem_{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("dagr_telem_idem_{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         let db_dir = root.join(".dagr");
         std::fs::create_dir_all(&db_dir)?;

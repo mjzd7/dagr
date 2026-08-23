@@ -8,7 +8,7 @@ pub mod sanitizer;
 
 pub use alias::AliasMap;
 pub use capabilities::{CapabilityGrant, CredentialBroker, Permission};
-pub use checker::{ArchitectureGuard, Violation, checker_relative_candidates};
+pub use checker::{checker_relative_candidates, ArchitectureGuard, Violation};
 pub use ci::CiGuardReport;
 pub use infer::ArchitectureInferrer;
 pub use rules::{BoundaryRule, LimitsConfig, RuleConfig, SecurityConfig};

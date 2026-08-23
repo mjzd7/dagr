@@ -299,7 +299,11 @@ mod tests {
     fn unreadable_tsconfig_degrades_to_empty() {
         let temp = tempfile::tempdir().unwrap();
         let path = temp.path().join("tsconfig.json");
-        std::fs::write(&path, r#"{"compilerOptions":{"paths":{"@/*":["./src/*"]}}}"#).unwrap();
+        std::fs::write(
+            &path,
+            r#"{"compilerOptions":{"paths":{"@/*":["./src/*"]}}}"#,
+        )
+        .unwrap();
         let mut perms = std::fs::metadata(&path).unwrap().permissions();
         std::os::unix::fs::PermissionsExt::set_mode(&mut perms, 0o000);
         std::fs::set_permissions(&path, perms).unwrap();

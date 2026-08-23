@@ -4,15 +4,17 @@
 //! - EC-S4/T-E2: traversal-read proof — `../`-heavy specifiers must not read
 //!   outside the workspace root via barrel/hoister paths.
 
-use dagr_guard::ArchitectureGuard;
 use dagr_guard::rules::RuleConfig;
+use dagr_guard::ArchitectureGuard;
 
 const ALPHABET: [&str; 12] = [
     "import", "from", "export", "use", "require", "(", ")", "\"", "'", "..", "/", "{x}",
 ];
 
 fn lcg_next(state: &mut u64) -> u64 {
-    *state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    *state = state
+        .wrapping_mul(6364136223846793005)
+        .wrapping_add(1442695040888963407);
     *state >> 16
 }
 
@@ -54,7 +56,10 @@ fn fuzz_extractor_never_panics_and_respects_invariants() {
         // quote characters or newlines.
         if let Some(m) = extracted {
             assert!(!m.is_empty(), "empty extraction from {line:?}");
-            assert!(!m.contains('"') && !m.contains('\''), "quote leaked: {line:?}");
+            assert!(
+                !m.contains('"') && !m.contains('\''),
+                "quote leaked: {line:?}"
+            );
             assert!(!m.contains('\n'), "newline leaked: {line:?}");
         }
 
@@ -120,16 +125,15 @@ fn barrel_reader_never_escapes_workspace_root() {
         limits: Default::default(),
         security: Default::default(),
     };
-    let guard = ArchitectureGuard::with_parts(
-        config,
-        Default::default(),
-        inner.path().to_path_buf(),
-    );
+    let guard =
+        ArchitectureGuard::with_parts(config, Default::default(), inner.path().to_path_buf());
 
     // "../../decoy_internal" resolves to `decoy_internal` INSIDE the root's
     // lexical parent — the resolver clamps it to nothing outside, so the
     // decoy must NOT be read and NO violation may fire.
-    assert!(guard.check_import("apps/web/a.ts", "../../decoy_internal").is_none());
+    assert!(guard
+        .check_import("apps/web/a.ts", "../../decoy_internal")
+        .is_none());
 }
 
 /// EC-F2: front-loaded walker ignore-list — planted violations inside
@@ -159,9 +163,14 @@ fn walker_front_loaded_ignore_list_skips_heavy_dirs() {
         limits: Default::default(),
         security: Default::default(),
     };
-    let guard = ArchitectureGuard::with_parts(config, Default::default(), temp.path().to_path_buf());
+    let guard =
+        ArchitectureGuard::with_parts(config, Default::default(), temp.path().to_path_buf());
     let violations = guard.scan_workspace(temp.path()).unwrap();
 
-    assert_eq!(violations.len(), 1, "only the scanned-dir file counts: {violations:?}");
+    assert_eq!(
+        violations.len(),
+        1,
+        "only the scanned-dir file counts: {violations:?}"
+    );
     assert_eq!(violations[0].source_file, "src/scanned.ts");
 }

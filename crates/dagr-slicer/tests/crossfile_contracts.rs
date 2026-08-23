@@ -49,7 +49,10 @@ export async function chargeCustomer(payload: PaymentPayload): Promise<boolean> 
         .expect("slice succeeds");
 
     assert!(
-        slice.type_contracts.iter().any(|c| c.contains("interface PaymentPayload")),
+        slice
+            .type_contracts
+            .iter()
+            .any(|c| c.contains("interface PaymentPayload")),
         "PaymentPayload contract must be hoisted from the imported file; got: {:?}",
         slice.type_contracts
     );
@@ -69,7 +72,10 @@ export async function chargeCustomer(payload: PaymentPayload): Promise<boolean> 
         )
         .unwrap();
     assert!(
-        !slice.type_contracts.iter().any(|c| c.contains("PaymentPayload")),
+        !slice
+            .type_contracts
+            .iter()
+            .any(|c| c.contains("PaymentPayload")),
         "depth=0 must not hoist cross-file contracts"
     );
 
@@ -120,7 +126,10 @@ export async function refund(req: RefundRequest): Promise<boolean> {
         .expect("slice succeeds");
 
     assert!(
-        slice.type_contracts.iter().any(|c| c.contains("interface RefundRequest")),
+        slice
+            .type_contracts
+            .iter()
+            .any(|c| c.contains("interface RefundRequest")),
         "aliased contract must be hoisted via tsconfig paths; got: {:?}",
         slice.type_contracts
     );

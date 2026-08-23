@@ -317,8 +317,7 @@ impl ArchitectureGuard {
         // delimiter quotes; anything carrying them is soup, not an import.
         // Final hygiene gate: a legitimate specifier never embeds its own
         // delimiter quotes; anything carrying them is soup, not an import.
-        Self::extract_imported_module_inner(line)
-            .filter(|m| !m.contains('"') && !m.contains('\''))
+        Self::extract_imported_module_inner(line).filter(|m| !m.contains('"') && !m.contains('\''))
     }
 
     fn extract_imported_module_inner(line: &str) -> Option<String> {
@@ -339,7 +338,10 @@ impl ArchitectureGuard {
             let base = base.split(" as ").next()?.trim();
             if base.is_empty()
                 || base.contains(['"', '\'', '\n'])
-                || !base.chars().next().is_some_and(|c| c.is_alphabetic() || c == '_')
+                || !base
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_alphabetic() || c == '_')
             {
                 return None;
             }

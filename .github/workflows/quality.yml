@@ -52,6 +52,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build CLI
-        run: cargo build -p dagr-cli
+        run: cargo build -p dagr
       - name: Comprehensive functionality verification
         run: python3 scripts/comprehensive_test_suite.py

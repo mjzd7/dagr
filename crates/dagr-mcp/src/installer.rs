@@ -373,11 +373,7 @@ impl McpInstaller {
             }
             "opencode" => {
                 // Canonical OpenCode config plus legacy/alternate locations.
-                paths.push(
-                    home.join(".config")
-                        .join("opencode")
-                        .join("opencode.json"),
-                );
+                paths.push(home.join(".config").join("opencode").join("opencode.json"));
                 paths.push(home.join(".opencode").join("mcp.json"));
                 paths.push(PathBuf::from(".opencode").join("mcp.json"));
             }
@@ -682,8 +678,7 @@ mod tests {
 
         assert_eq!(json["theme"], "dark");
         assert_eq!(
-            json["mcp"]["fetch"]["command"][0],
-            "uvx",
+            json["mcp"]["fetch"]["command"][0], "uvx",
             "sibling opencode servers must survive the merge"
         );
         assert_eq!(json["mcp"]["dagr"]["type"], "local");
@@ -706,7 +701,9 @@ mod tests {
 
         let paths = McpInstaller::get_client_config_paths("opencode");
         assert!(
-            paths.iter().any(|p| p.ends_with(".config/opencode/opencode.json")),
+            paths
+                .iter()
+                .any(|p| p.ends_with(".config/opencode/opencode.json")),
             "opencode path arm must resolve ~/.config/opencode/opencode.json"
         );
 

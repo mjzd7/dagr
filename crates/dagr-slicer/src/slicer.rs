@@ -200,8 +200,13 @@ impl SymbolicSlicer {
                     if !path.exists() {
                         continue;
                     }
-                    let Ok(content) = std::fs::read_to_string(&path) else { continue };
-                    let ext = path.extension().and_then(|s| s.to_str()).unwrap_or_default();
+                    let Ok(content) = std::fs::read_to_string(&path) else {
+                        continue;
+                    };
+                    let ext = path
+                        .extension()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or_default();
                     let lang = Language::from_extension(ext);
                     let Ok(mut parser) = AstParser::new(lang) else {
                         continue;
@@ -433,7 +438,11 @@ fn resolve_spec_candidates(source_file: &Path, specifier: &str) -> Vec<String> {
 
 fn has_known_ext(path_str: &str, exts: &[&str]) -> bool {
     path_str.rsplit('/').next().is_some_and(|segment| {
-        segment.contains('.') && segment.rsplit('.').next().is_some_and(|e| exts.contains(&e))
+        segment.contains('.')
+            && segment
+                .rsplit('.')
+                .next()
+                .is_some_and(|e| exts.contains(&e))
     })
 }
 

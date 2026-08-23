@@ -26,10 +26,20 @@ export async function handleRequest(cfg: Config): Promise<Result> {
     });
 
     let s1 = slicer
-        .slice(Path::new("src/service.ts"), source, dagr_core::Language::from_extension("ts"), "handleRequest")
+        .slice(
+            Path::new("src/service.ts"),
+            source,
+            dagr_core::Language::from_extension("ts"),
+            "handleRequest",
+        )
         .unwrap();
     let s2 = slicer
-        .slice(Path::new("src/service.ts"), source, dagr_core::Language::from_extension("ts"), "handleRequest")
+        .slice(
+            Path::new("src/service.ts"),
+            source,
+            dagr_core::Language::from_extension("ts"),
+            "handleRequest",
+        )
         .unwrap();
 
     let j1 = serde_json::to_string(&s1).unwrap();

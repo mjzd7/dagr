@@ -1,9 +1,9 @@
 //! T-EDGE P1: hostile filesystem matrix + extractor edge cases
 //! EC-V7/T-E9: unicode, spaces, CRLF, BOM, tab-indented imports through extractor + walker
 
-use dagr_guard::ArchitectureGuard;
 use dagr_guard::rules::BoundaryRule;
 use dagr_guard::rules::RuleConfig;
+use dagr_guard::ArchitectureGuard;
 
 fn write_file(path: &std::path::Path, content: &str) {
     if let Some(parent) = path.parent() {
@@ -20,7 +20,9 @@ fn unicode_and_space_filenames_scan_correctly() {
         "import { x } from \"forbidden/y\";\n",
     );
     write_file(
-        &temp.path().join("src/\u{65e5}\u{672c}\u{8a9e} \u{30c6}\u{30b9}\u{30c8}.ts"),
+        &temp
+            .path()
+            .join("src/\u{65e5}\u{672c}\u{8a9e} \u{30c6}\u{30b9}\u{30c8}.ts"),
         "import { z } from \"forbidden/w\";\n",
     );
 
@@ -37,7 +39,8 @@ fn unicode_and_space_filenames_scan_correctly() {
         limits: Default::default(),
         security: Default::default(),
     };
-    let guard = ArchitectureGuard::with_parts(config, Default::default(), temp.path().to_path_buf());
+    let guard =
+        ArchitectureGuard::with_parts(config, Default::default(), temp.path().to_path_buf());
     let violations = guard.scan_workspace(temp.path()).unwrap();
 
     assert_eq!(
