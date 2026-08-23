@@ -658,4 +658,34 @@ mod tests {
         assert!(TelemetryStore::open(&root).is_err());
         let _ = std::fs::remove_dir_all(&root);
     }
+
+    /// EC-V5/T-E7: opening the same migrated DB a second time must be
+    /// idempotent — no duplicate column error, no data loss.
+    #[test]
+    fn migration_is_idempotent_on_second_open() -> Result<()> {
+        let root =
+            std::env::temp_dir().join(format!("dagr_telem_idem_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let db_dir = root.join(".dagr");
+        std::fs::create_dir_all(&db_dir)?;
+
+        // First open: creates schema + records an event.
+        {
+            let store = TelemetryStore::open(&root)?;
+            let ev = TelemetryEvent::new_slice("c", "f.ts", "s", 10, 2, 8);
+            store.record_event(&ev)?;
+        }
+        // Second open on same DB: must not fail or lose data.
+        {
+            let store = TelemetryStore::open(&root)?;
+            let (total, _) = store.get_sync_counts()?;
+            assert_eq!(total, 1, "second open must preserve existing rows");
+        }
+        // Third open for good measure.
+        {
+            let _store = TelemetryStore::open(&root)?;
+        }
+        let _ = std::fs::remove_dir_all(&root);
+        Ok(())
+    }
 }
