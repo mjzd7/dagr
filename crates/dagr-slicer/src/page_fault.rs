@@ -14,6 +14,12 @@ pub struct HoistedSymbolContract {
 
 pub struct ASTPageFaultHandler;
 
+impl Default for ASTPageFaultHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ASTPageFaultHandler {
     pub fn new() -> Self {
         Self

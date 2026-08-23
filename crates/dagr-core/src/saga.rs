@@ -25,6 +25,10 @@ pub struct SagaCoordinator {
 }
 
 impl SagaCoordinator {
+    pub fn run_id(&self) -> &RunId {
+        &self.run_id
+    }
+
     pub fn new(run_id: RunId) -> Self {
         Self {
             run_id,

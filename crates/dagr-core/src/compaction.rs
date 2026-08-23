@@ -102,6 +102,12 @@ pub struct AsyncCompactionTracker {
     is_compacting: Arc<AtomicBool>,
 }
 
+impl Default for AsyncCompactionTracker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AsyncCompactionTracker {
     pub fn new() -> Self {
         Self {

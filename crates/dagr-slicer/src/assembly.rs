@@ -13,6 +13,12 @@ pub struct AssembledPromptPayload {
 
 pub struct PositionAwareAssembler;
 
+impl Default for PositionAwareAssembler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PositionAwareAssembler {
     pub fn new() -> Self {
         Self

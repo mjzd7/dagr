@@ -5,7 +5,6 @@
 //!   outside the workspace root via barrel/hoister paths.
 
 use dagr_guard::ArchitectureGuard;
-use dagr_guard::rules::BoundaryRule;
 use dagr_guard::rules::RuleConfig;
 
 const ALPHABET: [&str; 12] = [

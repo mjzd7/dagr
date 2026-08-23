@@ -105,6 +105,12 @@ pub struct CredentialBroker {
     secrets: Mutex<HashMap<String, String>>,
 }
 
+impl Default for CredentialBroker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CredentialBroker {
     pub fn new() -> Self {
         Self {
