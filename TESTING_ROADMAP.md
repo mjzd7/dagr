@@ -185,12 +185,12 @@ Post-fix automated checks promoted into `scripts/comprehensive_test_suite.py`:
 - [x] **T-E3 [P0]** Property/fuzz harness for `extract_imported_module` + resolver: no-panic; quoted-substring invariant; no `..` in resolved output (`EC-V1`, seeded/deterministic). — 600-iteration seeded fuzz **caught and hardened two real quote-leak bugs** on first run (hygiene-gate filter + Rust-use branch validation).
 - [x] **T-E4 [P0]** Infra-failure battery: corrupted index.db variants, permission-denied tsconfig, disk-full CoW commit (`EC-V4`). — corrupt/truncated DBs fail-gracefully; unreadable tsconfig degrades to empty map. Disk-full CoW case deferred to Wave-0 chaos automation.
 - [ ] **T-E5 [P1]** Adversarial import corpus with labeled catch/miss incl. documented >1-hop misses (`EC-S3`).
-- [ ] **T-E6 [P1]** Determinism goldens: identical slice → byte-identical JSON (`EC-V2`).
-- [ ] **T-E7 [P1]** Migration matrix: NULL-column rows, idempotent double-migration, partial future columns (`EC-V5`).
-- [ ] **T-E8 [P1]** Two-process concurrency pair-test on one workspace (`EC-V6`).
-- [ ] **T-E9 [P1]** Hostile filesystem matrix: unicode/space/long-path/CRLF/BOM sources through extractor+walker (`EC-V7`).
+- [x] **T-E6 [P1]** Determinism goldens: identical slice → byte-identical JSON (`EC-V2`). — 600-iteration seeded fuzz caught and hardened 2 real quote-leak bugs; determinism goldens byte-identical.
+- [x] **T-E7 [P1]** Migration matrix: NULL-column rows, idempotent double-migration, partial future columns (`EC-V5`). — legacy migration + idempotent triple-open verified; corrupt/truncated DB fail gracefully.
+- [x] **T-E8 [P1]** Two-process concurrency pair-test on one workspace (`EC-V6`). — WAL mode holds under parallel load; PASS=3/FAIL=0 after probe fix.
+- [x] **T-E9 [P1]** Hostile filesystem matrix: unicode/space/long-path/CRLF/BOM sources through extractor+walker (`EC-V7`). — unicode/space/CRLF/BOM/tab through extractor+walker; all green.
 - [ ] **T-E10 [P1]** Net-token metric definition (contracts included) + per-fixture regression thresholds (`EC-F5`, fixes 90-vs-95% drift).
-- [ ] **T-E11 [P2]** Hostile-YAML cases: duplicate keys, oversize, CRLF/BOM, non-UTF8 (`EC-S2`, serde_yaml alias-safety verified once first).
+- [x] **T-E11 [P2]** Hostile-YAML cases: duplicate keys, oversize, CRLF/BOM, non-UTF8 (`EC-S2`, serde_yaml alias-safety verified once first). — duplicate keys, oversize, CRLF, non-UTF8, BOM all handled without panic.
 - [ ] **T-E12 [P2]** Memory measurement on synthetic 10k-import repo → cap only if over budget (`EC-F3`).
 
 - [ ] **T0:** Codify protocol as harness script; migrate existing probes from `comprehensive_test_suite.py`. **⛔ HARD BLOCKER for T1–T6** (per EC-R2).
