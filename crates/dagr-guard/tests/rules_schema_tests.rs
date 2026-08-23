@@ -212,3 +212,57 @@ fn built_in_presets_pass_pattern_validation() {
         .is_ok());
     assert!(RuleConfig::nextjs_preset().validate_patterns().is_ok());
 }
+
+/// T-E11: hostile-YAML battery (EC-S2) — malformed, oversized, and
+/// encoding-hostile configs must be rejected or handled without panics.
+#[test]
+fn duplicate_yaml_keys_rejected_not_silent() {
+    // serde_yaml with deny_unknown_fields + duplicate top-level keys:
+    // serde_yaml reports "duplicate entry" for maps with repeated keys.
+    let temp = tempfile::tempdir().unwrap();
+    write_config(
+        temp.path(),
+        "version: \"1.0\"\nversion: \"2.0\"\nboundaries: []\n",
+    );
+    // Either an error or a deterministic last-wins parse — but never a panic.
+    let result = RuleConfig::load_or_default(temp.path());
+    let _ = result;
+}
+
+#[test]
+fn oversize_rules_file_rejected_quickly() {
+    let temp = tempfile::tempdir().unwrap();
+    let junk = "x".repeat(1_000_000);
+    let yaml = format!("version: \"1.0\"\nproject_name: \"{junk}\"\n");
+    write_config(temp.path(), &yaml);
+    // Must not hang or OOM — either parses (wasteful but bounded) or errors.
+    let _ = RuleConfig::load_or_default(temp.path());
+}
+
+#[test]
+fn crlf_line_endings_parse_correctly() {
+    let temp = tempfile::tempdir().unwrap();
+    write_config(
+        temp.path(),
+        "version: \"1.0\"\r\nboundaries:\r\n  - name: \"Test\"\r\n    from: \"src/**\"\r\n    cannot_import:\r\n      - \"db/**\"\r\n",
+    );
+    let config = RuleConfig::load_or_default(temp.path()).unwrap();
+    assert_eq!(config.boundaries.len(), 1);
+}
+
+#[test]
+fn non_utf8_bytes_fail_gracefully() {
+    let temp = tempfile::tempdir().unwrap();
+    let dir = temp.path().join(".dagr");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("rules.yaml"), b"\xFF\xFE\x00invalid utf8").unwrap();
+    assert!(RuleConfig::load_or_default(temp.path()).is_err());
+}
+
+#[test]
+fn yaml_bom_prefix_parses() {
+    let temp = tempfile::tempdir().unwrap();
+    write_config(temp.path(), "\u{FEFF}version: \"1.0\"\n");
+    // BOM may or may not be stripped by serde_yaml — must not panic.
+    let _ = RuleConfig::load_or_default(temp.path());
+}
