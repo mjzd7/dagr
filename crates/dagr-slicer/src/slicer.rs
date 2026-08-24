@@ -190,12 +190,38 @@ impl SymbolicSlicer {
         // v1.1: alias-aware — non-relative specifiers resolve through the
         // workspace's tsconfig/jsconfig path mappings (reused from dagr-guard).
         let alias_map = dagr_guard::alias::AliasMap::load(&self.config.workspace_root);
-        for spec in collect_import_sources(root_node, source_code) {
+        let mut visited = std::collections::HashSet::new();
+        self.hoist_hop(
+            root_node, source_code, file_path, identifiers,
+            &alias_map, 0, &mut visited, &mut contracts,
+        );
+        contracts
+    }
+
+    fn hoist_hop(
+        &self,
+        node: tree_sitter::Node,
+        source_code: &str,
+        file_path: &Path,
+        identifiers: &std::collections::HashSet<String>,
+        alias_map: &dagr_guard::alias::AliasMap,
+        depth: usize,
+        visited: &mut std::collections::HashSet<String>,
+        contracts: &mut Vec<String>,
+    ) {
+        if depth >= self.config.max_depth_hops {
+            return;
+        }
+        for spec in collect_import_sources(node, source_code) {
             let mut rels = resolve_spec_candidates(file_path, &spec);
             if !alias_map.is_empty() {
                 rels.extend(alias_map.candidates(&spec));
             }
             for rel_path in &rels {
+                if visited.contains(rel_path) {
+                    continue;
+                }
+                visited.insert(rel_path.clone());
                 for path in self.workspace_file_candidates(rel_path) {
                     if !path.exists() {
                         continue;
@@ -224,10 +250,21 @@ impl SymbolicSlicer {
                         0,
                     );
                     contracts.extend(found);
+
+                    // Multi-hop: recurse into the foreign file's own imports.
+                    self.hoist_hop(
+                        tree.root_node(),
+                        &content,
+                        Path::new(rel_path),
+                        identifiers,
+                        alias_map,
+                        depth + 1,
+                        visited,
+                        contracts,
+                    );
                 }
             }
         }
-        contracts
     }
 
     fn workspace_file_candidates(&self, rel_path: &str) -> Vec<std::path::PathBuf> {
