@@ -14,6 +14,9 @@ pub struct ToolRegistry {
     pub workspace_root: PathBuf,
     // Active A2A agent locks (agent_id -> locked_files)
     active_agent_locks: Mutex<HashMap<String, Vec<String>>>,
+    // Agent-OS: circuit breaker + rate limiter for tool-call protection
+    pub(crate) circuit_breaker: crate::circuit_breaker::ToolCircuitBreaker,
+    pub(crate) rate_limiter: dagr_core::TokenBucketRateLimiter,
 }
 
 impl ToolRegistry {
@@ -21,6 +24,8 @@ impl ToolRegistry {
         Self {
             workspace_root,
             active_agent_locks: Mutex::new(HashMap::new()),
+            circuit_breaker: crate::circuit_breaker::ToolCircuitBreaker::default_tool_breaker(),
+            rate_limiter: dagr_core::TokenBucketRateLimiter::new(100_000),
         }
     }
 
@@ -158,7 +163,10 @@ impl ToolRegistry {
 
     /// Dispatches a tool call to the appropriate engine
     pub fn dispatch(&self, name: &str, arguments: &Value) -> Result<Value> {
-        match name {
+        self.circuit_breaker.before_call()?;
+        self.rate_limiter.try_acquire(100)?;
+
+        let result = match name {
             "dagr_get_context_slice" => self.handle_get_context_slice(arguments),
             "dagr_verify_architecture" => self.handle_verify_architecture(arguments),
             "dagr_execute_sandboxed" => self.handle_execute_sandboxed(arguments),
@@ -167,7 +175,14 @@ impl ToolRegistry {
             "dagr_a2a_transfer_context" => self.handle_a2a_transfer_context(arguments),
             "dagr_a2a_verify_peer_patch" => self.handle_a2a_verify_peer_patch(arguments),
             _ => Err(DagrError::Config(format!("Unknown tool: {}", name))),
+        };
+
+        match &result {
+            Ok(_) => self.circuit_breaker.record_success(),
+            Err(_) => self.circuit_breaker.record_failure(),
         }
+
+        result
     }
 
     fn handle_get_context_slice(&self, args: &Value) -> Result<Value> {
