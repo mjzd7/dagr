@@ -799,7 +799,25 @@ pub fn handle_context(
         workspace_root: current_dir.clone(),
     });
 
+    // Agent-OS: optional budget enforcement via DAGR_TOKEN_BUDGET env var
+    let budget = std::env::var("DAGR_TOKEN_BUDGET")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .map(|max| {
+            dagr_core::BudgetContext::new(std::time::Duration::from_secs(300), max)
+        });
+
     for t in targets {
+        if let Some(ref b) = budget {
+            if b.is_exhausted() {
+                eprintln!(
+                    "⚠️  Token budget exhausted ({} consumed). Stopping batch.",
+                    b.tokens_consumed()
+                );
+                break;
+            }
+        }
+
         let (file_path, symbol_name) = resolve_target_symbol(&current_dir, t)?;
         let source_code = std::fs::read_to_string(&file_path)?;
         let ext = file_path.extension().and_then(|s| s.to_str()).unwrap_or("");
@@ -810,6 +828,19 @@ pub fn handle_context(
         } else {
             slicer.slice(&file_path, &source_code, language, &symbol_name)?
         };
+
+        // Agent-OS: deduct tokens against budget
+        if let Some(ref b) = budget {
+            match b.deduct_tokens(slice.estimated_tokens) {
+                Ok(remaining) => {
+                    eprintln!("💰 Budget: {remaining} tokens remaining");
+                }
+                Err(e) => {
+                    eprintln!("⚠️  Budget exceeded: {e}");
+                    break;
+                }
+            }
+        }
 
         // Record telemetry (fail-safe)
         if let Ok(store) = TelemetryStore::open(&current_dir) {

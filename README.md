@@ -649,6 +649,25 @@ If you prefer to configure IDEs manually instead of using `dagr mcp install`:
 
 ---
 
+## 🤖 Agent-OS Infrastructure Layer
+
+DAGR ships a built-in infrastructure layer for running AI coding agents safely and cost-effectively:
+
+| Module | Purpose |
+|---|---|
+| `TokenBucketRateLimiter` | TPM-based rate limiting on expensive tool operations |
+| `ToolCircuitBreaker` | Three-state breaker (Closed→Open→HalfOpen) prevents cascade failures from repeated tool errors |
+| `BudgetContext` | Configurable token + duration budgets with per-batch enforcement (`DAGR_TOKEN_BUDGET` env var) |
+| `SagaCoordinator` | Multi-step saga pattern with compensating rollback for complex agent workflows |
+| `EffectJournal` | Deterministic effect logging and replay for audit trails |
+| `EventStorePort` | Event-sourced run state persistence (SQLite WAL backend) |
+| `QuarantineManager` | Automatic quarantine of suspicious changes before they reach main |
+| `CapabilityGrant` | HMAC-signed zero-trust capability tokens for multi-agent credential brokering |
+
+All modules are clippy-clean, tested, and wired into the active execution path.
+
+---
+
 ## 📜 License
 
 Distributed under the **Business Source License 1.1 (BSL 1.1)**. 
