@@ -4,9 +4,9 @@
 //! rule set. This documents the exact coverage boundary of the extractor +
 //! resolution + matching pipeline so regressions are immediately visible.
 
-use dagr_guard::ArchitectureGuard;
 use dagr_guard::rules::BoundaryRule;
 use dagr_guard::rules::RuleConfig;
+use dagr_guard::ArchitectureGuard;
 
 fn guard_with_cannot(forbidden: &[&str]) -> ArchitectureGuard {
     ArchitectureGuard::with_parts(
@@ -157,7 +157,8 @@ fn corpus_negative_allowed_module_not_flagged() {
 fn corpus_negative_sibling_directory_not_flagged() {
     let g = guard_with_cannot(&["src/db/**"]);
     assert!(
-        g.check_import("src/ui/x.ts", "src/database/engine").is_none(),
+        g.check_import("src/ui/x.ts", "src/database/engine")
+            .is_none(),
         "sibling-prefix must not false-positive (finding N1)"
     );
 }
