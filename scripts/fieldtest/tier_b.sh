@@ -28,10 +28,22 @@ finding() { FINDINGS="${FINDINGS}\n  ⚠ $1"; }
 echo "🔒 [Tier B] git-workflow probes on $REPO"
 
 # --- P1: staged-file guard catches planted violation ------------------
+# Custom rules needed because preset from-patterns may not cover the probe path.
+mkdir -p .dagr
+cat > .dagr/rules.yaml <<'RULES'
+version: "1.0"
+boundaries:
+  - name: "Tier B Probe"
+    from: "**"
+    cannot_import:
+      - "forbidden/**"
+    message: "tier b probe rule"
+RULES
+
 VIOLATION_FILE="src/tierb_violation.ts"
 mkdir -p "$(dirname "$VIOLATION_FILE")" 2>/dev/null
 echo 'import { s } from "forbidden/secret";' > "$VIOLATION_FILE"
-git add "$VIOLATION_FILE"
+git add "$VIOLATION_FILE" .dagr/rules.yaml
 
 GUARD_OUT=$(dagr guard --workspace . --staged --format json 2>/dev/null)
 G_CAUGHT=$(python3 -c "
