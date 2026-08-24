@@ -722,7 +722,7 @@ fn detect_dangling_imports(
         }
     }
 
-    out.sort_by(|a, b| (&a.importer_file, a.import_line).cmp(&(&b.importer_file, b.import_line)));
+    out.sort_by_key(|d| (d.importer_file.clone(), d.import_line));
     out.dedup_by(|a, b| {
         a.importer_file == b.importer_file
             && a.import_line == b.import_line
@@ -787,7 +787,7 @@ fn git_changed_files(ws: &Path, base: &str, head: &str) -> Result<Vec<String>> {
         .current_dir(ws)
         .args(["diff", "--name-only", &range])
         .output()
-        .map_err(|e| DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+        .map_err(|e| DagrError::Io(std::io::Error::other(e)))?;
     if !output.status.success() {
         return Err(DagrError::Config(format!(
             "git exited {}: {}",
@@ -809,7 +809,7 @@ fn git_deleted_files(ws: &Path, base: &str, head: &str) -> Result<Vec<String>> {
         .current_dir(ws)
         .args(["diff", "--name-only", "--diff-filter=D", &range])
         .output()
-        .map_err(|e| DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+        .map_err(|e| DagrError::Io(std::io::Error::other(e)))?;
     if !output.status.success() {
         return Err(DagrError::Config(format!(
             "git exited {}: {}",
@@ -830,7 +830,7 @@ fn git_show(ws: &Path, rev_path: &str) -> Result<String> {
         .current_dir(ws)
         .args(["show", rev_path])
         .output()
-        .map_err(|e| DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+        .map_err(|e| DagrError::Io(std::io::Error::other(e)))?;
     if !out.status.success() {
         return Err(DagrError::Config(format!("git show {rev_path} failed")));
     }
