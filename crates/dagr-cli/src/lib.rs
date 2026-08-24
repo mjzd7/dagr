@@ -503,7 +503,7 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
         } => handle_branch(&action, count, &task),
         Commands::Guard {
             workspace,
-            staged: _,
+            staged,
             ci,
             base,
             head,
@@ -512,6 +512,7 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             format,
         } => handle_guard(
             &workspace,
+            staged,
             ci,
             base.as_deref(),
             head.as_deref(),
@@ -965,8 +966,22 @@ pub fn render_pretty_slice(slice: &MinimalContextSlice) {
     }
 }
 
+fn git_staged_files(workspace_root: &Path) -> Result<Vec<String>> {
+    let output = std::process::Command::new("git")
+        .args(["diff", "--cached", "--name-only"])
+        .current_dir(workspace_root)
+        .output()
+        .map_err(|e| dagr_core::DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(|l| l.trim().to_string())
+        .filter(|l| !l.is_empty())
+        .collect())
+}
+
 pub fn handle_guard(
     workspace_root: &Path,
+    staged: bool,
     ci: bool,
     base: Option<&str>,
     head: Option<&str>,
@@ -974,6 +989,35 @@ pub fn handle_guard(
     output_file: Option<&Path>,
     format: OutputFormat,
 ) -> Result<()> {
+    if staged {
+        let staged_files = git_staged_files(workspace_root)?;
+        let guard = ArchitectureGuard::load(workspace_root)?;
+        let violations = guard.scan_files(workspace_root, &staged_files)?;
+        if format == OutputFormat::Json {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "active_rules": guard.config.boundaries.len(),
+                    "status": if violations.is_empty() { "passed" } else { "failed" },
+                    "violations": violations,
+                    "violations_count": violations.len(),
+                    "workspace": ".",
+                    "mode": "staged",
+                    "staged_files": staged_files.len()
+                })
+            );
+        } else {
+            eprintln!("🛡️ DAGR Architecture Guard (staged files): {}", staged_files.len());
+            for v in &violations {
+                eprintln!("  ❌ {}: {} → {}", v.source_file, v.rule_name, v.message);
+            }
+            if violations.is_empty() {
+                eprintln!("  ✅ All architectural boundary rules passed with zero violations.");
+            }
+        }
+        return if violations.is_empty() { Ok(()) } else { Err(dagr_core::DagrError::Config(format!("{} architectural violation(s) found in staged files", violations.len()))) };
+    }
+
     if ci {
         let report = dagr_guard::CiGuardReport::check_pr_diff(workspace_root, base, head)?;
         report.emit_github_workflow_commands();

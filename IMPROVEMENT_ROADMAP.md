@@ -114,6 +114,12 @@
 - Current skip set (checker.rs:83–89): `.git, node_modules, target, .dagr, .next, dist`. Likely missing common heavy dirs: `build`, `out`, `.output`, `.turbo`, `.venv`, `venv`, `__pycache__`, `vendor`, coverage dirs. Confirm via Wave 1/4 timing runs, then extend list (+ respect `.gitignore` optionally behind a flag).
 - **Status:** ☐
 
+### ☐ F4.5 `dagr guard --staged` silently ignores the flag `[NEW — Wave 1 Tier B finding]`
+- **Root cause:** `--staged: bool` is parsed by clap (line 86, has CLI parse test) but destructured as `staged: _` in the dispatch arm (line 506) and never passed to `handle_guard`. Zero backend logic exists for staged-file scanning. The feature is documented in help text, AGENTS.md examples, and README but has no implementation.
+- **Discovered by:** Tier B probe P1 during batch runner validation (`scripts/tests/sandbox_escape_battery.sh` companion).
+- **Fix approach:** Pass `staged: bool` to `handle_guard`; when true, use `git diff --cached --name-only` to enumerate staged files, then scan only those files against boundary rules.
+- **Status:** ☐
+
 ---
 
 ## 🗺️ Execution Order & Rationale
