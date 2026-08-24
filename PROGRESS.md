@@ -42,11 +42,14 @@
 | D4 Docs split | ✅ | docs/getting-started.md + mcp-tools.md (+ _agent contract) + rules-schema.md (+ risk weight env vars); site/ untouched |
 | D5 `dagr doctor` | ✅ | grammar/CoW-fs/SQLite-WAL(temp-file probe)/rules/IDE-config checks; pretty+json; exit 1 on hard failure; live run green |
 | D6 Demo app (`evals/demo-app`) | ✅ | planted UI-to-DB violation caught by guard (1 violation); deletion flow BLOCKED with 2 dangling imports in scratch clone |
-| FINAL verification sweep + commit | ⏳ | |
+| FINAL verification sweep + commit | ✅ | 176/0 tests · mock eval 3/3 defects=0 · ponytail clean · dagr guard 0 violations · commits b6b92ff→eac52dd→c3a7a42→51c2844 |
 
 ## Deferred (disclosed)
-- LSP bridge (tsserver/rust-analyzer shell-out) → see docs/HONEST-LIMITS.md
-- Benchmark expansion ≥6 repos / ≥100 tasks → docs/benchmark.md
+- LSP bridge (tsserver/rust-analyzer shell-out) → docs/HONEST-LIMITS.md
+- Benchmark expansion ≥6 repos / ≥100 tasks → run evals/ live when an API key is available; publish results page
+- Live-provider eval runs (need ANTHROPIC_API_KEY / OPENAI_API_KEY in env)
+
+**Status: ALL WAVES COMPLETE.** Wave A b6b92ff · B eac52dd · C c3a7a42 · D 51c2844
 
 ---
 *Updated after every task. Learnings live in [LEARNINGS.md](LEARNINGS.md).*

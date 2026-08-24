@@ -41,3 +41,9 @@ Everything worth remembering during the completion plan (Waves A–D). Append-on
 - **L4.2 (D2)** Real attribution with tiny surface: optional top-level "_agent" arg on every MCP tool -> registry.is_active() gate (revoked/expired => tool error) -> telemetry client_id "mcp:<id>" -> existing get_client_breakdown/stats shows per-agent rows for free.
 - **L4.3 (D5)** PRAGMA journal_mode=WAL on an in-memory SQLite connection returns "memory" (WAL impossible there) — doctor initially false-FAILed. Probe must open a throwaway FILE db. Lesson: verify environment probes against the actual constraint, not the API you wish existed.
 - **L4.4 (D6)** Nested git repos inside the DAGR checkout confuse tooling; demo-app ships setup script instead of a committed .git, verified via /tmp scratch clone.
+
+## Final state (post Wave D)
+
+- **L5.1** Verification matrix for this repo, in order: `cargo test --workspace` → `node evals/run.mjs --provider mock` → `scripts/ponytail_guard.sh` → pre-commit's own guard+ponytail. All green at close.
+- **L5.2** What shipped vs original critique: relicensed Apache-2.0 ✓ · single governance wedge story ✓ · pillars parked not deleted ✓ · outcome eval harness exists (live results pending key) ✓ · Tier 0 prove/review-diff/action/secrets ✓ · Tier 1 benchmark-harness/audit-export/explainability/honest-limits ✓ · Tier 2 identity+revoke/cost-attribution/compliance-page/docs-split/doctor/demo ✓ · LSP bridge disclosed as backlog ✓.
+- **L5.3** Remaining honest gaps: no live-model eval numbers yet; reverse-index precision on dynamic JS needs the LSP bridge; license scan is declared-only (no transitive SBOM); A2A still experimental behind feature flag.
