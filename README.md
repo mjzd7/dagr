@@ -58,44 +58,29 @@ Results land in `evals/results/latest.json`. Input-metric studies (token
 compression per repository) remain in [`docs/findings/`](docs/findings/)
 clearly labeled as *input* measurements.
 
-## 🤝 Dual Protocol Gateway: MCP + A2A
+## 🔌 MCP Tools
 
-DAGR provides native support for both **Host-to-Tool** workflows (IDE) and **Peer-to-Peer** swarms (multi-agent pipelines):
+DAGR exposes its governance engines to AI coding agents over **MCP**
+(JSON-RPC 2.0) — auto-configure any of 30+ clients with
+`dagr mcp install --client <id>`.
 
-```mermaid
-graph LR
-    subgraph Agent_Swarm ["🤖 Multi-Agent Swarm (A2A Network)"]
-        Planner["Planning Agent<br/>(Architect)"]
-        Coder["Coding Agent<br/>(Builder)"]
-        Tester["Verification Agent<br/>(Tester)"]
-    end
+### Core MCP tools:
 
-    subgraph DAGR_Bus ["⚡ DAGR Hypervisor (MCP + A2A)"]
-        A2A_Hub["A2A State & Event Hub<br/>(Transaction Locking & Handoff)"]
-        AST["Symbolic Slicer"]
-        CoW["CoW Sandbox"]
-    end
+1. `dagr_get_context_slice`: Extracts the minimal AST slice + hoisted type contracts; reports which resolver stage matched and its confidence.
+2. `dagr_verify_architecture`: Layer-boundary checker against `.dagr/rules.yaml` (<1ms).
+3. `dagr_execute_sandboxed`: Test/verification commands inside the Copy-on-Write shadow sandbox with atomic rollback.
+4. `dagr_get_lifetime_stats`: Cumulative efficiency telemetry and per-client/per-agent breakdown.
 
-    Planner -->|1. A2A Request: Blast Radius| A2A_Hub
-    A2A_Hub --> AST
-    Planner -->|2. A2A Delegate: Build Task| Coder
-    Coder -->|3. A2A Stage Mutation| A2A_Hub
-    A2A_Hub --> CoW
-    Coder -->|4. A2A Request Verification| Tester
-    Tester -->|5. A2A Run Tests in Shadow| A2A_Hub
-```
+Every tool accepts an optional **`_agent`** argument — an active id from the
+agent registry (`dagr agent register`) — for attribution and instant
+revocation. See [docs/mcp-tools.md](docs/mcp-tools.md).
 
-### The 6 Core Tools Exposed across MCP & A2A:
+### Experimental: A2A swarm tools (off by default)
 
-#### 🔌 Standard MCP Tools (Host-to-Tool for Cursor & Claude):
-1. `dagr_get_context_slice`: Prunes code down to exact ~35 lines + hoisted type contracts.
-2. `dagr_verify_architecture`: In-memory layer boundary and SOLID checker (<0.1ms).
-3. `dagr_execute_sandboxed`: Safe tool execution in Copy-on-Write shadow sandbox.
-
-#### 🤝 A2A Swarm Tools (Peer-to-Peer for Autonomous Swarms):
-4. `dagr_a2a_handshake`: Registers agent session ID, role, and file locks (prevents concurrent write conflicts).
-5. `dagr_a2a_transfer_context`: Passes compressed AST slices directly between peer agents without re-parsing.
-6. `dagr_a2a_verify_peer_patch`: Reviewer agent runs automated tests on another agent's staged shadow transaction (`tx_id`) before committing.
+Three peer-to-peer tools (`dagr_a2a_handshake`, `dagr_a2a_transfer_context`,
+`dagr_a2a_verify_peer_patch`) exist behind the compile-time `a2a` cargo
+feature and are **not built by default**. They are unaudited at scale — read
+[HONEST-LIMITS](docs/HONEST-LIMITS.md) before enabling.
 
 ---
 
