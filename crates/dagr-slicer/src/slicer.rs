@@ -204,6 +204,9 @@ impl SymbolicSlicer {
         contracts
     }
 
+    // ponytail: 9 params are the slice context passed explicitly; upgrade to
+    // a HoistCtx struct when a second caller appears.
+    #[allow(clippy::too_many_arguments)]
     fn hoist_hop(
         &self,
         node: tree_sitter::Node,

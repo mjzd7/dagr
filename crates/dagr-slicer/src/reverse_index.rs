@@ -53,7 +53,7 @@ impl ReverseIndex {
 
         for (rel, src) in &sources {
             let lang = language_for(rel)?;
-            let facts = extract_facts(rel, &src, lang)?;
+            let facts = extract_facts(rel, src, lang)?;
             index.files.push(rel.clone());
             facts_per_file.push((rel.clone(), facts));
         }
