@@ -256,7 +256,7 @@ impl ToolRegistry {
         // Fail-safe telemetry recording
         if let Ok(store) = TelemetryStore::open(&self.workspace_root) {
             let ev = TelemetryEvent::new_slice(
-                &client_id,
+                client_id,
                 file_path,
                 symbol_name,
                 slice.original_file_tokens,
@@ -288,7 +288,7 @@ impl ToolRegistry {
         let latency_us = start.elapsed().as_micros() as u64;
 
         if let Ok(store) = TelemetryStore::open(&self.workspace_root) {
-            let ev = TelemetryEvent::new_guard_check(&client_id, violations.len(), latency_us);
+            let ev = TelemetryEvent::new_guard_check(client_id, violations.len(), latency_us);
             let _ = store.record_event(&ev);
         }
 
