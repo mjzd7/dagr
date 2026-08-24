@@ -170,6 +170,10 @@ pub enum Commands {
         #[arg(long)]
         lsp: bool,
 
+        /// Append verdict rows to this JSONL file for calibration
+        #[arg(long)]
+        record: Option<PathBuf>,
+
         /// Output format (pretty, json, markdown)
         #[arg(short = 'f', long, value_enum, default_value_t = OutputFormat::Pretty)]
         format: OutputFormat,
@@ -227,6 +231,27 @@ pub enum Commands {
         /// Workspace root directory (defaults to current directory)
         #[arg(short = 'w', long, default_value = ".")]
         workspace: PathBuf,
+    },
+
+    /// Scan the resolved dependency graph for disallowed/missing licenses
+    #[command(
+        name = "licenses",
+        about = "Check every resolved dependency's declared license against the allowlist",
+        long_about = "Runs `cargo metadata` to resolve the full dependency graph and evaluates\n\
+                      each crate's SPDX expression (parens, AND/OR, WITH-exceptions, slash\n\
+                      dual-licensing) against the allowlist. Exit 1 on violations.\n\n\
+                      EXAMPLES:\n  \
+                        dagr licenses\n  \
+                        dagr licenses --format json"
+    )]
+    Licenses {
+        /// Workspace root directory (defaults to current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+
+        /// Output format (pretty, json)
+        #[arg(short = 'f', long, value_enum, default_value_t = OutputFormat::Pretty)]
+        format: OutputFormat,
     },
 
     /// Verify environment readiness: grammars, CoW filesystem support, SQLite WAL, IDE configs
@@ -702,6 +727,7 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
         Commands::Doctor { workspace, format } => handle_doctor(&workspace, format),
         Commands::SecretsBaseline { workspace } => handle_secrets_baseline(&workspace),
         Commands::Refs { target, workspace } => handle_refs(&workspace, &target),
+        Commands::Licenses { workspace, format } => handle_licenses(&workspace, format),
         Commands::Prove {
             workspace,
             test,
@@ -713,10 +739,17 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             workspace,
             fail_on_blocked,
             lsp,
+            record,
             format,
         } => {
-            let outcome =
-                handle_review_diff(&workspace, &base, &head, lsp, format)?;
+            let outcome = handle_review_diff(
+                &workspace,
+                &base,
+                &head,
+                lsp,
+                record.as_deref(),
+                format,
+            )?;
             if fail_on_blocked && matches!(outcome.as_str(), "BLOCKED" | "UNKNOWN") {
                 std::process::exit(1);
             }
@@ -1415,6 +1448,7 @@ pub fn handle_review_diff(
     base: &str,
     head: &str,
     use_lsp: bool,
+    record: Option<&Path>,
     format: OutputFormat,
 ) -> Result<String> {
     let verdict = if use_lsp {
@@ -1422,6 +1456,9 @@ pub fn handle_review_diff(
     } else {
         governance::ReviewVerdict::generate(workspace, base, head)?
     };
+    if let Some(log) = record {
+        governance::record_verdict(log, &verdict)?;
+    }
     match format {
         OutputFormat::Json => println!("{}", verdict.to_json()),
         OutputFormat::Markdown => print!("{}", verdict.to_markdown()),
@@ -1701,6 +1738,48 @@ pub fn handle_refs(workspace: &Path, target: &str) -> Result<()> {
     );
     for h in &hits {
         println!("  {}:{}", h.file, h.line);
+    }
+    Ok(())
+}
+
+
+pub fn handle_licenses(workspace: &Path, format: OutputFormat) -> Result<()> {
+    let extra = dagr_guard::DEFAULT_RUNTIME_ALLOWLIST_EXTRAS
+        .iter()
+        .map(|s| s.to_string())
+        .collect::<Vec<_>>();
+    let violations =
+        dagr_guard::check_dependency_licenses(workspace, &extra).map_err(DagrError::Config)?;
+    match format {
+        OutputFormat::Json => {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "violations": violations,
+                    "count": violations.len(),
+                })
+            );
+        }
+        _ => {
+            if violations.is_empty() {
+                println!("✅ all resolved dependencies pass the license allowlist");
+            } else {
+                println!("{:<22} {:<12} {:<10} {}", "CRATE", "VERSION", "KIND", "DECLARED");
+                for v in &violations {
+                    println!(
+                        "{:<22} {:<12} {:<10} {}",
+                        v.name,
+                        v.version,
+                        v.kind,
+                        v.found.as_deref().unwrap_or("-")
+                    );
+                }
+                println!("\n{} violation(s)", violations.len());
+            }
+        }
+    }
+    if !violations.is_empty() {
+        std::process::exit(1);
     }
     Ok(())
 }

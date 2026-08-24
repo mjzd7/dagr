@@ -343,3 +343,67 @@ mod tests {
         assert_eq!(iso_from_unix(1_750_000_000), "2025-06-15T15:06:40Z");
     }
 }
+
+#[cfg(test)]
+mod otlp_snapshot_tests {
+    use super::*;
+    use crate::event_store::RunId;
+    use crate::journal::{EffectJournal, EffectRecord};
+
+    #[test]
+    fn otlp_span_shape_is_pinned_against_drift() {
+        let j = EffectJournal::in_memory().unwrap();
+        let run = RunId(uuid::Uuid::new_v4());
+        j.record_effect(&EffectRecord {
+            effect_id: uuid::Uuid::new_v4(),
+            run_id: run,
+            step_index: 0,
+            effect_type: "tool.call".into(),
+            input_blake3: [7u8; 32],
+            output_payload: b"ok".to_vec(),
+            timestamp_utc: 1_750_000_000,
+        })
+        .unwrap();
+
+        let mut buf = Vec::new();
+        j.export_audit(AuditFormat::Otlp, &mut buf).unwrap();
+        let v: serde_json::Value = serde_json::from_slice(&buf).unwrap();
+
+        // Top-level shape
+        let top_keys: Vec<&str> = v.as_object().unwrap().keys().map(|s| s.as_str()).collect();
+        assert_eq!(top_keys, vec!["resourceSpans"]);
+
+        let span = &v["resourceSpans"][0]["scopeSpans"][0]["spans"][0];
+        let mut span_keys: Vec<&str> =
+            span.as_object().unwrap().keys().map(|s| s.as_str()).collect();
+        span_keys.sort_unstable();
+        assert_eq!(
+            span_keys,
+            vec![
+                "attributes",
+                "endTimeUnixNano",
+                "kind",
+                "name",
+                "spanId",
+                "startTimeUnixNano",
+                "status",
+                "traceId",
+            ]
+        );
+
+        let attr_keys: Vec<&str> = span["attributes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|a| a["key"].as_str().unwrap())
+            .collect();
+        assert_eq!(
+            attr_keys,
+            vec!["dagr.run.id", "dagr.effect.step", "dagr.effect.input_blake3"]
+        );
+        for a in span["attributes"].as_array().unwrap() {
+            assert!(a["value"]["stringValue"].is_string(), "OTLP values must be wrapped");
+        }
+        assert_eq!(span["status"]["code"], "STATUS_CODE_OK");
+    }
+}

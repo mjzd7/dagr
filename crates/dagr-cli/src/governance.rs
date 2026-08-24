@@ -1301,3 +1301,65 @@ mod alias_tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
+
+
+/// Appends one JSONL outcome row for calibration (feeds G7 weight fitting
+/// once real merge decisions accumulate alongside verdicts).
+pub fn record_verdict(path: &Path, v: &ReviewVerdict) -> Result<()> {
+    use std::io::Write;
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let row = serde_json::json!({
+        "recorded_at_unix": unix_now(),
+        "base": v.base,
+        "head": v.head,
+        "verdict": v.verdict,
+        "files_changed": v.files_changed,
+        "guard_violations": v.guard_violation_count,
+        "secrets": v.secret_count,
+        "dangling_imports": v.dangling_imports.len(),
+        "deleted_symbol_refs": v.deleted_symbol_refs.len(),
+    });
+    let mut f = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .map_err(dagr_core::DagrError::Io)?;
+    writeln!(f, "{}", row)?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod record_tests {
+    use super::*;
+
+    #[test]
+    fn record_appends_parseable_jsonl_rows() {
+        let dir = std::env::temp_dir().join(format!("dagr-rec-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let log = dir.join("verdicts.jsonl");
+
+        let mut v = ReviewVerdict::default();
+        v.base = "origin/main".into();
+        v.head = "HEAD".into();
+        v.verdict = VERDICT_PASS.to_string();
+        record_verdict(&log, &v).unwrap();
+
+        v.verdict = VERDICT_BLOCKED.to_string();
+        v.guard_violation_count = 2;
+        record_verdict(&log, &v).unwrap();
+
+        let text = std::fs::read_to_string(&log).unwrap();
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 2);
+        for l in &lines {
+            let row: serde_json::Value = serde_json::from_str(l).unwrap();
+            assert!(row["verdict"].is_string());
+            assert!(row["recorded_at_unix"].is_u64());
+        }
+        let second: serde_json::Value = serde_json::from_str(lines[1]).unwrap();
+        assert_eq!(second["guard_violations"], 2);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}

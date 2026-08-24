@@ -59,7 +59,10 @@
 | G1 live-model eval numbers | ⛔ BLOCKED | gateway key rejected 401 on all auth styles; provider now OPENAI_BASE_URL-aware + loud errors + fence-stripping; docs/benchmark.md documents blockage + repro |
 | G9 secret-scan hygiene | ✅ |
 | G6 alias/barrel dangling detection | ✅ | AliasMap candidates + transitive barrel chains (depth-capped); fixed export-wrapper definition extraction in ReverseIndex (export const was invisible); 2 regression tests (alias-deletion BLOCKS, barrel PASS) |
-| G5-min rust-analyzer bridge | ✅ | lsp.rs hand-framed stdio JSON-RPC; `dagr refs`; review-diff --lsp enriches deleted-Rust-symbol analysis (DeletedSymbolRef); fake-server e2e test; TS degrades gracefully | generated-file skips (lockfiles/min.*); .dagr/secrets-baseline.json suppression (file+kind+hash); `dagr secrets-baseline` generator; live flow verified | .github/workflows/merge-gate.yml; dry-run caught diff-scoping flaw; PASS on clean diff / BLOCKED on planted broken import |
+| G5-min rust-analyzer bridge | ✅ |
+| G8 transitive dep licenses | ✅ | cargo metadata subprocess + hand-rolled SPDX evaluator (parens/AND/OR/WITH/slash); self-scan of whole graph passes; `dagr licenses` cmd exit-codes on violations |
+| G10 OTLP snapshot pin | ✅ | exact key-set assertions on span shape + attribute list — drift fails CI |
+| G7 verdict recording | ✅ | --record <file> appends JSONL outcome rows for weight calibration; unit test + live smoke | lsp.rs hand-framed stdio JSON-RPC; `dagr refs`; review-diff --lsp enriches deleted-Rust-symbol analysis (DeletedSymbolRef); fake-server e2e test; TS degrades gracefully | generated-file skips (lockfiles/min.*); .dagr/secrets-baseline.json suppression (file+kind+hash); `dagr secrets-baseline` generator; live flow verified | .github/workflows/merge-gate.yml; dry-run caught diff-scoping flaw; PASS on clean diff / BLOCKED on planted broken import |
 | G11 real CoW probe | ✅ | fclonefileat(2)/FICLONE probe in dagr-sandbox::cow_probe; doctor reports Native vs CopyFallback honestly; Native confirmed here |
 
 ---
