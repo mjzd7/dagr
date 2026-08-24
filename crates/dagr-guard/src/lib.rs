@@ -16,4 +16,4 @@ pub use infer::ArchitectureInferrer;
 pub use licenses::{check_declared_licenses, LicenseViolation, DEFAULT_ALLOWLIST};
 pub use rules::{BoundaryRule, LimitsConfig, RuleConfig, SecurityConfig};
 pub use sanitizer::{MutationRiskLevel, ProgressivePermissionGate, ZeroTrustSanitizer};
-pub use secrets::{SecretFinding, SecretScanner};
+pub use secrets::{is_likely_generated, SecretFinding, SecretScanner, SuppressionBaseline};

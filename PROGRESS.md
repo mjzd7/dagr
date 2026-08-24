@@ -55,7 +55,9 @@
 | Task | Status | Evidence |
 |---|---|---|
 | G3 git failure ⇒ UNKNOWN (never silent PASS) | ✅ | e2e: missing base ref → UNKNOWN+note; exit 1 fail-closed; +diff-scoping fix (pre-existing breakage no longer blocks unrelated diffs) — 2 regression tests |
-| G4 dogfood merge-gate workflow | ✅ | .github/workflows/merge-gate.yml; dry-run caught diff-scoping flaw; PASS on clean diff / BLOCKED on planted broken import |
+| G4 dogfood merge-gate workflow | ✅ |
+| G1 live-model eval numbers | ⛔ BLOCKED | gateway key rejected 401 on all auth styles; provider now OPENAI_BASE_URL-aware + loud errors + fence-stripping; docs/benchmark.md documents blockage + repro |
+| G9 secret-scan hygiene | ✅ | generated-file skips (lockfiles/min.*); .dagr/secrets-baseline.json suppression (file+kind+hash); `dagr secrets-baseline` generator; live flow verified | .github/workflows/merge-gate.yml; dry-run caught diff-scoping flaw; PASS on clean diff / BLOCKED on planted broken import |
 | G11 real CoW probe | ✅ | fclonefileat(2)/FICLONE probe in dagr-sandbox::cow_probe; doctor reports Native vs CopyFallback honestly; Native confirmed here |
 
 ---

@@ -35,6 +35,7 @@ export function makeProvider(name) {
           }),
         });
         const data = await res.json();
+        if (data.error) throw new Error(`anthropic ${res.status}: ${data.error.message ?? "unknown"}`);
         return {
           text: data.content?.[0]?.text ?? "",
           tokens_in: data.usage?.input_tokens ?? 0,
@@ -43,11 +44,12 @@ export function makeProvider(name) {
       },
     };
   }
-  // openai
+  // openai (respects OPENAI_BASE_URL for OpenAI-compatible gateways)
+  const base = process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1";
   return {
     name,
     async complete({ model = "gpt-4o-mini", system, user }) {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await fetch(`${base}/chat/completions`, {
         method: "POST",
         headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
         body: JSON.stringify({
@@ -56,6 +58,8 @@ export function makeProvider(name) {
         }),
       });
       const data = await res.json();
+      if (data.error)
+        throw new Error(`openai ${res.status}: ${data.error.message ?? "unknown error"}`);
       return {
         text: data.choices?.[0]?.message?.content ?? "",
         tokens_in: data.usage?.prompt_tokens ?? 0,

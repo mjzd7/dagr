@@ -188,6 +188,23 @@ pub enum Commands {
         workspace: PathBuf,
     },
 
+    /// Write current secret findings to .dagr/secrets-baseline.json (triage-then-suppress workflow)
+    #[command(
+        name = "secrets-baseline",
+        about = "Snapshot current secret findings as a suppression baseline",
+        long_about = "Scans the workspace and writes every current finding to\n\
+                      .dagr/secrets-baseline.json so pre-existing findings stop failing new\n\
+                      reviews while NEW secrets still block. Entries match on file+kind+hash,\n\
+                      so a rotated secret re-fires automatically.\n\n\
+                      EXAMPLES:\n  \
+                        dagr secrets-baseline"
+    )]
+    SecretsBaseline {
+        /// Workspace root directory (defaults to current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+    },
+
     /// Verify environment readiness: grammars, CoW filesystem support, SQLite WAL, IDE configs
     #[command(
         name = "doctor",
@@ -659,6 +676,7 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
         },
         Commands::Revoke { id, workspace } => handle_agent_revoke(&workspace, &id),
         Commands::Doctor { workspace, format } => handle_doctor(&workspace, format),
+        Commands::SecretsBaseline { workspace } => handle_secrets_baseline(&workspace),
         Commands::Prove {
             workspace,
             test,
@@ -1591,6 +1609,20 @@ fn run_doctor_checks(workspace: &Path) -> Result<Vec<DoctorCheck>> {
     });
 
     Ok(out)
+}
+
+
+pub fn handle_secrets_baseline(workspace: &Path) -> Result<()> {
+    let written = governance::write_secrets_baseline(workspace)?;
+    if written == 0 {
+        println!("no findings — baseline not needed (nothing written)");
+    } else {
+        println!(
+            "📸 wrote {written} finding(s) to .dagr/secrets-baseline.json — \
+             they no longer block reviews; NEW secrets still will."
+        );
+    }
+    Ok(())
 }
 
 pub fn handle_run(command: &str, sandbox: bool, commit_on_success: bool) -> Result<()> {    let current_dir = std::env::current_dir()?;

@@ -338,3 +338,127 @@ mod tests {
         assert!(f.iter().any(|x| x.kind == "private_key_header"), "{f:?}");
     }
 }
+
+/// Files whose contents are machine-generated and notoriously
+/// entropy-heavy; scanning them is pure false-positive noise.
+pub fn is_likely_generated(path: &str) -> bool {
+    let name = path.rsplit('/').next().unwrap_or(path);
+    let lower = name.to_lowercase();
+    matches!(
+        lower.as_str(),
+        "package-lock.json"
+            | "yarn.lock"
+            | "pnpm-lock.yaml"
+            | "cargo.lock"
+            | "poetry.lock"
+            | "composer.lock"
+            | "gemfile.lock"
+    ) || lower.ends_with(".min.js")
+        || lower.ends_with(".min.css")
+        || lower.ends_with(".map")
+}
+
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+struct BaselineFile {
+    findings: Vec<BaselineEntry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+struct BaselineEntry {
+    file: String,
+    kind: String,
+    snippet_hash: String,
+}
+
+/// Known-findings suppression loaded from `.dagr/secrets-baseline.json`.
+/// Entries match on (file, kind, snippet_hash) so rotated secrets re-fire.
+pub struct SuppressionBaseline {
+    entries: std::collections::HashSet<(String, String, String)>,
+}
+
+impl SuppressionBaseline {
+    pub fn load(workspace_root: &std::path::Path) -> Self {
+        let path = workspace_root.join(".dagr").join("secrets-baseline.json");
+        let entries = std::fs::read_to_string(path)
+            .ok()
+            .and_then(|raw| serde_json::from_str::<BaselineFile>(&raw).ok())
+            .map(|f| {
+                f.findings
+                    .into_iter()
+                    .map(|e| (e.file, e.kind, e.snippet_hash))
+                    .collect()
+            })
+            .unwrap_or_default();
+        Self { entries }
+    }
+
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    pub fn allows(&self, file: &str, finding: &SecretFinding) -> bool {
+        !self
+            .entries
+            .contains(&(file.to_string(), finding.kind.to_string(), finding.snippet_hash.clone()))
+    }
+}
+
+#[cfg(test)]
+mod baseline_tests {
+    use super::*;
+
+    #[test]
+    fn generated_files_are_classified() {
+        assert!(is_likely_generated("package-lock.json"));
+        assert!(is_likely_generated("app/assets/bundle.min.js"));
+        assert!(is_likely_generated("src/Cargo.lock"));
+        assert!(!is_likely_generated("src/billing.ts"));
+    }
+
+    #[test]
+    fn baseline_suppresses_known_findings_only() {
+        let dir = std::env::temp_dir().join(format!("dagr-base-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join(".dagr")).unwrap();
+
+        let scanner = SecretScanner::new();
+        let findings_a = scanner.scan_text("k1 = \"AKIAIOSFODNN7EXAMPLE\"");
+        let findings_b = scanner.scan_text("k2 = \"AKIAIOSFODNN7EXAMPLE\"");
+        assert_eq!(findings_a[0].snippet_hash, findings_b[0].snippet_hash);
+
+        // Baseline contains finding A (in fileA) — fileB's identical secret
+        // must still fire, and a different kind on fileA must still fire.
+        serde_json::to_writer(
+            std::fs::File::create(dir.join(".dagr/secrets-baseline.json")).unwrap(),
+            &serde_json::json!({ "findings": [ {
+                "file": "fileA.ts", "kind": "aws_access_key_id",
+                "snippet_hash": findings_a[0].snippet_hash } ] }),
+        )
+        .unwrap();
+
+        let base = SuppressionBaseline::load(&dir);
+        assert!(base.allows("fileB.ts", &findings_b[0]));
+        let other_kind = SecretFinding {
+            kind: "github_token",
+            line: 1,
+            snippet_hash: findings_a[0].snippet_hash.clone(),
+        };
+        assert!(base.allows("fileA.ts", &other_kind));
+        // same file + same kind + same hash => suppressed
+        assert!(!base.allows("fileA.ts", &findings_a[0]));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn missing_baseline_file_is_empty_not_error() {
+        let dir = std::env::temp_dir().join(format!("dagr-base-empty-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        assert!(SuppressionBaseline::load(&dir).is_empty());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}

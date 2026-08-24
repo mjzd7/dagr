@@ -32,7 +32,16 @@ export function buildPrompt(taskDir, strategy, dagrBin) {
   };
 }
 
-export function gradeTask(taskDir, responseText) {
+// Real models often wrap file contents in markdown fences despite
+// instructions; hosts strip them too, so grading does the same.
+export function stripFences(text) {
+  const m = text.match(/```(?:[a-zA-Z0-9]*)\n([\s\S]*?)\n?```/);
+  if (m) return m[1];
+  return text.trim();
+}
+
+export function gradeTask(taskDir, rawResponse) {
+  const responseText = stripFences(rawResponse);
   // Write the model's file into a scratch copy of the repo and run hidden tests.
   const task = JSON.parse(readFileSync(join(taskDir, "task.json"), "utf8"));
   const scratch = mkdtempSync(join(tmpdir(), "dagr-eval-"));

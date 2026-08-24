@@ -11,7 +11,8 @@
 
 use dagr_core::{DagrError, Result};
 use dagr_guard::{
-    check_declared_licenses, ArchitectureGuard, LicenseViolation, SecretFinding, SecretScanner,
+    check_declared_licenses, is_likely_generated, ArchitectureGuard, LicenseViolation,
+    SecretFinding, SecretScanner, SuppressionBaseline,
 };
 use dagr_sandbox::CowSandbox;
 use dagr_slicer::{ImportRef, ReverseIndex};
@@ -51,6 +52,8 @@ pub struct ProofReceipt {
     pub files_indexed: usize,
     pub guard_violations: usize,
     pub secret_findings: Vec<SecretFinding>,
+    /// Findings matched against .dagr/secrets-baseline.json.
+    pub secrets_suppressed: usize,
     pub license_violations: Vec<LicenseViolation>,
     pub tests: Option<TestOutcome>,
     /// Blake3 over the canonical JSON of every field above except itself.
@@ -64,17 +67,25 @@ impl ProofReceipt {
         let guard_violations = guard.scan_workspace(workspace_root)?.len();
 
         let scanner = SecretScanner::new();
+        let baseline = SuppressionBaseline::load(workspace_root);
         let mut secret_findings = Vec::new();
+        let mut secrets_suppressed = 0usize;
         let indexed_sources = collect_source_texts(workspace_root);
         for (rel, body) in &indexed_sources {
-            for f in scanner.scan_text(body) {
-                secret_findings.push(SecretFinding {
-                    line: f.line,
-                    snippet_hash: f.snippet_hash,
-                    kind: f.kind,
-                });
+            if is_likely_generated(rel) {
+                continue;
             }
-            let _ = rel;
+            for f in scanner.scan_text(body) {
+                if baseline.allows(rel, &f) {
+                    secret_findings.push(SecretFinding {
+                        line: f.line,
+                        snippet_hash: f.snippet_hash,
+                        kind: f.kind,
+                    });
+                } else {
+                    secrets_suppressed += 1;
+                }
+            }
         }
 
         let allowlist: Vec<String> = dagr_guard::DEFAULT_ALLOWLIST
@@ -95,6 +106,7 @@ impl ProofReceipt {
             files_indexed,
             guard_violations,
             secret_findings,
+            secrets_suppressed,
             license_violations,
             tests,
             digest: String::new(),
@@ -120,6 +132,7 @@ impl ProofReceipt {
             "rules_enforced": self.rules_enforced,
             "files_indexed": self.files_indexed,
             "guard_violations": self.guard_violations,
+            "secrets_suppressed": self.secrets_suppressed,
             "secret_findings": self.secret_findings.iter().map(|f| serde_json::json!({
                 "kind": f.kind, "line": f.line, "snippet_hash": f.snippet_hash
             })).collect::<Vec<_>>(),
@@ -160,7 +173,7 @@ impl ProofReceipt {
              | Tool | dagr v{} |\n\
              | Rules enforced | {} |\n\
              | Guard violations | {} |\n\
-             | Secrets found | {} |\n\
+             | Secrets found | {}{} |\n\
              | License violations | {} |\n\
              {}\
              > Reproduce with `dagr prove` on this commit.\n",
@@ -170,6 +183,11 @@ impl ProofReceipt {
             self.rules_enforced,
             self.guard_violations,
             self.secret_findings.len(),
+            if self.secrets_suppressed > 0 {
+                format!(" (+{} suppressed)", self.secrets_suppressed)
+            } else {
+                String::new()
+            },
             self.license_violations.len(),
             tests_line,
         )
@@ -301,15 +319,23 @@ impl ReviewVerdict {
         }
 
         let scanner = SecretScanner::new();
+        let baseline = SuppressionBaseline::load(workspace_root);
         let mut secret_count = 0usize;
         let mut secrets_per_file: std::collections::HashMap<String, usize> =
             std::collections::HashMap::new();
         for rel in &changed {
+            if is_likely_generated(rel) {
+                continue;
+            }
             let abs = workspace_root.join(rel);
             let Ok(content) = std::fs::read_to_string(&abs) else {
                 continue;
             };
-            let count = scanner.scan_text(&content).len();
+            let count = scanner
+                .scan_text(&content)
+                .into_iter()
+                .filter(|f| baseline.allows(rel, f))
+                .count();
             if count > 0 {
                 secrets_per_file.insert(rel.clone(), count);
                 secret_count += count;
@@ -656,6 +682,41 @@ fn unix_now() -> u64 {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0)
+}
+
+
+/// Scans the workspace and writes `.dagr/secrets-baseline.json`; returns the
+/// number of newly suppressed findings.
+pub fn write_secrets_baseline(workspace: &Path) -> Result<usize> {
+    let scanner = SecretScanner::new();
+    let existing = SuppressionBaseline::load(workspace);
+    let mut new_entries: Vec<(String, SecretFinding)> = Vec::new();
+    for (rel, body) in collect_source_texts(workspace) {
+        if is_likely_generated(&rel) {
+            continue;
+        }
+        for f in scanner.scan_text(&body) {
+            if existing.allows(&rel, &f) {
+                new_entries.push((rel.clone(), f));
+            }
+        }
+    }
+    if new_entries.is_empty() {
+        return Ok(0);
+    }
+    let dir = workspace.join(".dagr");
+    std::fs::create_dir_all(&dir)?;
+    let mut out = String::from("{\n  \"findings\": [\n");
+    for (i, (file, f)) in new_entries.iter().enumerate() {
+        let comma = if i + 1 == new_entries.len() { "" } else { "," };
+        out.push_str(&format!(
+            "    {{\"file\": {:?}, \"kind\": {:?}, \"snippet_hash\": {:?}}}{}\n",
+            file, f.kind, f.snippet_hash, comma
+        ));
+    }
+    out.push_str("  ]\n}\n");
+    std::fs::write(dir.join("secrets-baseline.json"), out)?;
+    Ok(new_entries.len())
 }
 
 #[cfg(test)]
