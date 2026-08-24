@@ -50,6 +50,8 @@ else
 fi
 
 # --- P3: MCP parity-lite (initialize + tools/list) -----------------------
+# Core MCP surface = 4 governance tools; A2A swarm tools are experimental
+# and only present when built with --features a2a.
 REQS=$'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"t0-harness","version":"0"}}}\n{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}\n'
 MCP_OUT=$(printf '%s' "$REQS" | dagr mcp start 2>/dev/null)
 TOOLS=$(python3 -c "
@@ -91,7 +93,7 @@ PY
 
 OK=1
 [ "$G_STATUS" = "passed" ] || OK=0
-case "$TOOLS" in ''|*[!0-9]*) OK=0 ;; *) [ "$TOOLS" -ge 7 ] || OK=0 ;; esac
+case "$TOOLS" in ''|*[!0-9]*) OK=0 ;; *) [ "$TOOLS" -ge 4 ] || OK=0 ;; esac
 
 [ "$OK" -eq 1 ] && echo "✅ [T0] smoke PASS" || { echo "❌ [T0] smoke FAIL"; exit 1; }
 exit 0
