@@ -1,11 +1,12 @@
 //! Compliance-grade audit export over the effect journal.
 //!
 //! Three formats, one source of truth (`EffectJournal`):
-//! - `Jsonl`        — one `EffectRecord` per line (machine replay/analysis)
-//! - `Otlp`         — OTLP/v1 JSON traces so agent actions land in existing
-//!                    observability stacks (answers MCP OTel proposal #269)
-//! - `Soc2Evidence` — per-action evidence lines with ISO timestamps and an
-//!                    integrity hash chain suitable for auditor review
+//!
+//! - `Jsonl`: one `EffectRecord` per line (machine replay/analysis).
+//! - `Otlp`: OTLP/v1 JSON traces so agent actions land in existing
+//!   observability stacks (answers MCP OTel proposal #269).
+//! - `Soc2Evidence`: per-action evidence lines with ISO timestamps and an
+//!   integrity hash chain suitable for auditor review.
 //!
 //! ponytail: hand-emitted OTLP JSON instead of opentelemetry crates; upgrade
 //! only if attribute/semantic-convention drift becomes a real problem.
