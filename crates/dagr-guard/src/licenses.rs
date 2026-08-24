@@ -90,8 +90,8 @@ fn collect_manifests(root: &Path) -> Vec<std::path::PathBuf> {
             let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
             match name {
                 "Cargo.toml" | "package.json" => out.push(path),
-                _ if path.is_dir() => {
-                    if !matches!(
+                _ if path.is_dir()
+                    && !matches!(
                         name,
                         ".git"
                             | "node_modules"
@@ -102,9 +102,9 @@ fn collect_manifests(root: &Path) -> Vec<std::path::PathBuf> {
                             | ".next"
                             | ".venv"
                             | "coverage"
-                    ) {
-                        stack.push(path);
-                    }
+                    ) =>
+                {
+                    stack.push(path);
                 }
                 _ => {}
             }
