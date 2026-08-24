@@ -1288,6 +1288,9 @@ fn git_staged_files(workspace_root: &Path) -> Result<Vec<String>> {
         .collect())
 }
 
+// ponytail: pre-existing clap-dispatch signature; refactor to a GuardArgs
+// struct when this handler next gains a parameter.
+#[allow(clippy::too_many_arguments)]
 pub fn handle_guard(
     workspace_root: &Path,
     staged: bool,
@@ -1545,13 +1548,13 @@ pub fn handle_agent_list(workspace: &Path) -> Result<()> {
         println!("no agents registered");
         return Ok(());
     }
-    println!("{:<28} {:<16} {:<10} {}", "ID", "OWNER", "ROLE", "EXPIRES");
+    println!("ID                           OWNER            ROLE       EXPIRES");
     for a in agents {
         println!(
             "{:<28} {:<16} {:<10} {}",
             a.id,
             a.owner,
-            if a.role.is_empty() { "-" } else { &a.role },
+            if a.role.is_empty() { "-" } else { a.role.as_str() },
             a.expires_at_unix
                 .map(|e| e.to_string())
                 .unwrap_or_else(|| "never".into())
@@ -1791,10 +1794,8 @@ pub fn handle_licenses(workspace: &Path, format: OutputFormat) -> Result<()> {
             if violations.is_empty() {
                 println!("✅ all resolved dependencies pass the license allowlist");
             } else {
-                println!(
-                    "{:<22} {:<12} {:<10} {}",
-                    "CRATE", "VERSION", "KIND", "DECLARED"
-                );
+                let header = format!("{:<22} {:<12} {:<10} DECLARED", "CRATE", "VERSION", "KIND");
+                println!("{header}");
                 for v in &violations {
                     println!(
                         "{:<22} {:<12} {:<10} {}",

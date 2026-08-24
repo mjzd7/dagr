@@ -1376,10 +1376,12 @@ mod record_tests {
         let _ = std::fs::remove_dir_all(&dir);
         let log = dir.join("verdicts.jsonl");
 
-        let mut v = ReviewVerdict::default();
-        v.base = "origin/main".into();
-        v.head = "HEAD".into();
-        v.verdict = VERDICT_PASS.to_string();
+        let mut v = ReviewVerdict {
+            base: "origin/main".into(),
+            head: "HEAD".into(),
+            verdict: VERDICT_PASS.to_string(),
+            ..Default::default()
+        };
         record_verdict(&log, &v).unwrap();
 
         v.verdict = VERDICT_BLOCKED.to_string();
