@@ -155,7 +155,9 @@ fn language_for(rel: &str) -> Result<Language> {
     match ext {
         "ts" | "tsx" => Ok(Language::TypeScript),
         "rs" => Ok(Language::Rust),
-        _ => Err(DagrError::UnsupportedLanguage(format!("{rel}: only {SCANNED_EXTS:?} are indexed"))),
+        _ => Err(DagrError::UnsupportedLanguage(format!(
+            "{rel}: only {SCANNED_EXTS:?} are indexed"
+        ))),
     }
 }
 
@@ -165,8 +167,21 @@ fn language_for(rel: &str) -> Result<Language> {
 fn collect_sources(root: &Path, current: &Path, out: &mut Vec<(String, String)>) {
     if current.is_dir() {
         let skip = [
-            ".git", "node_modules", "target", ".dagr", ".next", "dist", "build", "out", ".output",
-            ".turbo", ".venv", "venv", "__pycache__", "vendor", "coverage",
+            ".git",
+            "node_modules",
+            "target",
+            ".dagr",
+            ".next",
+            "dist",
+            "build",
+            "out",
+            ".output",
+            ".turbo",
+            ".venv",
+            "venv",
+            "__pycache__",
+            "vendor",
+            "coverage",
         ];
         let name = current.file_name().and_then(|s| s.to_str()).unwrap_or("");
         if skip.contains(&name) {
@@ -328,7 +343,9 @@ fn node_name_deep<'a>(node: tree_sitter::Node<'a>, source: &'a str) -> Option<&'
         return direct;
     }
     let mut cursor = node.walk();
-    let found = node.children(&mut cursor).find_map(|child| node_name(child, source));
+    let found = node
+        .children(&mut cursor)
+        .find_map(|child| node_name(child, source));
     found
 }
 
@@ -345,10 +362,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn temp_ws(tag: &str) -> PathBuf {
-        let d = std::env::temp_dir().join(format!(
-            "dagr-ridx-{tag}-{}",
-            std::process::id()
-        ));
+        let d = std::env::temp_dir().join(format!("dagr-ridx-{tag}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
         d
@@ -362,7 +376,8 @@ mod tests {
         }
     }
 
-    const A_TS: &str = "export function charge(amountCents: number): number {\n  return amountCents;\n}\n";
+    const A_TS: &str =
+        "export function charge(amountCents: number): number {\n  return amountCents;\n}\n";
     const B_TS: &str = "import { charge } from \"./a\";\n\nexport function checkout(): number {\n  return charge(100);\n}\n";
 
     #[test]
@@ -423,7 +438,10 @@ mod tests {
         write_ws(
             &dir,
             &[
-                ("src/models.rs", "pub struct Payment {\n    pub cents: u64,\n}\n"),
+                (
+                    "src/models.rs",
+                    "pub struct Payment {\n    pub cents: u64,\n}\n",
+                ),
                 (
                     "src/main.rs",
                     "mod models;\n\nfn total(p: Payment) -> u64 {\n    p.cents\n}\n",
@@ -460,7 +478,10 @@ mod barrel_probe_tests {
         for imp in idx.all_imports() {
             println!("import: {}:{} -> {}", imp.file, imp.line, imp.module);
         }
-        println!("bindings at db/index.ts:2: {:?}", idx.bindings_imported_from("src/db/index.ts", 1));
+        println!(
+            "bindings at db/index.ts:2: {:?}",
+            idx.bindings_imported_from("src/db/index.ts", 1)
+        );
         assert!(
             !idx.definitions_of("pool").is_empty(),
             "export const must register a definition"

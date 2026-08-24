@@ -118,8 +118,7 @@ impl ProofReceipt {
             obj.remove("generated_at_unix");
         }
         let canonical = serde_json::to_string(&canonical_value)?;
-        receipt_no_digest.digest =
-            blake3::hash(canonical.as_bytes()).to_hex()[..32].to_string();
+        receipt_no_digest.digest = blake3::hash(canonical.as_bytes()).to_hex()[..32].to_string();
         Ok(receipt_no_digest)
     }
 
@@ -199,10 +198,7 @@ fn run_in_sandbox(workspace_root: &Path, cmd: &str) -> TestOutcome {
         let tx = CowSandbox::begin(workspace_root)?;
         let result = CowSandbox::verify(&tx, cmd)?;
         CowSandbox::rollback(tx)?;
-        Ok((
-            result.success,
-            tail_lines(&result.stderr, 3),
-        ))
+        Ok((result.success, tail_lines(&result.stderr, 3)))
     })();
     match outcome {
         Ok((success, stderr_tail)) => TestOutcome {
@@ -290,11 +286,7 @@ impl ReviewVerdict {
     /// Same as [`generate`] with language-server enrichment for deleted
     /// Rust files (precise reference finding where identifier matching
     /// approximates). Degrades to plain behavior when no server is found.
-    pub fn generate_with_lsp(
-        workspace_root: &Path,
-        base: &str,
-        head: &str,
-    ) -> Result<Self> {
+    pub fn generate_with_lsp(workspace_root: &Path, base: &str, head: &str) -> Result<Self> {
         Self::generate_inner(workspace_root, base, head, true)
     }
 
@@ -372,23 +364,18 @@ impl ReviewVerdict {
         let index = ReverseIndex::build(workspace_root)?;
         let scope = DiffScope::load(workspace_root, base, head)?;
         let alias_map = dagr_guard::AliasMap::load(workspace_root);
-        let dangling =
-            detect_dangling_imports(&index, workspace_root, &scope, &alias_map);
+        let dangling = detect_dangling_imports(&index, workspace_root, &scope, &alias_map);
 
         let w_dangling = weight("DANGLING_IMPORT", W_DANGLING_IMPORT);
         let w_guard = weight("GUARD_VIOLATION", W_GUARD_VIOLATION);
 
         let mut files = Vec::new();
         for rel in &changed {
-            let dangle_hits: usize = dangling
-                .iter()
-                .filter(|d| &d.importer_file == rel)
-                .count();
+            let dangle_hits: usize = dangling.iter().filter(|d| &d.importer_file == rel).count();
             let guard_hits = violations_per_file.get(rel).copied().unwrap_or(0);
             let secret_hits = secrets_per_file.get(rel).copied().unwrap_or(0);
 
-            let score =
-                dangle_hits as u32 * w_dangling
+            let score = dangle_hits as u32 * w_dangling
                 + guard_hits as u32 * w_guard
                 + secret_hits as u32 * 100;
             let mut reasons = Vec::new();
@@ -414,8 +401,11 @@ impl ReviewVerdict {
         if use_lsp {
             let mut bridge = crate::lsp::LspBridge::detect(workspace_root);
             if let Some(b) = bridge.as_mut() {
-                let deleted_rs: Vec<&String> =
-                    scope.deleted.iter().filter(|d| d.ends_with(".rs")).collect();
+                let deleted_rs: Vec<&String> = scope
+                    .deleted
+                    .iter()
+                    .filter(|d| d.ends_with(".rs"))
+                    .collect();
                 for d in deleted_rs {
                     let Ok(old) = git_show(workspace_root, &format!("{base}:{d}")) else {
                         continue;
@@ -427,11 +417,9 @@ impl ReviewVerdict {
                     let Ok(tree) = parser.parse(&old, None) else {
                         continue;
                     };
-                    for sym in dagr_slicer::AstExtractor::extract_all_symbols(
-                        tree.root_node(),
-                        &old,
-                        lang,
-                    ) {
+                    for sym in
+                        dagr_slicer::AstExtractor::extract_all_symbols(tree.root_node(), &old, lang)
+                    {
                         let col = old
                             .lines()
                             .nth(sym.start_line - 1)
@@ -445,10 +433,8 @@ impl ReviewVerdict {
                             col,
                             false,
                         ) {
-                            let live: Vec<_> = refs
-                                .into_iter()
-                                .filter(|r| !r.file.ends_with(d))
-                                .collect();
+                            let live: Vec<_> =
+                                refs.into_iter().filter(|r| !r.file.ends_with(d)).collect();
                             if !live.is_empty() {
                                 deleted_symbol_refs.push(DeletedSymbolRef {
                                     deleted_file: (*d).clone(),
@@ -533,8 +519,11 @@ impl ReviewVerdict {
         if !self.deleted_symbol_refs.is_empty() {
             md.push_str("### Deleted symbols still referenced (LSP-verified)\n");
             for d in &self.deleted_symbol_refs {
-                let sites: Vec<String> =
-                    d.refs.iter().map(|r| format!("{}:{}", r.file, r.line)).collect();
+                let sites: Vec<String> = d
+                    .refs
+                    .iter()
+                    .map(|r| format!("{}:{}", r.file, r.line))
+                    .collect();
                 md.push_str(&format!(
                     "- `{}` in `{}` — {} live ref(s): {}\n",
                     d.symbol,
@@ -607,13 +596,21 @@ fn base_candidates(
     spec: &str,
 ) -> Vec<PathBuf> {
     use std::path::Component;
-    let norm = |p: PathBuf| -> PathBuf { p.components().filter(|c| !matches!(c, Component::CurDir)).collect() };
+    let norm = |p: PathBuf| -> PathBuf {
+        p.components()
+            .filter(|c| !matches!(c, Component::CurDir))
+            .collect()
+    };
     if spec.starts_with('.') {
         return vec![norm(importer_dir.join(spec))];
     }
     // AliasMap targets are workspace-relative by contract — do NOT anchor
     // them at `ws` or they stop matching the relative paths git reports.
-    alias_map.candidates(spec).into_iter().map(|c| norm(PathBuf::from(c))).collect()
+    alias_map
+        .candidates(spec)
+        .into_iter()
+        .map(|c| norm(PathBuf::from(c)))
+        .collect()
 }
 
 /// A binding counts as defined if it lives in the target file OR in a file
@@ -632,11 +629,7 @@ fn binding_defined_via_barrels(
             continue;
         }
         depth += 1;
-        if index
-            .definitions_of(binding)
-            .iter()
-            .any(|d| d.file == file)
-        {
+        if index.definitions_of(binding).iter().any(|d| d.file == file) {
             return true;
         }
         for imp in index.all_imports() {
@@ -645,8 +638,7 @@ fn binding_defined_via_barrels(
                     .parent()
                     .map(|p| p.to_path_buf())
                     .unwrap_or_default();
-                if let ModuleResolution::Found(next) =
-                    resolve_ts_module_raw(ws, &dir, &imp.module)
+                if let ModuleResolution::Found(next) = resolve_ts_module_raw(ws, &dir, &imp.module)
                 {
                     stack.push(next);
                 }
@@ -678,7 +670,9 @@ fn detect_dangling_imports(
             || (!scope.deleted.is_empty() && {
                 let del = &scope.deleted;
                 EXT_CANDIDATES.iter().any(|c| {
-                    bases.iter().any(|b| del.contains(&format!("{}{}", b.display(), c)))
+                    bases
+                        .iter()
+                        .any(|b| del.contains(&format!("{}{}", b.display(), c)))
                 })
             });
         if !relevant {
@@ -700,9 +694,9 @@ fn detect_dangling_imports(
             None => {
                 if scope.touches(&imp.file)
                     || EXT_CANDIDATES.iter().any(|c| {
-                        bases.iter().any(|b| {
-                            scope.deleted.contains(&format!("{}{}", b.display(), c))
-                        })
+                        bases
+                            .iter()
+                            .any(|b| scope.deleted.contains(&format!("{}{}", b.display(), c)))
                     })
                 {
                     out.push(DanglingImport {
@@ -768,7 +762,6 @@ enum ModuleResolution {
     Found(String),
 }
 
-
 fn index_imports(_index: &ReverseIndex) -> Vec<ImportRef> {
     _index.all_imports()
 }
@@ -784,8 +777,7 @@ fn has_test_sibling(ws: &Path, rel: &str) -> bool {
         format!("{stem}_test.rs"),
         format!("{stem}.spec.ts"),
     ];
-    candidates.iter().any(|c| ws.join(c).is_file())
-        || ws.join("tests").join(stem).exists()
+    candidates.iter().any(|c| ws.join(c).is_file()) || ws.join("tests").join(stem).exists()
 }
 
 fn git_changed_files(ws: &Path, base: &str, head: &str) -> Result<Vec<String>> {
@@ -840,9 +832,7 @@ fn git_show(ws: &Path, rev_path: &str) -> Result<String> {
         .output()
         .map_err(|e| DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
     if !out.status.success() {
-        return Err(DagrError::Config(format!(
-            "git show {rev_path} failed"
-        )));
+        return Err(DagrError::Config(format!("git show {rev_path} failed")));
     }
     Ok(String::from_utf8_lossy(&out.stdout).to_string())
 }
@@ -850,8 +840,21 @@ fn git_show(ws: &Path, rev_path: &str) -> Result<String> {
 fn collect_source_texts(ws: &Path) -> Vec<(String, String)> {
     fn walk(dir: &Path, root: &Path, out: &mut Vec<(String, String)>) {
         let skip = [
-            ".git", "node_modules", "target", ".dagr", ".next", "dist", "build", "out", ".output",
-            ".turbo", ".venv", "venv", "__pycache__", "vendor", "coverage",
+            ".git",
+            "node_modules",
+            "target",
+            ".dagr",
+            ".next",
+            "dist",
+            "build",
+            "out",
+            ".output",
+            ".turbo",
+            ".venv",
+            "venv",
+            "__pycache__",
+            "vendor",
+            "coverage",
         ];
         if let Ok(entries) = std::fs::read_dir(dir) {
             for e in entries.flatten() {
@@ -884,7 +887,6 @@ fn unix_now() -> u64 {
         .map(|d| d.as_secs())
         .unwrap_or(0)
 }
-
 
 /// Scans the workspace and writes `.dagr/secrets-baseline.json`; returns the
 /// number of newly suppressed findings.
@@ -999,8 +1001,14 @@ mod tests {
         write(
             &dir,
             &[
-                ("src/a.ts", "export function charge(): number {\n  return 1;\n}\n"),
-                ("src/b.ts", "import { charge } from \"./a\";\nexport const total = charge();\n"),
+                (
+                    "src/a.ts",
+                    "export function charge(): number {\n  return 1;\n}\n",
+                ),
+                (
+                    "src/b.ts",
+                    "import { charge } from \"./a\";\nexport const total = charge();\n",
+                ),
             ],
         );
         assert!(git(&["add", "."]).status.success());
@@ -1011,7 +1019,11 @@ mod tests {
         assert!(git(&["commit", "-q", "-m", "drop a"]).status.success());
 
         let verdict = ReviewVerdict::generate(&dir, "HEAD~1", "HEAD").unwrap();
-        assert_eq!(verdict.verdict, "BLOCKED", "{:#?}", verdict.dangling_imports);
+        assert_eq!(
+            verdict.verdict, "BLOCKED",
+            "{:#?}",
+            verdict.dangling_imports
+        );
         assert!(!verdict.dangling_imports.is_empty());
 
         let md = verdict.to_markdown();
@@ -1041,7 +1053,10 @@ mod tests {
         assert!(git(&["init", "-q"]).status.success());
         write(
             &dir,
-            &[("src/calc.ts", "export function add(a: number, b: number): number {\n  return a + b;\n}\n")],
+            &[(
+                "src/calc.ts",
+                "export function add(a: number, b: number): number {\n  return a + b;\n}\n",
+            )],
         );
         assert!(git(&["add", "."]).status.success());
         assert!(git(&["commit", "-q", "-m", "base"]).status.success());
@@ -1127,15 +1142,25 @@ mod scoping_tests {
         };
         assert!(git(&["init", "-q"]).status.success());
         // broken.ts imports a module that never exists — committed as-is.
-        std::fs::write(dir.join("src/broken.ts"), "import { x } from \"./missing\";\nexport const y = x;\n").unwrap();
+        std::fs::write(
+            dir.join("src/broken.ts"),
+            "import { x } from \"./missing\";\nexport const y = x;\n",
+        )
+        .unwrap();
         std::fs::write(dir.join("src/clean.ts"), "export const clean = 1;\n").unwrap();
         assert!(git(&["add", "."]).status.success());
-        assert!(git(&["commit", "-q", "-m", "base (with pre-existing breakage)"]).status.success());
+        assert!(
+            git(&["commit", "-q", "-m", "base (with pre-existing breakage)"])
+                .status
+                .success()
+        );
 
         // The diff only touches clean.ts — unrelated to the broken import.
         std::fs::write(dir.join("src/clean.ts"), "export const clean = 2;\n").unwrap();
         assert!(git(&["add", "."]).status.success());
-        assert!(git(&["commit", "-q", "-m", "touch clean only"]).status.success());
+        assert!(git(&["commit", "-q", "-m", "touch clean only"])
+            .status
+            .success());
 
         let v = ReviewVerdict::generate(&dir, "HEAD~1", "HEAD").unwrap();
         assert_eq!(v.verdict, VERDICT_PASS, "{:#?}", v.dangling_imports);
@@ -1162,8 +1187,16 @@ mod scoping_tests {
                 .expect("git")
         };
         assert!(git(&["init", "-q"]).status.success());
-        std::fs::write(dir.join("src/a.ts"), "export function charge(): number {\n  return 1;\n}\n").unwrap();
-        std::fs::write(dir.join("src/b.ts"), "import { charge } from \"./a\";\nexport const total = charge();\n").unwrap();
+        std::fs::write(
+            dir.join("src/a.ts"),
+            "export function charge(): number {\n  return 1;\n}\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.join("src/b.ts"),
+            "import { charge } from \"./a\";\nexport const total = charge();\n",
+        )
+        .unwrap();
         assert!(git(&["add", "."]).status.success());
         assert!(git(&["commit", "-q", "-m", "base"]).status.success());
 
@@ -1274,7 +1307,11 @@ mod alias_tests {
         .unwrap();
         git_init_commit(&dir);
         // A second commit gives HEAD~1 something to diff against.
-        std::fs::write(dir.join("src/app.ts"), "// touch\nimport { pool } from \"./db\";\nexport const q = pool;\n").unwrap();
+        std::fs::write(
+            dir.join("src/app.ts"),
+            "// touch\nimport { pool } from \"./db\";\nexport const q = pool;\n",
+        )
+        .unwrap();
         let ok = std::process::Command::new("git")
             .args(["add", "-A"])
             .current_dir(&dir)
@@ -1301,7 +1338,6 @@ mod alias_tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
-
 
 /// Appends one JSONL outcome row for calibration (feeds G7 weight fitting
 /// once real merge decisions accumulate alongside verdicts).

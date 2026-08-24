@@ -36,10 +36,7 @@ pub const DEFAULT_ALLOWLIST: &[&str] = &[
     "CC0-1.0",
 ];
 
-pub fn check_declared_licenses(
-    workspace_root: &Path,
-    allowed: &[String],
-) -> Vec<LicenseViolation> {
+pub fn check_declared_licenses(workspace_root: &Path, allowed: &[String]) -> Vec<LicenseViolation> {
     let mut violations = Vec::new();
 
     for manifest in collect_manifests(workspace_root) {
@@ -165,7 +162,11 @@ mod tests {
     #[test]
     fn disallowed_cargo_license_is_flagged() {
         let dir = temp_ws("gpl");
-        std::fs::write(dir.join("Cargo.toml"), "[package]\nname = \"x\"\nlicense = \"GPL-3.0\"\n").unwrap();
+        std::fs::write(
+            dir.join("Cargo.toml"),
+            "[package]\nname = \"x\"\nlicense = \"GPL-3.0\"\n",
+        )
+        .unwrap();
         let v = check_declared_licenses(&dir, &allow(DEFAULT_ALLOWLIST));
         assert_eq!(v.len(), 1);
         assert_eq!(v[0].kind, "disallowed");
@@ -176,7 +177,11 @@ mod tests {
     #[test]
     fn missing_declaration_is_a_violation() {
         let dir = temp_ws("missing");
-        std::fs::write(dir.join("package.json"), r#"{"name":"y","version":"1.0.0"}"#).unwrap();
+        std::fs::write(
+            dir.join("package.json"),
+            r#"{"name":"y","version":"1.0.0"}"#,
+        )
+        .unwrap();
         let v = check_declared_licenses(&dir, &allow(DEFAULT_ALLOWLIST));
         assert_eq!(v.len(), 1);
         assert_eq!(v[0].kind, "missing");
@@ -193,7 +198,11 @@ mod tests {
         .unwrap();
         let sub = dir.join("crates/x");
         std::fs::create_dir_all(&sub).unwrap();
-        std::fs::write(sub.join("Cargo.toml"), "[package]\nlicense.workspace = true\n").unwrap();
+        std::fs::write(
+            sub.join("Cargo.toml"),
+            "[package]\nlicense.workspace = true\n",
+        )
+        .unwrap();
 
         let v = check_declared_licenses(&dir, &allow(DEFAULT_ALLOWLIST));
         assert!(v.is_empty(), "expected clean: {v:?}");
@@ -205,11 +214,7 @@ mod tests {
         let dir = temp_ws("skipdirs");
         std::fs::create_dir_all(dir.join("node_modules/pkg")).unwrap();
         std::fs::create_dir_all(dir.join("target/pkg")).unwrap();
-        std::fs::write(
-            dir.join("Cargo.toml"),
-            "[package]\nlicense = \"MIT\"\n",
-        )
-        .unwrap();
+        std::fs::write(dir.join("Cargo.toml"), "[package]\nlicense = \"MIT\"\n").unwrap();
         // GPL manifests in skipped dirs must not surface
         std::fs::write(
             dir.join("node_modules/pkg/Cargo.toml"),
@@ -240,8 +245,13 @@ pub struct DepLicenseViolation {
 
 /// Practical default: everything above plus licenses overwhelmingly used by
 /// the Rust/JS ecosystems' infrastructure crates.
-pub const DEFAULT_RUNTIME_ALLOWLIST_EXTRAS: &[&str] =
-    &["Unicode-3.0", "Zlib", "MPL-2.0", "BSL-1.0", "Apache-2.0 WITH LLVM-exception"];
+pub const DEFAULT_RUNTIME_ALLOWLIST_EXTRAS: &[&str] = &[
+    "Unicode-3.0",
+    "Zlib",
+    "MPL-2.0",
+    "BSL-1.0",
+    "Apache-2.0 WITH LLVM-exception",
+];
 
 fn full_allowlist(extra: &[String]) -> Vec<String> {
     let mut v: Vec<String> = DEFAULT_ALLOWLIST
@@ -254,7 +264,6 @@ fn full_allowlist(extra: &[String]) -> Vec<String> {
     v.dedup();
     v
 }
-
 
 /// Minimal SPDX expression evaluator supporting parentheses, AND/OR,
 /// `+` suffixes, WITH-exceptions, and the `/` shorthand for OR.
@@ -344,8 +353,7 @@ pub fn check_dependency_licenses(
             String::from_utf8_lossy(&output.stderr)
         ));
     }
-    let v: serde_json::Value =
-        serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
+    let v: serde_json::Value = serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
 
     let ws_members: Vec<String> = v["workspace_members"]
         .as_array()
@@ -421,9 +429,13 @@ mod dep_tests {
         // workspace whose metadata we cannot fake — so test the matcher.
         let allow = full_allowlist(&[]);
         let expr = "Apache-2.0 OR MIT";
-        assert!(expr.split(" OR ").any(|p| allow.iter().any(|a| a.eq_ignore_ascii_case(p.trim()))));
+        assert!(expr
+            .split(" OR ")
+            .any(|p| allow.iter().any(|a| a.eq_ignore_ascii_case(p.trim()))));
         let bad = "GPL-3.0-only";
-        assert!(!bad.split(" OR ").any(|p| allow.iter().any(|a| a.eq_ignore_ascii_case(p.trim()))));
+        assert!(!bad
+            .split(" OR ")
+            .any(|p| allow.iter().any(|a| a.eq_ignore_ascii_case(p.trim()))));
         // Slash-form dual licensing must pass like its OR-form twin.
         assert!(spdx_allowed("MIT/Apache-2.0", &allow));
         // Parenthesized AND groups evaluate both branches.

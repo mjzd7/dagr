@@ -70,8 +70,7 @@ pub fn probe(dir: &Path) -> CowSupport {
                 .write(true)
                 .truncate(true)
                 .open(&dst)?;
-            let rc =
-                unsafe { libc::ioctl(dst_f.as_raw_fd(), FICLONE, src_f.as_raw_fd()) };
+            let rc = unsafe { libc::ioctl(dst_f.as_raw_fd(), FICLONE, src_f.as_raw_fd()) };
             Ok(rc == 0)
         })()
         .unwrap_or(false);

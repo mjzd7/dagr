@@ -718,9 +718,12 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             commit_on_success,
         } => handle_run(&command, sandbox, commit_on_success),
         Commands::Agent { action } => match action {
-            AgentAction::Register { id, owner, role, ttl_secs } => {
-                handle_agent_register(&id, &owner, &role, ttl_secs)
-            }
+            AgentAction::Register {
+                id,
+                owner,
+                role,
+                ttl_secs,
+            } => handle_agent_register(&id, &owner, &role, ttl_secs),
             AgentAction::List { workspace } => handle_agent_list(&workspace),
         },
         Commands::Revoke { id, workspace } => handle_agent_revoke(&workspace, &id),
@@ -742,14 +745,8 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             record,
             format,
         } => {
-            let outcome = handle_review_diff(
-                &workspace,
-                &base,
-                &head,
-                lsp,
-                record.as_deref(),
-                format,
-            )?;
+            let outcome =
+                handle_review_diff(&workspace, &base, &head, lsp, record.as_deref(), format)?;
             if fail_on_blocked && matches!(outcome.as_str(), "BLOCKED" | "UNKNOWN") {
                 std::process::exit(1);
             }
@@ -909,10 +906,7 @@ pub fn resolve_target_symbol(workspace_root: &Path, target: &str) -> Result<(Pat
 }
 
 /// Resolver with provenance: reports WHICH stage matched and how confidently.
-pub fn resolve_target_symbol_explained(
-    workspace_root: &Path,
-    target: &str,
-) -> Result<Resolution> {
+pub fn resolve_target_symbol_explained(workspace_root: &Path, target: &str) -> Result<Resolution> {
     if target.contains(':') {
         let parts: Vec<&str> = target.split(':').collect();
         if parts.len() == 2 {
@@ -1160,22 +1154,26 @@ pub fn handle_context(
         OutputFormat::Json => {
             // Resolution provenance is injected additively; existing keys are
             // unchanged so downstream consumers stay compatible.
-            let with_resolution = |slice: &MinimalContextSlice, query: &str| -> Result<serde_json::Value> {
-                let mut v = serde_json::to_value(slice)?;
-                if let (Some(obj), Some(r)) = (v.as_object_mut(), resolutions.get(query)) {
-                    obj.insert(
-                        "resolution".into(),
-                        serde_json::json!({
-                            "query": r.query,
-                            "via": r.via,
-                            "confidence": r.confidence,
-                        }),
-                    );
-                }
-                Ok(v)
-            };
+            let with_resolution =
+                |slice: &MinimalContextSlice, query: &str| -> Result<serde_json::Value> {
+                    let mut v = serde_json::to_value(slice)?;
+                    if let (Some(obj), Some(r)) = (v.as_object_mut(), resolutions.get(query)) {
+                        obj.insert(
+                            "resolution".into(),
+                            serde_json::json!({
+                                "query": r.query,
+                                "via": r.via,
+                                "confidence": r.confidence,
+                            }),
+                        );
+                    }
+                    Ok(v)
+                };
             if slices.len() == 1 {
-                println!("{}", serde_json::to_string_pretty(&with_resolution(&slices[0], target)?)?);
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&with_resolution(&slices[0], target)?)?
+                );
             } else {
                 let vals: Vec<_> = slices
                     .iter()
@@ -1282,7 +1280,12 @@ fn git_staged_files(workspace_root: &Path) -> Result<Vec<String>> {
         .args(["diff", "--cached", "--name-only"])
         .current_dir(workspace_root)
         .output()
-        .map_err(|e| dagr_core::DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
+        .map_err(|e| {
+            dagr_core::DagrError::Io(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                e.to_string(),
+            ))
+        })?;
     Ok(String::from_utf8_lossy(&output.stdout)
         .lines()
         .map(|l| l.trim().to_string())
@@ -1318,7 +1321,10 @@ pub fn handle_guard(
                 })
             );
         } else {
-            eprintln!("🛡️ DAGR Architecture Guard (staged files): {}", staged_files.len());
+            eprintln!(
+                "🛡️ DAGR Architecture Guard (staged files): {}",
+                staged_files.len()
+            );
             for v in &violations {
                 eprintln!("  ❌ {}: {} → {}", v.source_file, v.rule_name, v.message);
             }
@@ -1326,7 +1332,14 @@ pub fn handle_guard(
                 eprintln!("  ✅ All architectural boundary rules passed with zero violations.");
             }
         }
-        return if violations.is_empty() { Ok(()) } else { Err(dagr_core::DagrError::Config(format!("{} architectural violation(s) found in staged files", violations.len()))) };
+        return if violations.is_empty() {
+            Ok(())
+        } else {
+            Err(dagr_core::DagrError::Config(format!(
+                "{} architectural violation(s) found in staged files",
+                violations.len()
+            )))
+        };
     }
 
     if ci {
@@ -1431,7 +1444,6 @@ pub fn handle_guard(
     }
 }
 
-
 pub fn handle_prove(workspace: &Path, test: Option<&str>, format: OutputFormat) -> Result<()> {
     let receipt = governance::ProofReceipt::generate(workspace, test)?;
     match format {
@@ -1470,7 +1482,10 @@ pub fn handle_review_diff(
             if verdict.verdict == governance::VERDICT_UNKNOWN {
                 eprintln!(
                     "❔ UNKNOWN: {}",
-                    verdict.note.as_deref().unwrap_or("diff could not be determined")
+                    verdict
+                        .note
+                        .as_deref()
+                        .unwrap_or("diff could not be determined")
                 );
             }
             for f in &verdict.files {
@@ -1480,7 +1495,11 @@ pub fn handle_review_diff(
                     marker,
                     f.file,
                     f.risk_score,
-                    if f.test_coverage_hint { "[tests ✓]" } else { "" }
+                    if f.test_coverage_hint {
+                        "[tests ✓]"
+                    } else {
+                        ""
+                    }
                 );
                 for r in &f.reasons {
                     eprintln!("      └─ {}", r);
@@ -1499,17 +1518,20 @@ pub fn handle_review_diff(
     Ok(verdict.verdict)
 }
 
-
-pub fn handle_agent_register(id: &str, owner: &str, role: &str, ttl_secs: Option<u64>) -> Result<()> {
+pub fn handle_agent_register(
+    id: &str,
+    owner: &str,
+    role: &str,
+    ttl_secs: Option<u64>,
+) -> Result<()> {
     let ws = std::env::current_dir()?;
     let expires_at_unix = ttl_secs.map(|t| unix_now() + t);
-    dagr_core::AgentRegistry::load(&ws)
-        .register(dagr_core::AgentRecord {
-            id: id.to_string(),
-            owner: owner.to_string(),
-            role: role.to_string(),
-            expires_at_unix,
-        })?;
+    dagr_core::AgentRegistry::load(&ws).register(dagr_core::AgentRecord {
+        id: id.to_string(),
+        owner: owner.to_string(),
+        role: role.to_string(),
+        expires_at_unix,
+    })?;
     println!(
         "✅ registered agent '{}' (owner: {}, role: {}, {})",
         id,
@@ -1575,7 +1597,10 @@ pub fn handle_doctor(workspace: &Path, format: OutputFormat) -> Result<()> {
                     })
                 })
                 .collect();
-            println!("{}", serde_json::json!({ "healthy": !failed, "checks": vals }));
+            println!(
+                "{}",
+                serde_json::json!({ "healthy": !failed, "checks": vals })
+            );
         }
         _ => {
             for c in &checks {
@@ -1588,7 +1613,11 @@ pub fn handle_doctor(workspace: &Path, format: OutputFormat) -> Result<()> {
             }
             println!(
                 "\n{}",
-                if failed { "doctor: FAIL" } else { "doctor: all critical checks passed" }
+                if failed {
+                    "doctor: FAIL"
+                } else {
+                    "doctor: all critical checks passed"
+                }
             );
         }
     }
@@ -1612,7 +1641,11 @@ fn run_doctor_checks(workspace: &Path) -> Result<Vec<DoctorCheck>> {
         ("Rust", Language::Rust),
     ];
     for (label, lang) in probe_langs {
-        let status = if AstParser::new(lang).is_ok() { "OK" } else { "FAIL" };
+        let status = if AstParser::new(lang).is_ok() {
+            "OK"
+        } else {
+            "FAIL"
+        };
         out.push(DoctorCheck {
             component: "grammar",
             status,
@@ -1641,7 +1674,10 @@ fn run_doctor_checks(workspace: &Path) -> Result<Vec<DoctorCheck>> {
     out.push(DoctorCheck {
         component: "sqlite-wal",
         status: if wal_ok { "OK" } else { "FAIL" },
-        detail: format!("journal_mode={}", if wal_ok { "wal" } else { "unavailable" }),
+        detail: format!(
+            "journal_mode={}",
+            if wal_ok { "wal" } else { "unavailable" }
+        ),
     });
 
     let rules = workspace.join(".dagr").join("rules.yaml");
@@ -1660,7 +1696,10 @@ fn run_doctor_checks(workspace: &Path) -> Result<Vec<DoctorCheck>> {
     for (name, p) in [
         ("cursor", format!("{home}/.cursor/mcp.json")),
         ("claude-code", format!("{home}/.claude/mcp.json")),
-        ("claude-desktop", format!("{home}/Library/Application Support/Claude/claude_desktop_config.json")),
+        (
+            "claude-desktop",
+            format!("{home}/Library/Application Support/Claude/claude_desktop_config.json"),
+        ),
         ("opencode", format!("{home}/.opencode/mcp.json")),
     ] {
         if Path::new(&p).exists() {
@@ -1680,7 +1719,6 @@ fn run_doctor_checks(workspace: &Path) -> Result<Vec<DoctorCheck>> {
     Ok(out)
 }
 
-
 pub fn handle_secrets_baseline(workspace: &Path) -> Result<()> {
     let written = governance::write_secrets_baseline(workspace)?;
     if written == 0 {
@@ -1694,7 +1732,6 @@ pub fn handle_secrets_baseline(workspace: &Path) -> Result<()> {
     Ok(())
 }
 
-
 pub fn handle_refs(workspace: &Path, target: &str) -> Result<()> {
     let resolution = resolve_target_symbol_explained(workspace, target)?;
     let source = std::fs::read_to_string(&resolution.path)?;
@@ -1706,12 +1743,9 @@ pub fn handle_refs(workspace: &Path, target: &str) -> Result<()> {
     let language = Language::from_extension(ext);
     let mut parser = AstParser::new(language)?;
     let tree = parser.parse(&source, None)?;
-    let Some(def) = AstExtractor::find_symbol(
-        tree.root_node(),
-        &source,
-        language,
-        &resolution.symbol,
-    ) else {
+    let Some(def) =
+        AstExtractor::find_symbol(tree.root_node(), &source, language, &resolution.symbol)
+    else {
         return Err(DagrError::SymbolNotFound {
             symbol: resolution.symbol.clone(),
             file: resolution.path.display().to_string(),
@@ -1726,8 +1760,7 @@ pub fn handle_refs(workspace: &Path, target: &str) -> Result<()> {
     let mut bridge = crate::lsp::LspBridge::detect(workspace).ok_or_else(|| {
         DagrError::Config("no language server found (need rust-analyzer on PATH)".into())
     })?;
-    let hits =
-        bridge.references(&resolution.path, def.start_line, col, false)?;
+    let hits = bridge.references(&resolution.path, def.start_line, col, false)?;
 
     println!(
         "{} references to {} ({}:{}):",
@@ -1741,7 +1774,6 @@ pub fn handle_refs(workspace: &Path, target: &str) -> Result<()> {
     }
     Ok(())
 }
-
 
 pub fn handle_licenses(workspace: &Path, format: OutputFormat) -> Result<()> {
     let extra = dagr_guard::DEFAULT_RUNTIME_ALLOWLIST_EXTRAS
@@ -1764,7 +1796,10 @@ pub fn handle_licenses(workspace: &Path, format: OutputFormat) -> Result<()> {
             if violations.is_empty() {
                 println!("✅ all resolved dependencies pass the license allowlist");
             } else {
-                println!("{:<22} {:<12} {:<10} {}", "CRATE", "VERSION", "KIND", "DECLARED");
+                println!(
+                    "{:<22} {:<12} {:<10} {}",
+                    "CRATE", "VERSION", "KIND", "DECLARED"
+                );
                 for v in &violations {
                     println!(
                         "{:<22} {:<12} {:<10} {}",
@@ -1784,7 +1819,8 @@ pub fn handle_licenses(workspace: &Path, format: OutputFormat) -> Result<()> {
     Ok(())
 }
 
-pub fn handle_run(command: &str, sandbox: bool, commit_on_success: bool) -> Result<()> {    let current_dir = std::env::current_dir()?;
+pub fn handle_run(command: &str, sandbox: bool, commit_on_success: bool) -> Result<()> {
+    let current_dir = std::env::current_dir()?;
 
     if !sandbox {
         eprintln!("⚡ Executing command directly in workspace: {}", command);

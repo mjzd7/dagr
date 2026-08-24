@@ -184,10 +184,7 @@ impl Drop for LspBridge {
 }
 
 fn which_rust_analyzer() -> Option<String> {
-    let out = Command::new("which")
-        .arg("rust-analyzer")
-        .output()
-        .ok()?;
+    let out = Command::new("which").arg("rust-analyzer").output().ok()?;
     out.status
         .success()
         .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
@@ -218,14 +215,12 @@ fn read_framed(reader: &mut impl BufRead) -> Result<String> {
             content_length = v.trim().parse().ok();
         }
     }
-    let len = content_length.ok_or_else(|| {
-        DagrError::Config("LSP frame missing Content-Length".into())
-    })?;
+    let len = content_length
+        .ok_or_else(|| DagrError::Config("LSP frame missing Content-Length".into()))?;
     let mut buf = vec![0u8; len];
     reader.read_exact(&mut buf)?;
     String::from_utf8(buf).map_err(|e| DagrError::Config(format!("LSP utf8: {e}")))
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -247,19 +242,13 @@ mod tests {
     #[test]
     fn bridge_parses_framed_lsp_responses_from_fake_server() {
         let _guard = ENV_LOCK.lock().unwrap();
-        assert!(
-            fake_server_path().exists(),
-            "fake server fixture missing"
-        );
+        assert!(fake_server_path().exists(), "fake server fixture missing");
         std::env::set_var("DAGR_LSP_BIN", "python3");
-        std::env::set_var(
-            "DAGR_LSP_ARGS",
-            fake_server_path().display().to_string(),
-        );
+        std::env::set_var("DAGR_LSP_ARGS", fake_server_path().display().to_string());
 
         let ws = std::env::temp_dir();
-        let mut bridge = LspBridge::detect(&ws)
-            .expect("bridge must initialize against scripted server");
+        let mut bridge =
+            LspBridge::detect(&ws).expect("bridge must initialize against scripted server");
 
         let hits = bridge
             .references_with_content(Path::new("/fake/def.rs"), "fn gone() {}", 1, 3, false)

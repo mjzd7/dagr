@@ -42,8 +42,8 @@ impl AgentRegistry {
             return Ok(Vec::new());
         }
         let raw = std::fs::read_to_string(&self.path).map_err(DagrError::Io)?;
-        let file: RegistryFile =
-            serde_json::from_str(&raw).map_err(|e| DagrError::Config(format!("agents.json: {e}")))?;
+        let file: RegistryFile = serde_json::from_str(&raw)
+            .map_err(|e| DagrError::Config(format!("agents.json: {e}")))?;
         Ok(file.agents)
     }
 
@@ -92,9 +92,10 @@ impl AgentRegistry {
 
     /// An agent is active when registered and unexpired at `now_unix`.
     pub fn is_active(&self, id: &str, now_unix: u64) -> Result<bool> {
-        Ok(self.read()?.into_iter().any(|a| {
-            a.id == id && a.expires_at_unix.map(|e| e > now_unix).unwrap_or(true)
-        }))
+        Ok(self
+            .read()?
+            .into_iter()
+            .any(|a| a.id == id && a.expires_at_unix.map(|e| e > now_unix).unwrap_or(true)))
     }
 }
 
@@ -123,7 +124,10 @@ mod tests {
         assert_eq!(reg.read().unwrap().len(), 1);
         assert!(reg.is_active("cursor-abc", 1_000_000_000).unwrap());
         assert!(reg.revoke("cursor-abc").unwrap());
-        assert!(!reg.revoke("cursor-abc").unwrap(), "second revoke is a no-op");
+        assert!(
+            !reg.revoke("cursor-abc").unwrap(),
+            "second revoke is a no-op"
+        );
         assert!(!reg.is_active("cursor-abc", 1_000_000_000).unwrap());
         let _ = std::fs::remove_dir_all(&ws);
     }

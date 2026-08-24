@@ -166,12 +166,20 @@ fn find_token_secrets(line: &str) -> Vec<(&'static str, String)> {
 
 fn classify_token(tok: &str) -> Option<&'static str> {
     if let Some(rest) = tok.strip_prefix("AKIA") {
-        if tok.len() == 20 && rest.bytes().all(|b| b.is_ascii_uppercase() || b.is_ascii_digit()) {
+        if tok.len() == 20
+            && rest
+                .bytes()
+                .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
+        {
             return Some("aws_access_key_id");
         }
     }
 
-    if let Some(rest) = tok.strip_prefix("gh").and_then(|r| r.strip_prefix(['p', 'o', 'u', 's', 'r'])).and_then(|r| r.strip_prefix('_')) {
+    if let Some(rest) = tok
+        .strip_prefix("gh")
+        .and_then(|r| r.strip_prefix(['p', 'o', 'u', 's', 'r']))
+        .and_then(|r| r.strip_prefix('_'))
+    {
         if rest.len() >= 36 && rest.bytes().all(|b| b.is_ascii_alphanumeric()) {
             return Some("github_token");
         }
@@ -208,8 +216,7 @@ fn find_bearer(line: &str) -> Option<(&'static str, String)> {
     let run_len = after
         .bytes()
         .take_while(|b| {
-            b.is_ascii_alphanumeric()
-                || matches!(b, b'.' | b'_' | b'~' | b'+' | b'/' | b'-' | b'=')
+            b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'~' | b'+' | b'/' | b'-' | b'=')
         })
         .count();
     if run_len >= 24 {
@@ -304,14 +311,12 @@ mod tests {
     #[test]
     fn placeholders_and_examples_are_skipped() {
         let s = SecretScanner::new();
-        assert!(
-            s.scan_text("# example: AKIAIOSFODNN7EXAMPLEQ placeholder")
-                .is_empty()
-        );
-        assert!(
-            s.scan_text("api_key = YOUR_KEY_HERE_xxxxxxxxxxxxxxxx")
-                .is_empty()
-        );
+        assert!(s
+            .scan_text("# example: AKIAIOSFODNN7EXAMPLEQ placeholder")
+            .is_empty());
+        assert!(s
+            .scan_text("api_key = YOUR_KEY_HERE_xxxxxxxxxxxxxxxx")
+            .is_empty());
     }
 
     #[test]
@@ -401,9 +406,11 @@ impl SuppressionBaseline {
     }
 
     pub fn allows(&self, file: &str, finding: &SecretFinding) -> bool {
-        !self
-            .entries
-            .contains(&(file.to_string(), finding.kind.to_string(), finding.snippet_hash.clone()))
+        !self.entries.contains(&(
+            file.to_string(),
+            finding.kind.to_string(),
+            finding.snippet_hash.clone(),
+        ))
     }
 }
 

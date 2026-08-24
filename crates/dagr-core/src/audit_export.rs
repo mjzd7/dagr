@@ -24,11 +24,7 @@ pub enum AuditFormat {
 
 impl EffectJournal {
     /// Exports every recorded effect to `writer`, returning the row count.
-    pub fn export_audit(
-        &self,
-        fmt: AuditFormat,
-        writer: &mut dyn Write,
-    ) -> Result<usize> {
+    pub fn export_audit(&self, fmt: AuditFormat, writer: &mut dyn Write) -> Result<usize> {
         let records = self.fetch_all()?;
         match fmt {
             AuditFormat::Jsonl => export_jsonl(&records, writer)?,
@@ -182,11 +178,7 @@ fn export_otlp(records: &[crate::journal::EffectRecord], w: &mut dyn Write) -> R
             }],
         }]
     });
-    writeln!(
-        w,
-        "{}",
-        serde_json::to_string(&doc)?
-    )?;
+    writeln!(w, "{}", serde_json::to_string(&doc)?)?;
     Ok(())
 }
 
@@ -235,7 +227,7 @@ fn export_soc2(records: &[crate::journal::EffectRecord], w: &mut dyn Write) -> R
             .concat(),
         )
         .to_hex()[..32]
-        .to_string();
+            .to_string();
 
         let ev = Evidence {
             evidence_type: "agent_action",
@@ -327,10 +319,7 @@ mod tests {
             let v: serde_json::Value = serde_json::from_str(l).unwrap();
             assert_eq!(v["evidence_type"], "agent_action");
             assert_eq!(v["result"], "completed");
-            assert!(v["timestamp_utc_iso"]
-                .as_str()
-                .unwrap()
-                .ends_with('Z'));
+            assert!(v["timestamp_utc_iso"].as_str().unwrap().ends_with('Z'));
             assert_eq!(v["sequence"], serde_json::json!(i));
             assert_eq!(v["prior_entry_hash"], serde_json::json!(prior));
             prior = v["entry_hash"].as_str().unwrap().to_string();
@@ -374,8 +363,12 @@ mod otlp_snapshot_tests {
         assert_eq!(top_keys, vec!["resourceSpans"]);
 
         let span = &v["resourceSpans"][0]["scopeSpans"][0]["spans"][0];
-        let mut span_keys: Vec<&str> =
-            span.as_object().unwrap().keys().map(|s| s.as_str()).collect();
+        let mut span_keys: Vec<&str> = span
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(|s| s.as_str())
+            .collect();
         span_keys.sort_unstable();
         assert_eq!(
             span_keys,
@@ -399,10 +392,17 @@ mod otlp_snapshot_tests {
             .collect();
         assert_eq!(
             attr_keys,
-            vec!["dagr.run.id", "dagr.effect.step", "dagr.effect.input_blake3"]
+            vec![
+                "dagr.run.id",
+                "dagr.effect.step",
+                "dagr.effect.input_blake3"
+            ]
         );
         for a in span["attributes"].as_array().unwrap() {
-            assert!(a["value"]["stringValue"].is_string(), "OTLP values must be wrapped");
+            assert!(
+                a["value"]["stringValue"].is_string(),
+                "OTLP values must be wrapped"
+            );
         }
         assert_eq!(span["status"]["code"], "STATUS_CODE_OK");
     }
