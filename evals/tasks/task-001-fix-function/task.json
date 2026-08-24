@@ -1,0 +1,10 @@
+{
+  "id": "task-001-fix-function",
+  "symbol": "discountedTotal",
+  "files": ["billing.ts"],
+  "target_file": "billing.ts",
+  "test_command": "node hidden-test.mjs",
+  "system_prompt": "You are a precise TypeScript engineer. Output only complete file contents.",
+  "instruction": "Fix the bug in discountedTotal so the percentage discount applies to the entire subtotal, rounded to the nearest cent.",
+  "mock_response": "export function discountedTotal(cents: number[], discountPct: number): number {\n  const subtotal = cents.reduce((a, b) => a + b, 0);\n  return Math.round(subtotal * (1 - discountPct / 100));\n}\n"
+}

@@ -1,0 +1,84 @@
+{
+  "generated_at_unix": 1787583457,
+  "provider": "mock",
+  "byStrategy": {
+    "baseline": {
+      "runs": 3,
+      "passes": 3,
+      "defects": 0
+    },
+    "dagr": {
+      "runs": 3,
+      "passes": 3,
+      "defects": 0
+    }
+  },
+  "results": [
+    {
+      "task": "task-001-fix-function",
+      "strategy": "baseline",
+      "provider": "mock",
+      "pass": true,
+      "defects": 0,
+      "tokens_in_baseline": 233,
+      "tokens_in_dagr": null,
+      "tokens_out": 0,
+      "latency_ms": 0
+    },
+    {
+      "task": "task-001-fix-function",
+      "strategy": "dagr",
+      "provider": "mock",
+      "pass": true,
+      "defects": 0,
+      "tokens_in_baseline": null,
+      "tokens_in_dagr": 391,
+      "tokens_out": 0,
+      "latency_ms": 0
+    },
+    {
+      "task": "task-002-add-validation",
+      "strategy": "baseline",
+      "provider": "mock",
+      "pass": true,
+      "defects": 0,
+      "tokens_in_baseline": 217,
+      "tokens_in_dagr": null,
+      "tokens_out": 0,
+      "latency_ms": 0
+    },
+    {
+      "task": "task-002-add-validation",
+      "strategy": "dagr",
+      "provider": "mock",
+      "pass": true,
+      "defects": 0,
+      "tokens_in_baseline": null,
+      "tokens_in_dagr": 359,
+      "tokens_out": 0,
+      "latency_ms": 0
+    },
+    {
+      "task": "task-003-refactor-import",
+      "strategy": "baseline",
+      "provider": "mock",
+      "pass": true,
+      "defects": 0,
+      "tokens_in_baseline": 224,
+      "tokens_in_dagr": null,
+      "tokens_out": 0,
+      "latency_ms": 0
+    },
+    {
+      "task": "task-003-refactor-import",
+      "strategy": "dagr",
+      "provider": "mock",
+      "pass": true,
+      "defects": 0,
+      "tokens_in_baseline": null,
+      "tokens_in_dagr": 336,
+      "tokens_out": 0,
+      "latency_ms": 0
+    }
+  ]
+}

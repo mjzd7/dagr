@@ -25,53 +25,38 @@
 
 ## 📌 Executive Summary (Crisp Overview)
 
-* **What it is:** A single, ultra-fast native Rust binary (`dagr`) acting as a local-first safety hypervisor and multi-agent coordination bus between AI coding agents and your codebase.
-* **The Core Problems it Solves:** 
-  * ❌ **Context Explosion (95% Token Bloat):** Passing entire 1,000+ line files or noisy vector dumps to LLMs inflates API costs and triggers "lost-in-the-middle" hallucinations.
-  * ❌ **Unbounded Blast Radius:** Autonomous agents generating duplicate utilities, violating clean layer boundaries (e.g. UI importing DB clients), and writing half-broken diffs to disk.
-  * ❌ **Multi-Agent Collisions:** Multiple autonomous agents clashing and overwriting each other's changes without synchronized state locking.
-* **The Solution:** 
-  * ✂️ **Symbolic AST Slicing:** Extracts only the exact ~35 lines of target code + upstream type contracts, reducing token payloads by **>= 90%**.
-  * 🛡️ **Copy-on-Write (CoW) Sandboxing:** Executes all agent writes and tests inside an OS-native shadow snapshot (`clonefile(2)` on macOS, `reflink` on Linux) with instant **<10ms atomic rollback** on failure.
-  * 🤝 **Dual Protocol (MCP + A2A):** Host-to-tool JSON-RPC 2.0 integration for IDEs (Cursor, Claude Desktop) and peer-to-peer Agent-to-Agent (A2A) state arbitration for multi-agent swarms.
-  * ⚡ **Zero Cloud Dependencies:** 100% standalone native binary with embedded SQLite and Blake3 caching. No Docker or external daemon required.
+* **What it is:** A single native Rust binary (`dagr`) that acts as a **governance layer between AI coding agents and your codebase** — every change an agent makes gets checked against your architecture rules, executed in an isolated sandbox, and summarized in a signed audit receipt.
+* **The guarantees it enforces today:**
+  * 🛡️ **Architecture policy:** agents cannot import across layer boundaries you define (`.dagr/rules.yaml`, enforced in <1ms).
+  * 🔒 **Safe execution:** agent writes and test runs happen in a Copy-on-Write shadow workspace; failures roll back atomically, leaving zero dirty bytes.
+  * 🧾 **Provable audits:** `dagr prove` emits a deterministic, Blake3-hashed receipt of what was checked and what passed; `dagr review-diff` gates merges with PASS/BLOCKED verdicts including dangling-import detection after deletions.
+  * ✂️ **Precise context:** symbol-level AST slicing injects only relevant code into agent prompts (input-token reductions are measured per-repo in [`docs/findings/`](docs/findings/) — see [Honest Limits](docs/HONEST-LIMITS.md) before generalizing).
+* **Distribution:** MCP server for Cursor/Claude Code/etc., one-line installers, and a GitHub Action that publishes review-diff verdicts as PR checks.
 
----
+## 💡 Why Developers Need DAGR
 
-## 💡 Why Developers Need DAGR (In Simple Terms)
+AI coding agents fail in three specific ways that humans then pay for:
 
-### 😫 The 3 Real-World Frustrations Developers Face Today:
+1. **Architectural drift.** Agents take shortcuts — importing database clients from UI components, duplicating utilities, reaching into internals. Code review catches some of it; `dagr guard` catches all of it, deterministically, in under a millisecond.
+2. **Unbounded blast radius.** An autonomous agent edits six files directly on disk; tests fail; you untangle the mess by hand. With DAGR every mutation happens in a Copy-on-Write shadow workspace — failed runs roll back atomically.
+3. **Unprovable changes.** "The agent said it was done" is not an audit trail. `dagr prove` produces a hashed receipt of checks run and results, and `dagr review-diff` blocks merges when a diff breaks imports of deleted symbols, violates boundaries, or introduces secrets.
 
-1. **The "Confused & Expensive AI" Problem (Token Bloat):**
-   * *What happens:* You ask Cursor or Claude to fix a function in `checkout.ts`. Your IDE dumps the **entire 1,500-line monolithic file** into the prompt (15,000 tokens).
-   * *The Pain:* The AI gets overwhelmed by noise ("Lost in the Middle"), hallucinates buggy logic, takes 15 seconds to reply, and burns through your daily API token limits ($10–$30/day).
+> ⚠️ Read [docs/HONEST-LIMITS.md](docs/HONEST-LIMITS.md) first: exact-string search still beats AST slicing for literal lookups, compression numbers vary by file shape, and risk scores are heuristics.
 
-2. **The "AI Broke My Codebase" Problem (Unsafe Mutations):**
-   * *What happens:* You let an autonomous agent build a feature. It modifies 6 files directly on your disk. When the tests run, they fail.
-   * *The Pain:* Your git working tree is now dirty with broken changes. You waste 15 minutes manually untangling diffs or running `git reset --hard`.
+### Measured outcomes, not promises
 
-3. **The "Spaghetti Architecture" Problem (AI Layer Drift):**
-   * *What happens:* AI agents take lazy shortcuts—importing database queries or secret keys directly inside a frontend React button component.
-   * *The Pain:* Your clean codebase turns into unmaintainable spaghetti code behind your back.
+DAGR's value claim is **outcome quality**, not token accounting. The
+[`evals/`](evals/) harness scores task pass-rates and defect counts for
+agents working with whole-file context vs. DAGR-sliced context:
 
 ```
-           WITHOUT DAGR                                        WITH DAGR
-┌──────────────────────────────────────┐        ┌──────────────────────────────────────┐
-│ • Dumps entire 1,500-line file       │        │ • Surgically slices only ~35 lines   │
-│ • 15,000 tokens ($0.05 / prompt)     │  ───►  │ • 350 tokens (97% cheaper & faster)  │
-│ • AI gets confused & hallucinates    │        │ • Laser-focused, bug-free answers    │
-│ • Directly mutates & pollutes disk   │        │ • Shadow sandbox with 10ms rollback  │
-│ • Creates messy architectural drift  │        │ • Auto-rejects bad imports in <1ms   │
-└──────────────────────────────────────┘        └──────────────────────────────────────┘
+node evals/run.mjs --provider mock      # deterministic mechanics check
+ANTHROPIC_API_KEY=sk-... node evals/run.mjs --provider anthropic   # real runs
 ```
 
-### 🎯 The 3 Tangible Benefits You Get:
-
-* ✂️ **Saves 95% on AI Bills & Unlocks Local Models:** Prompts respond **3x faster**, token bills drop by **95%**, and smaller/cheaper models (like local **Ollama**, **Llama 3**, and **Qwen 2.5**) write high-precision code without running out of memory.
-* 🛡️ **Zero-Fear Autonomous Coding (The Instant "Undo Button"):** All AI mutations run in an invisible Copy-on-Write shadow sandbox. If tests fail, DAGR wipes the mistake in **10 milliseconds**—your real files stay 100% clean.
-* 📏 **Automatic Architecture Guardrails:** If an AI tries to make a bad architectural decision (like importing the DB into the UI), DAGR intercepts it in **<0.1ms** and guides the AI to fix its own mistake!
-
----
+Results land in `evals/results/latest.json`. Input-metric studies (token
+compression per repository) remain in [`docs/findings/`](docs/findings/)
+clearly labeled as *input* measurements.
 
 ## 🤝 Dual Protocol Gateway: MCP + A2A
 
@@ -335,17 +320,22 @@ $$\text{Token Savings \%} = \left( 1 - \frac{\text{Tokens}_{\text{sliced}}}{\tex
 | **CoW Snapshot Creation** | `< 2.0ms` | `< 0.8ms` | macOS APFS `clonefile(2)` / `reflink` |
 | **Shadow Sandbox Rollback** | `< 10ms` | `< 10ms` | Atomic Directory Purge |
 
-### 3. Developer FinOps Cost Savings Matrix (Claude 3.5 Sonnet / GPT-4o)
+### 3. Outcome Metrics (what we actually claim)
 
-> ✅ **Field-verified** on vercel/next.js (99.7% on 2564-line file), vitejs/vite, denoland/deno, rust-analyzer, and tokio-rs/tokio. See `docs/findings/` for per-repo data.
-| File Size (Lines) | Baseline Tokens (Raw File) | DAGR Sliced Tokens | Token Reduction | Savings per 1,000 Prompts (Claude 3.5 @ $3.00/M) |
-| :---: | :---: | :---: | :---: | :---: |
-| **300 lines** | ~3,200 tokens | ~180 tokens | **94.4%** | **$9.06 saved** |
-| **800 lines** | ~8,400 tokens | ~320 tokens | **96.2%** | **$24.24 saved** |
-| **1,500 lines** | ~16,200 tokens | ~450 tokens | **97.2%** | **$47.25 saved** |
+DAGR claims **governance outcomes**, not token savings:
 
----
+| Claim | Artifact |
+|---|---|
+| Architecture rules are enforced deterministically | `dagr guard` + tests in `crates/dagr-guard/` |
+| Agent changes roll back atomically on failure | CoW sandbox contract tests, `crates/dagr-sandbox/` |
+| Proof receipts are deterministic & tamper-evident | Blake3 digest test, `crates/dagr-cli/src/governance.rs` |
+| Broken imports of deleted symbols block merges | e2e git fixtures, `review-diff` verdict tests |
+| Task pass-rate with DAGR context vs whole-file context | [`evals/`](evals/) pilot harness — run it yourself; live results pending publication |
 
+Token-compression studies (input metrics, per-repo) remain in
+[`docs/findings/`](docs/findings/). They describe prompt-size reduction only —
+**not** dollar savings, which depend on provider pricing, caching, and your
+host's own retrieval. See [Honest Limits](docs/HONEST-LIMITS.md).
 ## 🚀 Installation & Skills Guide (30-Second Setup)
 
 You can install DAGR as a unified local CLI/MCP server, or install its portable **Agent Skills** individually into your AI assistants.
@@ -400,6 +390,24 @@ brew install mjzd7/dagr/dagr
 
 dagr mcp install --client all
 dagr skills install --target all
+```
+
+### Governance in 60 seconds
+
+```bash
+dagr init                                   # write .dagr/rules.yaml boundaries
+dagr guard --staged                         # enforce them on your staged diff
+dagr prove --test "cargo test"             # signed audit receipt for this workspace
+dagr review-diff origin/main HEAD           # merge gate: PASS / BLOCKED
+```
+
+Wire `review-diff` into CI with the bundled GitHub Action — it posts the verdict as a PR check and fails on BLOCKED:
+
+```yaml
+- uses: mjzd7/dagr@main
+  with:
+    base-ref: origin/main
+    fail-on-blocked: true
 ```
 
 </details>

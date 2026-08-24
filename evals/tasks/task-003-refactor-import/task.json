@@ -1,0 +1,10 @@
+{
+  "id": "task-003-refactor-import",
+  "symbol": "cartTotal",
+  "files": ["cart.ts", "lib/tax.ts"],
+  "target_file": "cart.ts",
+  "test_command": "node hidden-test.mjs",
+  "system_prompt": "You are a precise TypeScript engineer. Output only complete file contents.",
+  "instruction": "Keep cartTotal working but inline the 20% tax calculation directly instead of importing from ./lib/tax.",
+  "mock_response": "export function cartTotal(items: number[]): number {\n  const sub = items.reduce((a, b) => a + b, 0);\n  return sub + Math.round(sub * 0.2);\n}\n"
+}

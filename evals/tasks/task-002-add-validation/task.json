@@ -1,0 +1,10 @@
+{
+  "id": "task-002-add-validation",
+  "symbol": "createUser",
+  "files": ["user.ts"],
+  "target_file": "user.ts",
+  "test_command": "node hidden-test.mjs",
+  "system_prompt": "You are a precise TypeScript engineer. Output only complete file contents.",
+  "instruction": "Harden createUser: throw Error when email is empty or lacks '@', or when age is negative.",
+  "mock_response": "export interface NewUser { email: string; age: number }\n\nexport function createUser(input: NewUser): NewUser {\n  if (!input.email || !input.email.includes(\"@\")) throw new Error(\"invalid email\");\n  if (input.age < 0) throw new Error(\"invalid age\");\n  return { ...input };\n}\n"
+}

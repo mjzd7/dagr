@@ -26,11 +26,11 @@
 ## Wave C — Trust & Evidence
 | Task | Status | Evidence |
 |---|---|---|
-| C1 Pilot eval harness (zero-dep Node) | ⏳ | |
-| C2 Audit export (JSONL/OTLP/SOC2) | ⏳ | |
-| C3 Explainability v1 on resolver | ⏳ | |
-| C4 HONEST-LIMITS.md | ⏳ | |
-| C5 README rewrite | ⏳ | |
+| C1 Pilot eval harness (zero-dep Node) | ✅ | evals/{run.mjs,lib/,tasks/×3}; mock 3/3 pass defects=0 both strategies; results/latest.json; slice-injection path exercises real `dagr context` |
+| C2 Audit export (JSONL/OTLP/SOC2) | ✅ | dagr-core/src/audit_export.rs: 4 tests incl. OTLP conformance (traceId=32hex) + hash-chain verification |
+| C3 Explainability v1 on resolver | ✅ | Resolution{via,confidence}; stderr provenance line + additive `resolution` key in context JSON; smoke-tested |
+| C4 HONEST-LIMITS.md | ✅ | docs/HONEST-LIMITS.md covers slicing/reverse-index/scanning/audit/experimental limits; linked from README header + Why section |
+| C5 README rewrite | ✅ | governance-led exec summary; strawman panel + \$-savings claims removed; FinOps matrix → outcome-metrics table citing artifacts; governance quickstart + Action snippet |
 | Wave C gates + commit | ⏳ | |
 
 ## Wave D — Completeness

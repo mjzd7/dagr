@@ -25,7 +25,7 @@ pub struct EffectRecord {
 
 /// Persistent Journal of non-deterministic side-effects
 pub struct EffectJournal {
-    conn: Mutex<Connection>,
+    pub(crate) conn: Mutex<Connection>,
 }
 
 impl EffectJournal {

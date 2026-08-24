@@ -740,7 +740,27 @@ pub fn handle_stats_summary(workspace_root: &Path) -> Result<()> {
 }
 
 /// Resolves symbol and file target using direct syntax (file:symbol), SQLite index, or workspace AST match
+#[derive(Debug, Clone)]
+pub struct Resolution {
+    pub query: String,
+    pub path: PathBuf,
+    pub symbol: String,
+    /// Which resolver stage produced this match.
+    pub via: &'static str,
+    /// 0-100 heuristic confidence.
+    pub confidence: u8,
+}
+
 pub fn resolve_target_symbol(workspace_root: &Path, target: &str) -> Result<(PathBuf, String)> {
+    let r = resolve_target_symbol_explained(workspace_root, target)?;
+    Ok((r.path, r.symbol))
+}
+
+/// Resolver with provenance: reports WHICH stage matched and how confidently.
+pub fn resolve_target_symbol_explained(
+    workspace_root: &Path,
+    target: &str,
+) -> Result<Resolution> {
     if target.contains(':') {
         let parts: Vec<&str> = target.split(':').collect();
         if parts.len() == 2 {
@@ -752,7 +772,13 @@ pub fn resolve_target_symbol(workspace_root: &Path, target: &str) -> Result<(Pat
                 workspace_root.join(&file_path)
             };
             if candidate_path.exists() {
-                return Ok((candidate_path, symbol_name));
+                return Ok(Resolution {
+                    query: target.to_string(),
+                    path: candidate_path,
+                    symbol: symbol_name,
+                    via: "explicit-file-symbol",
+                    confidence: 100,
+                });
             }
         }
     }
@@ -770,7 +796,13 @@ pub fn resolve_target_symbol(workspace_root: &Path, target: &str) -> Result<(Pat
                         workspace_root.join(&path)
                     };
                     if candidate_path.exists() {
-                        return Ok((candidate_path, first.symbol_name));
+                        return Ok(Resolution {
+                            query: target.to_string(),
+                            path: candidate_path,
+                            symbol: first.symbol_name,
+                            via: "sqlite-index",
+                            confidence: 95,
+                        });
                     }
                 }
             }
@@ -829,8 +861,20 @@ pub fn resolve_target_symbol(workspace_root: &Path, target: &str) -> Result<(Pat
 
     candidates.sort_by_key(|b| std::cmp::Reverse(b.2));
 
-    if let Some((path, sym, _)) = candidates.into_iter().next() {
-        Ok((path, sym))
+    if let Some((path, sym, score)) = candidates.into_iter().next() {
+        let via = match score {
+            100 => "ast-name-exact",
+            80 => "ast-name-substring",
+            60 => "ast-query-contains-symbol",
+            _ => "path-relevance",
+        };
+        Ok(Resolution {
+            query: target.to_string(),
+            path,
+            symbol: sym,
+            via,
+            confidence: score.min(100) as u8,
+        })
     } else {
         Err(DagrError::InvalidInput(format!(
             "Could not resolve symbol from query '{}'. Please specify 'path/to/file.ext:symbolName' or run 'dagr init'.",
@@ -870,6 +914,8 @@ pub fn handle_context(
     }
 
     let mut slices = Vec::new();
+    let mut resolutions: std::collections::HashMap<String, Resolution> =
+        std::collections::HashMap::new();
     let slicer = SymbolicSlicer::new(SlicerConfig {
         max_depth_hops: depth.unwrap_or(3),
         max_token_budget: 1500,
@@ -895,7 +941,22 @@ pub fn handle_context(
             }
         }
 
-        let (file_path, symbol_name) = resolve_target_symbol(&current_dir, t)?;
+        let resolution = resolve_target_symbol_explained(&current_dir, t)?;
+        eprintln!(
+            "🔎 resolved '{}' via {} (confidence {}%)",
+            resolution.query, resolution.via, resolution.confidence
+        );
+        let (file_path, symbol_name) = (resolution.path.clone(), resolution.symbol.clone());
+        resolutions.insert(
+            t.to_string(),
+            Resolution {
+                query: t.to_string(),
+                path: resolution.path,
+                symbol: resolution.symbol,
+                via: resolution.via,
+                confidence: resolution.confidence,
+            },
+        );
         let source_code = std::fs::read_to_string(&file_path)?;
         let ext = file_path.extension().and_then(|s| s.to_str()).unwrap_or("");
         let language = Language::from_extension(ext);
@@ -945,10 +1006,30 @@ pub fn handle_context(
 
     match format {
         OutputFormat::Json => {
+            // Resolution provenance is injected additively; existing keys are
+            // unchanged so downstream consumers stay compatible.
+            let with_resolution = |slice: &MinimalContextSlice, query: &str| -> Result<serde_json::Value> {
+                let mut v = serde_json::to_value(slice)?;
+                if let (Some(obj), Some(r)) = (v.as_object_mut(), resolutions.get(query)) {
+                    obj.insert(
+                        "resolution".into(),
+                        serde_json::json!({
+                            "query": r.query,
+                            "via": r.via,
+                            "confidence": r.confidence,
+                        }),
+                    );
+                }
+                Ok(v)
+            };
             if slices.len() == 1 {
-                println!("{}", serde_json::to_string_pretty(&slices[0])?);
+                println!("{}", serde_json::to_string_pretty(&with_resolution(&slices[0], target)?)?);
             } else {
-                println!("{}", serde_json::to_string_pretty(&slices)?);
+                let vals: Vec<_> = slices
+                    .iter()
+                    .map(|s| with_resolution(s, &s.target_symbol))
+                    .collect::<Result<Vec<_>>>()?;
+                println!("{}", serde_json::to_string_pretty(&vals)?);
             }
         }
         OutputFormat::Plain => {
