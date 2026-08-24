@@ -314,11 +314,14 @@ impl ArchitectureGuard {
         } else if current.is_file() {
             let ext = current.extension().and_then(|s| s.to_str()).unwrap_or("");
             if ["ts", "tsx", "js", "jsx", "py", "rs", "go"].contains(&ext) {
+                // Forward slashes on every platform: rules.yaml globs and
+                // violation reports are written/parsed with `/`.
                 let rel_path = current
                     .strip_prefix(root)
                     .unwrap_or(current)
                     .display()
-                    .to_string();
+                    .to_string()
+                    .replace('\\', "/");
                 if let Ok(content) = std::fs::read_to_string(current) {
                     for line in content.lines() {
                         let trimmed = line.trim();
