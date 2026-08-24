@@ -170,3 +170,14 @@ Script: `scripts/tests/concurrency_pair_test.sh`
 | P3 slice during guard | PASS — no interference (initial FAIL was probe-design bug: file had no exported symbol) |
 
 Score: PASS=3 FAIL=0 (after probe fix). WAL mode handles concurrent readers; single-writer contention not observed at this scale.
+
+---
+
+## APPENDIX: T-E12 Memory Measurement Results (2026-08-24)
+
+| Repo | Disk | Peak RSS | Ratio |
+|---|---|---|---|
+| microsoft/vscode (largest) | 344MB | **33.8MB** | ~10% of disk size |
+
+Barrel cache, alias map, and all F2.x/F3.2 infrastructure fit comfortably.
+Ponytail measure-first policy confirms: no memory caps needed at current scale.

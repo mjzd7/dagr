@@ -668,6 +668,38 @@ All modules are clippy-clean, tested, and wired into the active execution path.
 
 ---
 
+## 📋 What's New in v0.1.1
+
+### Architecture Guard Intelligence
+- **Strict rules schema** — unknown keys rejected at parse time (fail-closed, no silent zero-rule pass)
+- **Dead-glob rejection** — uncompilable patterns caught at load with rule name in error
+- **Segment-aware matching** — `src/db/**` no longer false-positives on `src/db-migration/x`
+- **Relative import resolution** — `../db/client` resolves to canonical workspace paths before matching
+- **Alias resolution** — `@/lib/x` resolves through tsconfig/jsconfig `paths`
+- **Barrel re-export following** — violations attributed through index.ts barrels (one hop)
+- **Multi-dialect extraction** — Rust `use`, Go block imports, `require()`, dynamic `import()`, side-effect imports, comment-trap rejection
+
+### Cross-File Contract Hoisting
+- **One-hop + multi-hop traversal** — type contracts hoisted from imported files recursively up to `max_depth_hops`
+- **Alias-aware** — tsconfig path mappings participate in cross-file resolution
+- **`--depth` truthful** — CLI help and MCP schema describe real behavior
+
+### MCP Hardening
+- Strict argument validation on all 7 tools (no silent defaults)
+- Unknown tool → JSON-RPC `-32602`; argument errors → precise `isError` messages
+- Provenance fields (`workspace`, `rules_source`, `active_rules`) in guard responses
+- Circuit breaker + rate limiter wired into dispatch path
+
+### Infrastructure
+- `dagr schema rules` JSON-Schema emitter for editor autocomplete
+- SIGPIPE exit-code hygiene (`head`-piped commands exit cleanly)
+- Workspace pinning via `--workspace` flag or `$DAGR_WORKSPACE` env var
+- Telemetry legacy-DB migration (stats works on pre-cloud-sync databases)
+- OpenCode MCP installer with native schema support
+- Ponytail governance gate + CI quality workflow
+
+---
+
 ## 📜 License
 
 Distributed under the **Business Source License 1.1 (BSL 1.1)**. 
