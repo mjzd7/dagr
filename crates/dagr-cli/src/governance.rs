@@ -250,6 +250,16 @@ pub const VERDICT_BLOCKED: &str = "BLOCKED";
 /// Git diff could not be determined (shallow clone, missing ref). Fail-closed.
 pub const VERDICT_UNKNOWN: &str = "UNKNOWN";
 
+/// A symbol defined in a file deleted by this diff that language-server
+/// analysis still finds referenced in surviving code.
+#[derive(Debug, Clone)]
+pub struct DeletedSymbolRef {
+    pub deleted_file: String,
+    pub symbol: String,
+    /// Live reference sites outside the deleted file.
+    pub refs: Vec<crate::lsp::RefHit>,
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct ReviewVerdict {
     pub schema_version: u8,
@@ -262,6 +272,7 @@ pub struct ReviewVerdict {
     pub guard_violation_count: usize,
     pub secret_count: usize,
     pub dangling_imports: Vec<DanglingImport>,
+    pub deleted_symbol_refs: Vec<DeletedSymbolRef>,
     pub files: Vec<FileRisk>,
 }
 
@@ -272,10 +283,26 @@ pub enum FailOn {
 }
 
 impl ReviewVerdict {
-    pub fn generate(
+    pub fn generate(workspace_root: &Path, base: &str, head: &str) -> Result<Self> {
+        Self::generate_inner(workspace_root, base, head, false)
+    }
+
+    /// Same as [`generate`] with language-server enrichment for deleted
+    /// Rust files (precise reference finding where identifier matching
+    /// approximates). Degrades to plain behavior when no server is found.
+    pub fn generate_with_lsp(
         workspace_root: &Path,
         base: &str,
         head: &str,
+    ) -> Result<Self> {
+        Self::generate_inner(workspace_root, base, head, true)
+    }
+
+    fn generate_inner(
+        workspace_root: &Path,
+        base: &str,
+        head: &str,
+        use_lsp: bool,
     ) -> Result<Self> {
         let guard = ArchitectureGuard::load(workspace_root)?;
         let changed = match git_changed_files(workspace_root, base, head) {
@@ -344,7 +371,9 @@ impl ReviewVerdict {
 
         let index = ReverseIndex::build(workspace_root)?;
         let scope = DiffScope::load(workspace_root, base, head)?;
-        let dangling = detect_dangling_imports(&index, workspace_root, &scope);
+        let alias_map = dagr_guard::AliasMap::load(workspace_root);
+        let dangling =
+            detect_dangling_imports(&index, workspace_root, &scope, &alias_map);
 
         let w_dangling = weight("DANGLING_IMPORT", W_DANGLING_IMPORT);
         let w_guard = weight("GUARD_VIOLATION", W_GUARD_VIOLATION);
@@ -381,7 +410,62 @@ impl ReviewVerdict {
         }
         files.sort_by(|a, b| b.risk_score.cmp(&a.risk_score));
 
-        let blocked = secret_count > 0 || guard_violation_count > 0 || !dangling.is_empty();
+        let mut deleted_symbol_refs = Vec::new();
+        if use_lsp {
+            let mut bridge = crate::lsp::LspBridge::detect(workspace_root);
+            if let Some(b) = bridge.as_mut() {
+                let deleted_rs: Vec<&String> =
+                    scope.deleted.iter().filter(|d| d.ends_with(".rs")).collect();
+                for d in deleted_rs {
+                    let Ok(old) = git_show(workspace_root, &format!("{base}:{d}")) else {
+                        continue;
+                    };
+                    let lang = dagr_core::Language::Rust;
+                    let Ok(mut parser) = dagr_slicer::AstParser::new(lang) else {
+                        continue;
+                    };
+                    let Ok(tree) = parser.parse(&old, None) else {
+                        continue;
+                    };
+                    for sym in dagr_slicer::AstExtractor::extract_all_symbols(
+                        tree.root_node(),
+                        &old,
+                        lang,
+                    ) {
+                        let col = old
+                            .lines()
+                            .nth(sym.start_line - 1)
+                            .and_then(|l| l.find(&sym.name))
+                            .unwrap_or(0);
+                        let virtual_path = workspace_root.join(d);
+                        if let Ok(refs) = b.references_with_content(
+                            &virtual_path,
+                            &old,
+                            sym.start_line,
+                            col,
+                            false,
+                        ) {
+                            let live: Vec<_> = refs
+                                .into_iter()
+                                .filter(|r| !r.file.ends_with(d))
+                                .collect();
+                            if !live.is_empty() {
+                                deleted_symbol_refs.push(DeletedSymbolRef {
+                                    deleted_file: (*d).clone(),
+                                    symbol: sym.name.clone(),
+                                    refs: live,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        let blocked = secret_count > 0
+            || guard_violation_count > 0
+            || !dangling.is_empty()
+            || !deleted_symbol_refs.is_empty();
         Ok(ReviewVerdict {
             schema_version: VERDICT_SCHEMA_VERSION,
             verdict: if blocked {
@@ -396,6 +480,7 @@ impl ReviewVerdict {
             guard_violation_count,
             secret_count,
             dangling_imports: dangling,
+            deleted_symbol_refs,
             files,
         })
     }
@@ -415,6 +500,13 @@ impl ReviewVerdict {
                 "import_line": d.import_line,
                 "module": d.module,
                 "missing_binding": d.missing_binding,
+            })).collect::<Vec<_>>(),
+            "deleted_symbol_refs": self.deleted_symbol_refs.iter().map(|d| serde_json::json!({
+                "deleted_file": d.deleted_file,
+                "symbol": d.symbol,
+                "refs": d.refs.iter().map(|r| serde_json::json!({
+                    "file": r.file, "line": r.line
+                })).collect::<Vec<_>>(),
             })).collect::<Vec<_>>(),
             "files": self.files.iter().map(|f| serde_json::json!({
                 "file": f.file,
@@ -437,6 +529,21 @@ impl ReviewVerdict {
         );
         if let Some(note) = &self.note {
             md.push_str(&format!("> ⚠️ {note}\n\n"));
+        }
+        if !self.deleted_symbol_refs.is_empty() {
+            md.push_str("### Deleted symbols still referenced (LSP-verified)\n");
+            for d in &self.deleted_symbol_refs {
+                let sites: Vec<String> =
+                    d.refs.iter().map(|r| format!("{}:{}", r.file, r.line)).collect();
+                md.push_str(&format!(
+                    "- `{}` in `{}` — {} live ref(s): {}\n",
+                    d.symbol,
+                    d.deleted_file,
+                    d.refs.len(),
+                    sites.join(", ")
+                ));
+            }
+            md.push('\n');
         }
         if !self.dangling_imports.is_empty() {
             md.push_str("### Dangling imports\n");
@@ -489,62 +596,126 @@ impl DiffScope {
     fn touches(&self, imp_file: &str) -> bool {
         self.changed.contains(imp_file) || self.deleted.contains(imp_file)
     }
-
-    fn deletes_module(&self, importer_dir: &Path, spec: &str) -> bool {
-        use std::path::Component;
-        let joined: PathBuf = importer_dir
-            .join(spec)
-            .components()
-            .filter(|c| !matches!(c, Component::CurDir))
-            .collect();
-        const CANDIDATES: [&str; 4] = [".ts", ".tsx", "/index.ts", "/index.tsx"];
-        CANDIDATES.iter().any(|c| {
-            self.deleted.contains(&format!("{}{}", joined.display(), c))
-        })
-    }
 }
 
-/// Detects imports whose target module file no longer exists, plus TS named
-/// bindings that no longer resolve anywhere in the index. Scoped to the diff:
-/// only imports whose importer changed or whose target was deleted are
-/// verdict-relevant — pre-existing breakage elsewhere is not this PR's fault.
+/// Workspace-relative base paths a specifier can refer to (no extension).
+/// Relative specs resolve against the importer's directory; aliased specs
+/// go through tsconfig/jsconfig `paths`.
+fn base_candidates(
+    alias_map: &dagr_guard::AliasMap,
+    importer_dir: &Path,
+    spec: &str,
+) -> Vec<PathBuf> {
+    use std::path::Component;
+    let norm = |p: PathBuf| -> PathBuf { p.components().filter(|c| !matches!(c, Component::CurDir)).collect() };
+    if spec.starts_with('.') {
+        return vec![norm(importer_dir.join(spec))];
+    }
+    // AliasMap targets are workspace-relative by contract — do NOT anchor
+    // them at `ws` or they stop matching the relative paths git reports.
+    alias_map.candidates(spec).into_iter().map(|c| norm(PathBuf::from(c))).collect()
+}
+
+/// A binding counts as defined if it lives in the target file OR in a file
+/// the target (transitively) re-exports — barrel `index.ts` chains.
+fn binding_defined_via_barrels(
+    index: &ReverseIndex,
+    ws: &Path,
+    binding: &str,
+    target_rel: &str,
+) -> bool {
+    let mut stack = vec![target_rel.to_string()];
+    let mut seen = std::collections::HashSet::new();
+    let mut depth = 0;
+    while let Some(file) = stack.pop() {
+        if !seen.insert(file.clone()) || depth > 8 {
+            continue;
+        }
+        depth += 1;
+        if index
+            .definitions_of(binding)
+            .iter()
+            .any(|d| d.file == file)
+        {
+            return true;
+        }
+        for imp in index.all_imports() {
+            if imp.file == file && imp.module.starts_with('.') {
+                let dir = PathBuf::from(&imp.file)
+                    .parent()
+                    .map(|p| p.to_path_buf())
+                    .unwrap_or_default();
+                if let ModuleResolution::Found(next) =
+                    resolve_ts_module_raw(ws, &dir, &imp.module)
+                {
+                    stack.push(next);
+                }
+            }
+        }
+    }
+    false
+}
+
+/// Detects imports whose target module no longer exists plus named bindings
+/// that no longer resolve (through barrel chains). Scoped to the diff: only
+/// imports whose importer changed or whose target was deleted count.
 fn detect_dangling_imports(
     index: &ReverseIndex,
     ws: &Path,
     scope: &DiffScope,
+    alias_map: &dagr_guard::AliasMap,
 ) -> Vec<DanglingImport> {
+    const EXT_CANDIDATES: [&str; 4] = [".ts", ".tsx", "/index.ts", "/index.tsx"];
     let mut out = Vec::new();
+
     for imp in index_imports(index) {
-        if imp.module.starts_with('@') || !imp.module.starts_with('.') {
-            continue;
-        }
-        let importer_dir = PathBuf::from(&imp.file)
-            .parent()
-            .map(|p| p.to_path_buf())
-            .unwrap_or_default();
-
-        // Cheap scope pre-check on the raw spec before resolution.
-        let possibly_relevant =
-            scope.touches(&imp.file) || scope.deletes_module(&importer_dir, &imp.module);
-        if !possibly_relevant {
-            continue;
+        let bases = base_candidates(alias_map, &importer_dir_of(&imp.file), &imp.module);
+        if bases.is_empty() {
+            continue; // bare package specifiers are out of scope by design
         }
 
-        let resolved = resolve_ts_module(ws, &importer_dir, &imp.module);
-        match resolved {
-            ModuleResolution::Missing => out.push(DanglingImport {
-                importer_file: imp.file.clone(),
-                import_line: imp.line,
-                module: imp.module.clone(),
-                missing_binding: None,
-            }),
-            ModuleResolution::Found(target_rel) => {
+        let relevant = scope.touches(&imp.file)
+            || (!scope.deleted.is_empty() && {
+                let del = &scope.deleted;
+                EXT_CANDIDATES.iter().any(|c| {
+                    bases.iter().any(|b| del.contains(&format!("{}{}", b.display(), c)))
+                })
+            });
+        if !relevant {
+            continue;
+        }
+
+        let mut found_target: Option<String> = None;
+        for b in &bases {
+            if let Some(hit) = EXT_CANDIDATES.iter().find_map(|c| {
+                let cand = PathBuf::from(format!("{}{}", b.display(), c));
+                ws.join(&cand).is_file().then(|| cand.display().to_string())
+            }) {
+                found_target = Some(hit);
+                break;
+            }
+        }
+
+        match found_target {
+            None => {
+                if scope.touches(&imp.file)
+                    || EXT_CANDIDATES.iter().any(|c| {
+                        bases.iter().any(|b| {
+                            scope.deleted.contains(&format!("{}{}", b.display(), c))
+                        })
+                    })
+                {
+                    out.push(DanglingImport {
+                        importer_file: imp.file.clone(),
+                        import_line: imp.line,
+                        module: imp.module.clone(),
+                        missing_binding: None,
+                    });
+                }
+            }
+            Some(target_rel) => {
                 for binding in index.bindings_imported_from(&imp.file, imp.line) {
-                    let defined_in_target = index
-                        .definitions_of(binding)
-                        .iter()
-                        .any(|d| d.file == target_rel);
-                    if !defined_in_target {
+                    if !binding_defined_via_barrels(index, ws, binding, &target_rel) {
                         out.push(DanglingImport {
                             importer_file: imp.file.clone(),
                             import_line: imp.line,
@@ -556,6 +727,7 @@ fn detect_dangling_imports(
             }
         }
     }
+
     out.sort_by(|a, b| (&a.importer_file, a.import_line).cmp(&(&b.importer_file, b.import_line)));
     out.dedup_by(|a, b| {
         a.importer_file == b.importer_file
@@ -565,23 +737,37 @@ fn detect_dangling_imports(
     out
 }
 
-enum ModuleResolution {
-    Missing,
-    Found(String),
+fn importer_dir_of(file: &str) -> PathBuf {
+    PathBuf::from(file)
+        .parent()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_default()
 }
 
-fn resolve_ts_module(ws: &Path, importer_dir: &Path, spec: &str) -> ModuleResolution {
-    let joined = importer_dir.join(spec);
-    let base = joined.strip_prefix(ws).unwrap_or(&joined).to_path_buf();
+/// Like `resolve_ts_module` but takes an already-relative dir and returns the
+/// workspace-relative hit without consulting the workspace root again.
+fn resolve_ts_module_raw(ws: &Path, importer_dir: &Path, spec: &str) -> ModuleResolution {
+    use std::path::Component;
+    let joined: PathBuf = importer_dir
+        .join(spec)
+        .components()
+        .filter(|c| !matches!(c, Component::CurDir))
+        .collect();
     const CANDIDATES: [&str; 4] = [".ts", ".tsx", "/index.ts", "/index.tsx"];
     for c in CANDIDATES {
-        let cand = PathBuf::from(format!("{}{}", base.display(), c));
+        let cand = PathBuf::from(format!("{}{}", joined.display(), c));
         if ws.join(&cand).is_file() {
             return ModuleResolution::Found(cand.display().to_string());
         }
     }
     ModuleResolution::Missing
 }
+
+enum ModuleResolution {
+    Missing,
+    Found(String),
+}
+
 
 fn index_imports(_index: &ReverseIndex) -> Vec<ImportRef> {
     _index.all_imports()
@@ -644,6 +830,21 @@ fn git_deleted_files(ws: &Path, base: &str, head: &str) -> Result<Vec<String>> {
         .map(|l| l.trim().to_string())
         .filter(|l| !l.is_empty())
         .collect())
+}
+
+fn git_show(ws: &Path, rev_path: &str) -> Result<String> {
+    use std::process::Command;
+    let out = Command::new("git")
+        .current_dir(ws)
+        .args(["show", rev_path])
+        .output()
+        .map_err(|e| DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+    if !out.status.success() {
+        return Err(DagrError::Config(format!(
+            "git show {rev_path} failed"
+        )));
+    }
+    Ok(String::from_utf8_lossy(&out.stdout).to_string())
 }
 
 fn collect_source_texts(ws: &Path) -> Vec<(String, String)> {
@@ -972,6 +1173,131 @@ mod scoping_tests {
 
         let v = ReviewVerdict::generate(&dir, "HEAD~1", "HEAD").unwrap();
         assert_eq!(v.verdict, VERDICT_BLOCKED, "{:#?}", v.dangling_imports);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+#[cfg(test)]
+mod alias_tests {
+    use super::*;
+
+    fn git_init_commit(dir: &Path) {
+        std::process::Command::new("git")
+            .args(["init", "-q"])
+            .current_dir(dir)
+            .output()
+            .unwrap();
+        let ok = std::process::Command::new("git")
+            .args(["add", "."])
+            .current_dir(dir)
+            .env("GIT_AUTHOR_NAME", "t")
+            .env("GIT_AUTHOR_EMAIL", "t@t")
+            .env("GIT_COMMITTER_NAME", "t")
+            .env("GIT_COMMITTER_EMAIL", "t@t")
+            .output()
+            .unwrap();
+        assert!(ok.status.success());
+        let c = std::process::Command::new("git")
+            .args(["commit", "-q", "-m", "base"])
+            .current_dir(dir)
+            .env("GIT_AUTHOR_NAME", "t")
+            .env("GIT_AUTHOR_EMAIL", "t@t")
+            .env("GIT_COMMITTER_NAME", "t")
+            .env("GIT_COMMITTER_EMAIL", "t@t")
+            .output()
+            .unwrap();
+        assert!(c.status.success());
+    }
+
+    /// G6: an aliased import of a deleted module must BLOCK — previously
+    /// alias specs were skipped entirely by dangling detection.
+    #[test]
+    fn aliased_import_of_deleted_module_blocks() {
+        let dir = std::env::temp_dir().join(format!("dagr-alias-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src/db")).unwrap();
+        std::fs::write(
+            dir.join("tsconfig.json"),
+            r#"{"compilerOptions":{"baseUrl":".","paths":{"@/*":["./src/*"]}}}"#,
+        )
+        .unwrap();
+        std::fs::write(dir.join("src/db/client.ts"), "export const pool = 1;\n").unwrap();
+        std::fs::write(
+            dir.join("src/app.ts"),
+            "import { pool } from \"@/db/client\";\nexport const q = pool;\n",
+        )
+        .unwrap();
+        git_init_commit(&dir);
+
+        // Diff deletes the alias target while app.ts (untouched) keeps importing it.
+        std::fs::remove_file(dir.join("src/db/client.ts")).unwrap();
+        let ok = std::process::Command::new("git")
+            .args(["add", "-A"])
+            .current_dir(&dir)
+            .output()
+            .unwrap();
+        assert!(ok.status.success());
+        let c = std::process::Command::new("git")
+            .args(["commit", "-q", "-m", "delete client"])
+            .current_dir(&dir)
+            .env("GIT_AUTHOR_NAME", "t")
+            .env("GIT_AUTHOR_EMAIL", "t@t")
+            .env("GIT_COMMITTER_NAME", "t")
+            .env("GIT_COMMITTER_EMAIL", "t@t")
+            .output()
+            .unwrap();
+        assert!(c.status.success());
+
+        let v = ReviewVerdict::generate(&dir, "HEAD~1", "HEAD").unwrap();
+        assert_eq!(v.verdict, VERDICT_BLOCKED, "{:#?}", v.dangling_imports);
+        assert!(
+            v.dangling_imports.iter().any(|d| d.module == "@/db/client"),
+            "alias module must be reported: {:#?}",
+            v.dangling_imports
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// Barrel chains: binding re-exported through index.ts must resolve.
+    #[test]
+    fn barrel_reexport_resolves_binding() {
+        let dir = std::env::temp_dir().join(format!("dagr-barrel-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src/db")).unwrap();
+        std::fs::write(dir.join("tsconfig.json"), "{}").unwrap();
+        std::fs::write(dir.join("src/db/client.ts"), "export const pool = 1;\n").unwrap();
+        std::fs::write(dir.join("src/db/index.ts"), "export * from \"./client\";\n").unwrap();
+        std::fs::write(
+            dir.join("src/app.ts"),
+            "import { pool } from \"./db\";\nexport const q = pool;\n",
+        )
+        .unwrap();
+        git_init_commit(&dir);
+        // A second commit gives HEAD~1 something to diff against.
+        std::fs::write(dir.join("src/app.ts"), "// touch\nimport { pool } from \"./db\";\nexport const q = pool;\n").unwrap();
+        let ok = std::process::Command::new("git")
+            .args(["add", "-A"])
+            .current_dir(&dir)
+            .output()
+            .unwrap();
+        assert!(ok.status.success());
+        let c = std::process::Command::new("git")
+            .args(["commit", "-q", "-m", "touch app"])
+            .current_dir(&dir)
+            .env("GIT_AUTHOR_NAME", "t")
+            .env("GIT_AUTHOR_EMAIL", "t@t")
+            .env("GIT_COMMITTER_NAME", "t")
+            .env("GIT_COMMITTER_EMAIL", "t@t")
+            .output()
+            .unwrap();
+        assert!(c.status.success());
+
+        let v = ReviewVerdict::generate(&dir, "HEAD~1", "HEAD").unwrap();
+        assert_eq!(
+            v.verdict, VERDICT_PASS,
+            "barrel re-export must satisfy named binding: {:#?}",
+            v.dangling_imports
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

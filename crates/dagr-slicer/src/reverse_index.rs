@@ -205,8 +205,11 @@ fn extract_facts(rel: &str, source: &str, lang: Language) -> Result<FileFacts> {
         let kind = node.kind();
         let line = node.start_position().row + 1;
 
-        if is_definition(kind) {
-            if let Some(name) = node_name(node, source) {
+        let parent_is_export = node
+            .parent()
+            .is_some_and(|par| par.kind() == "export_statement");
+        if !parent_is_export {
+            if let Some(name) = definition_name(node, source) {
                 facts.definitions.push((name.to_string(), line));
             }
         }
@@ -280,6 +283,24 @@ fn collect_named_specifiers(node: tree_sitter::Node, source: &str, out: &mut Vec
     }
 }
 
+/// Definition names hide one level deep inside TS `export` wrappers
+/// (`export const x`, `export function f`) — unwrap before naming.
+fn definition_name<'a>(node: tree_sitter::Node<'a>, source: &'a str) -> Option<&'a str> {
+    let kind = node.kind();
+    if is_definition(kind) {
+        return node_name(node, source);
+    }
+    if kind == "export_statement" {
+        let mut cursor = node.walk();
+        for child in node.children(&mut cursor) {
+            if is_definition(child.kind()) {
+                return node_name_deep(child, source);
+            }
+        }
+    }
+    None
+}
+
 fn is_definition(kind: &str) -> bool {
     matches!(
         kind,
@@ -288,6 +309,8 @@ fn is_definition(kind: &str) -> bool {
             | "class_declaration"
             | "interface_declaration"
             | "type_alias_declaration"
+            | "lexical_declaration"
+            | "variable_declaration"
             | "function_definition"
             | "type_declaration"
             | "function_item"
@@ -295,6 +318,18 @@ fn is_definition(kind: &str) -> bool {
             | "enum_item"
             | "trait_item"
     )
+}
+
+/// `name` field lookup that descends one level (lexical_declaration keeps
+/// its identifier on the variable_declarator child).
+fn node_name_deep<'a>(node: tree_sitter::Node<'a>, source: &'a str) -> Option<&'a str> {
+    let direct = node_name(node, source);
+    if direct.is_some() {
+        return direct;
+    }
+    let mut cursor = node.walk();
+    let found = node.children(&mut cursor).find_map(|child| node_name(child, source));
+    found
 }
 
 fn node_name<'a>(node: tree_sitter::Node<'a>, source: &'a str) -> Option<&'a str> {
@@ -404,5 +439,32 @@ mod tests {
             "main.rs references Payment: {users:?}"
         );
         let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+#[cfg(test)]
+mod barrel_probe_tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn probe_barrel_chain_indexing() {
+        let d = std::env::temp_dir().join(format!("dagr-bprobe-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(d.join("src/db")).unwrap();
+        std::fs::write(d.join("src/db/client.ts"), "export const pool = 1;\n").unwrap();
+        std::fs::write(d.join("src/db/index.ts"), "export * from \"./client\";\n").unwrap();
+
+        let idx = ReverseIndex::build(&d).unwrap();
+        println!("files: {:?}", idx.files());
+        for imp in idx.all_imports() {
+            println!("import: {}:{} -> {}", imp.file, imp.line, imp.module);
+        }
+        println!("bindings at db/index.ts:2: {:?}", idx.bindings_imported_from("src/db/index.ts", 1));
+        assert!(
+            !idx.definitions_of("pool").is_empty(),
+            "export const must register a definition"
+        );
+        let _ = std::fs::remove_dir_all(&d);
     }
 }

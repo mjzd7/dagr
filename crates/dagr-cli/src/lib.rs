@@ -1,5 +1,6 @@
 pub mod daemon;
 pub mod governance;
+pub mod lsp;
 pub mod server;
 pub mod skills_installer;
 pub mod tui;
@@ -165,6 +166,10 @@ pub enum Commands {
         #[arg(long, default_value_t = true)]
         fail_on_blocked: bool,
 
+        /// Enrich deleted-Rust-symbol analysis with language-server references
+        #[arg(long)]
+        lsp: bool,
+
         /// Output format (pretty, json, markdown)
         #[arg(short = 'f', long, value_enum, default_value_t = OutputFormat::Pretty)]
         format: OutputFormat,
@@ -200,6 +205,25 @@ pub enum Commands {
                         dagr secrets-baseline"
     )]
     SecretsBaseline {
+        /// Workspace root directory (defaults to current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+    },
+
+    /// Precise cross-file references for a symbol via the language server
+    #[command(
+        name = "refs",
+        about = "Find precise references to a symbol via rust-analyzer",
+        long_about = "Queries the language server for exact references — catches dynamic\n\
+                      dispatch and re-exports that identifier matching approximates.\n\
+                      Requires rust-analyzer on PATH (Rust files).\n\n\
+                      EXAMPLES:\n  \
+                        dagr refs src/lib.rs:process_payment"
+    )]
+    Refs {
+        /// Target as path/to/file.rs:symbolName
+        target: String,
+
         /// Workspace root directory (defaults to current directory)
         #[arg(short = 'w', long, default_value = ".")]
         workspace: PathBuf,
@@ -677,6 +701,7 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
         Commands::Revoke { id, workspace } => handle_agent_revoke(&workspace, &id),
         Commands::Doctor { workspace, format } => handle_doctor(&workspace, format),
         Commands::SecretsBaseline { workspace } => handle_secrets_baseline(&workspace),
+        Commands::Refs { target, workspace } => handle_refs(&workspace, &target),
         Commands::Prove {
             workspace,
             test,
@@ -687,9 +712,11 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             head,
             workspace,
             fail_on_blocked,
+            lsp,
             format,
         } => {
-            let outcome = handle_review_diff(&workspace, &base, &head, format)?;
+            let outcome =
+                handle_review_diff(&workspace, &base, &head, lsp, format)?;
             if fail_on_blocked && matches!(outcome.as_str(), "BLOCKED" | "UNKNOWN") {
                 std::process::exit(1);
             }
@@ -1382,14 +1409,19 @@ pub fn handle_prove(workspace: &Path, test: Option<&str>, format: OutputFormat) 
     Ok(())
 }
 
-/// Returns the verdict string ("PASS" | "BLOCKED") for exit-code handling.
+/// Returns the verdict string ("PASS" | "BLOCKED" | "UNKNOWN") for exit-code handling.
 pub fn handle_review_diff(
     workspace: &Path,
     base: &str,
     head: &str,
+    use_lsp: bool,
     format: OutputFormat,
 ) -> Result<String> {
-    let verdict = governance::ReviewVerdict::generate(workspace, base, head)?;
+    let verdict = if use_lsp {
+        governance::ReviewVerdict::generate_with_lsp(workspace, base, head)?
+    } else {
+        governance::ReviewVerdict::generate(workspace, base, head)?
+    };
     match format {
         OutputFormat::Json => println!("{}", verdict.to_json()),
         OutputFormat::Markdown => print!("{}", verdict.to_markdown()),
@@ -1621,6 +1653,54 @@ pub fn handle_secrets_baseline(workspace: &Path) -> Result<()> {
             "📸 wrote {written} finding(s) to .dagr/secrets-baseline.json — \
              they no longer block reviews; NEW secrets still will."
         );
+    }
+    Ok(())
+}
+
+
+pub fn handle_refs(workspace: &Path, target: &str) -> Result<()> {
+    let resolution = resolve_target_symbol_explained(workspace, target)?;
+    let source = std::fs::read_to_string(&resolution.path)?;
+    let ext = resolution
+        .path
+        .extension()
+        .and_then(|s| s.to_str())
+        .unwrap_or("");
+    let language = Language::from_extension(ext);
+    let mut parser = AstParser::new(language)?;
+    let tree = parser.parse(&source, None)?;
+    let Some(def) = AstExtractor::find_symbol(
+        tree.root_node(),
+        &source,
+        language,
+        &resolution.symbol,
+    ) else {
+        return Err(DagrError::SymbolNotFound {
+            symbol: resolution.symbol.clone(),
+            file: resolution.path.display().to_string(),
+        });
+    };
+    let col = source
+        .lines()
+        .nth(def.start_line - 1)
+        .and_then(|l| l.find(&def.name))
+        .unwrap_or(0);
+
+    let mut bridge = crate::lsp::LspBridge::detect(workspace).ok_or_else(|| {
+        DagrError::Config("no language server found (need rust-analyzer on PATH)".into())
+    })?;
+    let hits =
+        bridge.references(&resolution.path, def.start_line, col, false)?;
+
+    println!(
+        "{} references to {} ({}:{}):",
+        hits.len(),
+        def.name,
+        resolution.path.display(),
+        def.start_line
+    );
+    for h in &hits {
+        println!("  {}:{}", h.file, h.line);
     }
     Ok(())
 }
