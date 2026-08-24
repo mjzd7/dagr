@@ -803,9 +803,7 @@ pub fn handle_context(
     let budget = std::env::var("DAGR_TOKEN_BUDGET")
         .ok()
         .and_then(|v| v.parse::<usize>().ok())
-        .map(|max| {
-            dagr_core::BudgetContext::new(std::time::Duration::from_secs(300), max)
-        });
+        .map(|max| dagr_core::BudgetContext::new(std::time::Duration::from_secs(300), max));
 
     for t in targets {
         if let Some(ref b) = budget {

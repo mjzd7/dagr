@@ -192,8 +192,14 @@ impl SymbolicSlicer {
         let alias_map = dagr_guard::alias::AliasMap::load(&self.config.workspace_root);
         let mut visited = std::collections::HashSet::new();
         self.hoist_hop(
-            root_node, source_code, file_path, identifiers,
-            &alias_map, 0, &mut visited, &mut contracts,
+            root_node,
+            source_code,
+            file_path,
+            identifiers,
+            &alias_map,
+            0,
+            &mut visited,
+            &mut contracts,
         );
         contracts
     }
