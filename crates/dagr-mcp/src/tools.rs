@@ -192,7 +192,7 @@ impl ToolRegistry {
         Ok(Some(id))
     }
 
-    fn client_id_for<'a>(&self, arguments: &'a Value) -> Result<String> {
+    fn client_id_for(&self, arguments: &Value) -> Result<String> {
         Ok(match self.agent_tag(arguments)? {
             Some(id) => format!("mcp:{id}"),
             None => "mcp".to_string(),

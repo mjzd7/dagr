@@ -463,7 +463,6 @@ mod tests {
 #[cfg(test)]
 mod barrel_probe_tests {
     use super::*;
-    use std::path::PathBuf;
 
     #[test]
     fn probe_barrel_chain_indexing() {
