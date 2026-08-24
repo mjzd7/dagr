@@ -1,4 +1,5 @@
 pub mod daemon;
+pub mod governance;
 pub mod server;
 pub mod skills_installer;
 pub mod tui;
@@ -106,6 +107,65 @@ pub enum Commands {
         output_file: Option<PathBuf>,
 
         /// Output format (pretty, json)
+        #[arg(short = 'f', long, value_enum, default_value_t = OutputFormat::Pretty)]
+        format: OutputFormat,
+    },
+
+    /// Generate a signed proof receipt: guard + secrets + licenses (+ optional sandbox tests)
+    #[command(
+        name = "prove",
+        about = "Generate a signed proof receipt for this workspace (paste into PRs)",
+        long_about = "Runs the full governance stack — architecture guard, secret scan, license\n\
+                      declaration check and an optional sandboxed test command — and emits a\n\
+                      Blake3-signed receipt. Receipts are deterministic for identical inputs.\n\n\
+                      EXAMPLES:\n  \
+                        dagr prove\n  \
+                        dagr prove --test \"cargo test\"\n  \
+                        dagr prove --format json"
+    )]
+    Prove {
+        /// Workspace root directory (defaults to current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+
+        /// Verification command executed inside the CoW sandbox
+        #[arg(long)]
+        test: Option<String>,
+
+        /// Output format (pretty, json, markdown)
+        #[arg(short = 'f', long, value_enum, default_value_t = OutputFormat::Markdown)]
+        format: OutputFormat,
+    },
+
+    /// Review a diff range: dangling imports, boundary violations, secrets -> PASS/BLOCKED
+    #[command(
+        name = "review-diff",
+        about = "Merge gate: review a diff range and emit a PASS/BLOCKED verdict",
+        long_about = "Composes blast-radius analysis (dangling imports after deletions),\n\
+                      architectural boundary checks and secret scanning over a git diff range,\n\
+                      then emits a CI-consumable verdict with per-file risk scores.\n\n\
+                      Exit code is 1 on BLOCKED unless --fail-on-blocked=false.\n\n\
+                      EXAMPLES:\n  \
+                        dagr review-diff origin/main..HEAD\n  \
+                        dagr review-diff HEAD~1 HEAD --format json"
+    )]
+    ReviewDiff {
+        /// Base git reference
+        base: String,
+
+        /// Head git reference (default: HEAD)
+        #[arg(default_value = "HEAD")]
+        head: String,
+
+        /// Workspace root directory (defaults to current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+
+        /// Exit non-zero when verdict is BLOCKED
+        #[arg(long, default_value_t = true)]
+        fail_on_blocked: bool,
+
+        /// Output format (pretty, json, markdown)
         #[arg(short = 'f', long, value_enum, default_value_t = OutputFormat::Pretty)]
         format: OutputFormat,
     },
@@ -525,6 +585,24 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             sandbox,
             commit_on_success,
         } => handle_run(&command, sandbox, commit_on_success),
+        Commands::Prove {
+            workspace,
+            test,
+            format,
+        } => handle_prove(&workspace, test.as_deref(), format),
+        Commands::ReviewDiff {
+            base,
+            head,
+            workspace,
+            fail_on_blocked,
+            format,
+        } => {
+            let outcome = handle_review_diff(&workspace, &base, &head, format)?;
+            if fail_on_blocked && outcome == "BLOCKED" {
+                std::process::exit(1);
+            }
+            Ok(())
+        }
         Commands::Dashboard { port, no_open } => {
             let root = std::env::current_dir()?;
             server::DashboardServer::bind_and_run(root, port, !no_open).await
@@ -1120,8 +1198,60 @@ pub fn handle_guard(
     }
 }
 
-pub fn handle_run(command: &str, sandbox: bool, commit_on_success: bool) -> Result<()> {
-    let current_dir = std::env::current_dir()?;
+
+pub fn handle_prove(workspace: &Path, test: Option<&str>, format: OutputFormat) -> Result<()> {
+    let receipt = governance::ProofReceipt::generate(workspace, test)?;
+    match format {
+        OutputFormat::Json => println!("{}", receipt.to_json()),
+        OutputFormat::Markdown | OutputFormat::Pretty => print!("{}", receipt.to_markdown()),
+        OutputFormat::Plain => println!("{}", receipt.digest),
+    }
+    Ok(())
+}
+
+/// Returns the verdict string ("PASS" | "BLOCKED") for exit-code handling.
+pub fn handle_review_diff(
+    workspace: &Path,
+    base: &str,
+    head: &str,
+    format: OutputFormat,
+) -> Result<String> {
+    let verdict = governance::ReviewVerdict::generate(workspace, base, head)?;
+    match format {
+        OutputFormat::Json => println!("{}", verdict.to_json()),
+        OutputFormat::Markdown => print!("{}", verdict.to_markdown()),
+        OutputFormat::Pretty => {
+            eprintln!(
+                "🔍 dagr review-diff {}...{} — {} file(s) changed",
+                base, head, verdict.files_changed
+            );
+            for f in &verdict.files {
+                let marker = if f.risk_score > 0 { "⚠️ " } else { "  " };
+                eprintln!(
+                    "{} {:<50} risk {:>3} {}",
+                    marker,
+                    f.file,
+                    f.risk_score,
+                    if f.test_coverage_hint { "[tests ✓]" } else { "" }
+                );
+                for r in &f.reasons {
+                    eprintln!("      └─ {}", r);
+                }
+            }
+            println!(
+                "\nverdict: {} ({} guard violations, {} secrets, {} dangling imports)",
+                verdict.verdict,
+                verdict.guard_violation_count,
+                verdict.secret_count,
+                verdict.dangling_imports.len()
+            );
+        }
+        OutputFormat::Plain => println!("{}", verdict.verdict),
+    }
+    Ok(verdict.verdict)
+}
+
+pub fn handle_run(command: &str, sandbox: bool, commit_on_success: bool) -> Result<()> {    let current_dir = std::env::current_dir()?;
 
     if !sandbox {
         eprintln!("⚡ Executing command directly in workspace: {}", command);

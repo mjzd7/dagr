@@ -1,5 +1,5 @@
-name: 'DAGR Architecture Guard'
-description: 'Ultra-fast (<50ms) architectural boundary and layer import linter for Pull Requests'
+name: 'DAGR Merge Gate'
+description: 'Architectural boundary linter + dangling-import blast radius + secret scan, with a PASS/BLOCKED PR verdict'
 author: 'Mohit Dagar'
 branding:
   icon: 'shield'
@@ -14,29 +14,54 @@ inputs:
     description: 'Head branch or commit reference for PR diff'
     required: false
     default: 'HEAD'
-  fail-on-violation:
-    description: 'Fail the CI job if architectural boundary violations are found'
+  fail-on-blocked:
+    description: 'Fail the CI job when the verdict is BLOCKED (dangling imports, boundary violations, or secrets)'
     required: false
     default: 'true'
   workspace:
     description: 'Workspace directory root'
     required: false
     default: '.'
+  dagr-version:
+    description: 'dagr release version to install (default: latest)'
+    required: false
+    default: 'latest'
 
 runs:
   using: 'composite'
   steps:
-    - name: Run DAGR Architecture Guard
+    - name: Install dagr
       shell: bash
       run: |
-        WARN_FLAG=""
-        if [ "${{ inputs.fail-on-violation }}" = "false" ]; then
-          WARN_FLAG="--warn-only"
+        if ! command -v dagr >/dev/null 2>&1; then
+          if [ "${{ inputs.dagr-version }}" = "latest" ]; then
+            curl -fsSL https://raw.githubusercontent.com/mjzd7/dagr/main/scripts/install.sh | bash
+          else
+            curl -fsSL https://raw.githubusercontent.com/mjzd7/dagr/main/scripts/install.sh | bash -s -- --version "${{ inputs.dagr-version }}"
+          fi
         fi
-        dagr guard \
+
+    - name: Run DAGR merge gate (review-diff)
+      shell: bash
+      run: |
+        FAIL_FLAG=""
+        if [ "${{ inputs.fail-on-blocked }}" = "false" ]; then
+          FAIL_FLAG="--fail-on-blocked=false"
+        fi
+        if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+          set +e
+          dagr review-diff \
+            --workspace "${{ inputs.workspace }}" \
+            "${{ inputs.base-ref }}" "${{ inputs.head-ref }}" \
+            --format markdown > "$GITHUB_STEP_SUMMARY"
+          VERDICT=$?
+          set -e
+          dagr review-diff \
+            --workspace "${{ inputs.workspace }}" \
+            "${{ inputs.base-ref }}" "${{ inputs.head-ref }}"
+          exit $VERDICT
+        fi
+        exec dagr review-diff \
           --workspace "${{ inputs.workspace }}" \
-          --ci \
-          --base "${{ inputs.base-ref }}" \
-          --head "${{ inputs.head-ref }}" \
-          --output-file "$GITHUB_STEP_SUMMARY" \
-          $WARN_FLAG
+          "${{ inputs.base-ref }}" "${{ inputs.head-ref }}" \
+          $FAIL_FLAG

@@ -7,20 +7,20 @@
 ## Wave A — Foundation
 | Task | Status | Evidence |
 |---|---|---|
-| A1 Relicense Apache-2.0 | ✅ | LICENSE+NOTICE.md+workspace Cargo.toml+package.json+README badge/§License+CONTRIBUTING; `cargo metadata` → all pkgs Apache-2.0 |
+| A1 Relicense Apache-2.0 | ✅ | LICENSE+NOTICE.md+workspace Cargo.toml+package.json+README badge+CONTRIBUTING; cargo metadata all Apache-2.0 |
 | A2 Park A2A behind feature flag | ✅ | `[features] a2a=[]` default-off; tools.rs+server.rs cfg-gated; default=15 tests (4 tools), `--features a2a`=16 tests (7 tools) |
-| A3 Positioning lite (Cargo desc, BRAND, README header) | ⏳ | |
-| Wave A gates + commit | ⏳ | |
+| A3 Positioning lite (Cargo desc, BRAND, README header) | ✅ | Cargo desc + README header tagline + BRAND mindmap + mcp crate desc |
+| Wave A gates + commit | ✅ | commit b6b92ff: 150 tests pass, ponytail clean, guard 0 violations |
 
 ## Wave B — Tier 0 Governance Surface
 | Task | Status | Evidence |
 |---|---|---|
-| B1 ReverseIndex (TS/JS/Rust) | ⏳ | |
-| B2 Secret scan (regex+entropy) | ⏳ | |
-| B3 License manifest scan | ⏳ | |
-| B4 `dagr prove` receipts | ⏳ | |
-| B5 `dagr review-diff` verdicts | ⏳ | |
-| B6 GitHub Action merge gate | ⏳ | |
+| B1 ReverseIndex (TS/JS/Rust) | ✅ | reverse_index.rs; 4 tests: cross-file callers, dangling detection, import-suffix match, rust structs; import sites count as refs by design |
+| B2 Secret scan (regex+entropy) | ✅ | secrets.rs: hand-rolled token shapes (AWS/GH/OpenAI/Anthropic/PK header/bearer) + Shannon entropy >=4.5; findings carry Blake3 hash prefix only; 7 tests |
+| B3 License manifest scan | ✅ | licenses.rs: declared-license allowlist check (Cargo+package.json), workspace-inheritance aware, 4 tests |
+| B4 `dagr prove` receipts | ✅ | governance.rs: Blake3 digest deterministic w.r.t. content; markdown+json+plain render; sandbox --test opt; smoke-tested VERIFIED receipt |
+| B5 `dagr review-diff` verdicts | ✅ | dangling-import detection via ReverseIndex + named bindings; risk scores; PASS/BLOCKED exit codes; e2e git-fixture tests green; live smoke: BLOCKED exit=1 |
+| B6 GitHub Action merge gate | ✅ | action.yml rewritten as DAGR Merge Gate: install + review-diff, GITHUB_STEP_SUMMARY markdown, YAML-validated |
 | Wave B gates + commit | ⏳ | |
 
 ## Wave C — Trust & Evidence
