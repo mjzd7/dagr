@@ -602,12 +602,16 @@ fn base_candidates(
     alias_map: &dagr_guard::AliasMap,
     importer_dir: &Path,
     spec: &str,
-) -> Vec<PathBuf> {
+) -> Vec<String> {
     use std::path::Component;
-    let norm = |p: PathBuf| -> PathBuf {
-        p.components()
-            .filter(|c| !matches!(c, Component::CurDir))
-            .collect()
+    let norm = |p: PathBuf| -> String {
+        canon(
+            p.components()
+                .filter(|c| !matches!(c, Component::CurDir))
+                .collect::<PathBuf>()
+                .display()
+                .to_string(),
+        )
     };
     if spec.starts_with('.') {
         return vec![norm(importer_dir.join(spec))];
@@ -680,7 +684,7 @@ fn detect_dangling_imports(
                 EXT_CANDIDATES.iter().any(|c| {
                     bases
                         .iter()
-                        .any(|b| del.contains(&format!("{}{}", b.display(), c)))
+                        .any(|b| del.contains(&format!("{b}{c}")))
                 })
             });
         if !relevant {
@@ -690,8 +694,8 @@ fn detect_dangling_imports(
         let mut found_target: Option<String> = None;
         for b in &bases {
             if let Some(hit) = EXT_CANDIDATES.iter().find_map(|c| {
-                let cand = PathBuf::from(format!("{}{}", b.display(), c));
-                ws.join(&cand).is_file().then(|| cand.display().to_string())
+                let cand = format!("{b}{c}");
+                ws.join(&cand).is_file().then_some(cand)
             }) {
                 found_target = Some(hit);
                 break;
@@ -704,7 +708,7 @@ fn detect_dangling_imports(
                     || EXT_CANDIDATES.iter().any(|c| {
                         bases
                             .iter()
-                            .any(|b| scope.deleted.contains(&format!("{}{}", b.display(), c)))
+                            .any(|b| scope.deleted.contains(&format!("{b}{c}")))
                     })
                 {
                     out.push(DanglingImport {
@@ -757,9 +761,9 @@ fn resolve_ts_module_raw(ws: &Path, importer_dir: &Path, spec: &str) -> ModuleRe
         .collect();
     const CANDIDATES: [&str; 4] = [".ts", ".tsx", "/index.ts", "/index.tsx"];
     for c in CANDIDATES {
-        let cand = PathBuf::from(format!("{}{}", joined.display(), c));
+        let cand = canon(format!("{}{}", joined.display(), c));
         if ws.join(&cand).is_file() {
-            return ModuleResolution::Found(cand.display().to_string());
+            return ModuleResolution::Found(cand);
         }
     }
     ModuleResolution::Missing
