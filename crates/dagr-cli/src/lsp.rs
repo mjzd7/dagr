@@ -76,7 +76,7 @@ impl LspBridge {
     fn send(&mut self, value: &Value) -> Result<()> {
         let body = serde_json::to_string(value)?;
         write!(self.stdin, "Content-Length: {}\r\n\r\n{}", body.len(), body)
-            .map_err(|e| DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))
+            .map_err(|e| DagrError::Io(std::io::Error::other(e)))
     }
 
     fn initialize(&mut self) -> Result<()> {

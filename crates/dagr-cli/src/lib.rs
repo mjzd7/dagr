@@ -1281,10 +1281,7 @@ fn git_staged_files(workspace_root: &Path) -> Result<Vec<String>> {
         .current_dir(workspace_root)
         .output()
         .map_err(|e| {
-            dagr_core::DagrError::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                e.to_string(),
-            ))
+            dagr_core::DagrError::Io(std::io::Error::other(e.to_string()))
         })?;
     Ok(String::from_utf8_lossy(&output.stdout)
         .lines()

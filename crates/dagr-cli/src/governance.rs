@@ -395,7 +395,7 @@ impl ReviewVerdict {
                 test_coverage_hint: has_test_sibling(workspace_root, rel),
             });
         }
-        files.sort_by(|a, b| b.risk_score.cmp(&a.risk_score));
+        files.sort_by_key(|f| std::cmp::Reverse(f.risk_score));
 
         let mut deleted_symbol_refs = Vec::new();
         if use_lsp {
