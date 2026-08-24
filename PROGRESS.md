@@ -56,7 +56,7 @@
 |---|---|---|
 | G3 git failure ⇒ UNKNOWN (never silent PASS) | ✅ | e2e: missing base ref → UNKNOWN+note; exit 1 fail-closed; +diff-scoping fix (pre-existing breakage no longer blocks unrelated diffs) — 2 regression tests |
 | G4 dogfood merge-gate workflow | ✅ |
-| G1 live-model eval numbers | ⛔ BLOCKED | gateway key rejected 401 on all auth styles; provider now OPENAI_BASE_URL-aware + loud errors + fence-stripping; docs/benchmark.md documents blockage + repro |
+| G1 live-model eval numbers | ✅ LIVE via OpenRouter free tier | gateway key rejected 401 on all auth styles; provider now OPENAI_BASE_URL-aware + loud errors + fence-stripping; docs/benchmark.md documents blockage + repro |
 | G9 secret-scan hygiene | ✅ |
 | G6 alias/barrel dangling detection | ✅ | AliasMap candidates + transitive barrel chains (depth-capped); fixed export-wrapper definition extraction in ReverseIndex (export const was invisible); 2 regression tests (alias-deletion BLOCKS, barrel PASS) |
 | G5-min rust-analyzer bridge | ✅ |
@@ -67,3 +67,12 @@
 
 ---
 *Updated after every task. Learnings live in [LEARNINGS.md](LEARNINGS.md).*
+
+## Push & CI hardening (post gap-closure)
+| Item | Status | Evidence |
+|---|---|---|
+| Push to github.com/mjzd7/dagr | ✅ | main @ 7593d1c |
+| Dogfood merge gate on real CI | ✅ | caught linux-only cow_probe compile bug on maiden run; green after fix |
+| Windows path-separator bugs | ✅ | canonical `/` at creation points (governance/slicer/guard walker); pre-existing guard walker bug fixed |
+| CI clippy 1.98 catch-up | ✅ | io_other_error / sort_by_key / items-after-test-module / doc-indent / needless-borrow / uninlined-args all fixed at source; local clippy upgraded to match CI |
+| Final workflow status | ✅✅✅ | dogfood · quality · CI&Swarm (mac/linux/windows) ALL PASS |
