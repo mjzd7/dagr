@@ -44,27 +44,38 @@ export function makeProvider(name) {
       },
     };
   }
-  // openai (respects OPENAI_BASE_URL for OpenAI-compatible gateways)
+  // openai-compatible (OPENAI_BASE_URL covers gateways like OpenRouter).
+  // Free tiers 429 aggressively, so requests retry with linear backoff.
   const base = process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1";
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   return {
     name,
     async complete({ model = "gpt-4o-mini", system, user }) {
-      const res = await fetch(`${base}/chat/completions`, {
-        method: "POST",
-        headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-        body: JSON.stringify({
-          model, temperature: 0,
-          messages: [{ role: "system", content: system }, { role: "user", content: user }],
-        }),
-      });
-      const data = await res.json();
-      if (data.error)
-        throw new Error(`openai ${res.status}: ${data.error.message ?? "unknown error"}`);
-      return {
-        text: data.choices?.[0]?.message?.content ?? "",
-        tokens_in: data.usage?.prompt_tokens ?? 0,
-        tokens_out: data.usage?.completion_tokens ?? 0,
-      };
+      const attempts = Number(process.env.DAGR_EVAL_RETRIES ?? 4);
+      let lastErr;
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        if (attempt > 0) await sleep(4000 * attempt);
+        const res = await fetch(`${base}/chat/completions`, {
+          method: "POST",
+          headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+          body: JSON.stringify({
+            model, temperature: 0,
+            messages: [{ role: "system", content: system }, { role: "user", content: user }],
+          }),
+        });
+        const data = await res.json();
+        if (!data.error) {
+          return {
+            text: data.choices?.[0]?.message?.content ?? "",
+            tokens_in: data.usage?.prompt_tokens ?? 0,
+            tokens_out: data.usage?.completion_tokens ?? 0,
+          };
+        }
+        lastErr = new Error(`openai ${res.status}: ${data.error.message ?? "unknown error"}`);
+        const retriable = res.status === 429 || res.status >= 500;
+        if (!retriable) throw lastErr;
+      }
+      throw lastErr;
     },
   };
 }

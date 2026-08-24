@@ -1,6 +1,7 @@
 {
-  "generated_at_unix": 1787596554,
-  "provider": "mock",
+  "generated_at_unix": 1787598448,
+  "provider": "openai",
+  "model": "openrouter/free",
   "byStrategy": {
     "baseline": {
       "runs": 3,
@@ -17,68 +18,74 @@
     {
       "task": "task-001-fix-function",
       "strategy": "baseline",
-      "provider": "mock",
+      "provider": "openai",
+      "model": "openrouter/free",
       "pass": true,
       "defects": 0,
       "tokens_in_baseline": 233,
       "tokens_in_dagr": null,
-      "tokens_out": 0,
-      "latency_ms": 0
+      "tokens_out": 219,
+      "latency_ms": 1786
     },
     {
       "task": "task-001-fix-function",
       "strategy": "dagr",
-      "provider": "mock",
+      "provider": "openai",
+      "model": "openrouter/free",
       "pass": true,
       "defects": 0,
       "tokens_in_baseline": null,
       "tokens_in_dagr": 391,
-      "tokens_out": 0,
-      "latency_ms": 0
+      "tokens_out": 294,
+      "latency_ms": 6795
     },
     {
       "task": "task-002-add-validation",
       "strategy": "baseline",
-      "provider": "mock",
+      "provider": "openai",
+      "model": "openrouter/free",
       "pass": true,
       "defects": 0,
       "tokens_in_baseline": 217,
       "tokens_in_dagr": null,
-      "tokens_out": 0,
-      "latency_ms": 0
+      "tokens_out": 193,
+      "latency_ms": 2472
     },
     {
       "task": "task-002-add-validation",
       "strategy": "dagr",
-      "provider": "mock",
+      "provider": "openai",
+      "model": "openrouter/free",
       "pass": true,
       "defects": 0,
       "tokens_in_baseline": null,
       "tokens_in_dagr": 359,
-      "tokens_out": 0,
-      "latency_ms": 0
+      "tokens_out": 229,
+      "latency_ms": 9903
     },
     {
       "task": "task-003-refactor-import",
       "strategy": "baseline",
-      "provider": "mock",
+      "provider": "openai",
+      "model": "openrouter/free",
       "pass": true,
       "defects": 0,
       "tokens_in_baseline": 224,
       "tokens_in_dagr": null,
-      "tokens_out": 0,
-      "latency_ms": 0
+      "tokens_out": 255,
+      "latency_ms": 3384
     },
     {
       "task": "task-003-refactor-import",
       "strategy": "dagr",
-      "provider": "mock",
+      "provider": "openai",
+      "model": "openrouter/free",
       "pass": true,
       "defects": 0,
       "tokens_in_baseline": null,
       "tokens_in_dagr": 336,
-      "tokens_out": 0,
-      "latency_ms": 0
+      "tokens_out": 356,
+      "latency_ms": 2936
     }
   ]
 }

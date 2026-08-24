@@ -19,6 +19,7 @@ const arg = (name, dflt) => {
 };
 const providerName = arg("provider", "mock");
 const onlyTask = arg("tasks", null);
+const modelName = arg("model", null);
 const dagrBin = resolve(arg("dagr-bin") ?? "target/debug/dagr");
 
 const root = dirname(fileURLToPath(import.meta.url));
@@ -34,9 +35,9 @@ const results = [];
 for (const t of tasks) {
   for (const strategy of ["baseline", "dagr"]) {
     try {
-      results.push(await runTask(provider, join(tasksDir, t), strategy, dagrBin));
+      results.push(await runTask(provider, join(tasksDir, t), strategy, dagrBin, modelName));
     } catch (e) {
-      results.push({ task: t, strategy, provider: providerName, pass: false, defects: 9, error: String(e.message ?? e).slice(0, 200), latency_ms: 0 });
+      results.push({ task: t, strategy, provider: providerName, model: modelName ?? "default", pass: false, defects: 9, error: String(e.message ?? e).slice(0, 200), latency_ms: 0 });
     }
   }
 }
@@ -48,7 +49,7 @@ for (const r of results) {
   byStrategy[r.strategy].passes += r.pass ? 1 : 0;
   byStrategy[r.strategy].defects += r.defects;
 }
-const summary = { generated_at_unix: Math.floor(Date.now() / 1000), provider: provider.name, byStrategy, results };
+const summary = { generated_at_unix: Math.floor(Date.now() / 1000), provider: provider.name, model: modelName ?? "default", byStrategy, results };
 console.log(JSON.stringify(summary, null, 2));
 
 const outDir = resolve(root, "results");

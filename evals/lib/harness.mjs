@@ -64,10 +64,10 @@ export function gradeTask(taskDir, rawResponse) {
   }
 }
 
-export async function runTask(provider, taskDir, strategy, dagrBin) {
+export async function runTask(provider, taskDir, strategy, dagrBin, model) {
   const { system, user, task } = buildPrompt(taskDir, strategy, dagrBin);
   const started = process.hrtime.bigint();
-  const res = await provider.complete({ system, user });
+  const res = await provider.complete({ system, user, model });
   const elapsedMs = Number(process.hrtime.bigint() - started) / 1e6;
     const responseText = typeof res === "string" ? res : (res.text ?? "");
   const grade = gradeTask(taskDir, responseText);
@@ -75,6 +75,7 @@ export async function runTask(provider, taskDir, strategy, dagrBin) {
     task: task.id,
     strategy,
     provider: provider.name,
+    model: model ?? "default",
     pass: grade.pass,
     defects: grade.defects,
     tokens_in_baseline: strategy === "baseline" ? countTokens(user) : null,
