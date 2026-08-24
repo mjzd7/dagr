@@ -681,11 +681,9 @@ fn detect_dangling_imports(
         let relevant = scope.touches(&imp.file)
             || (!scope.deleted.is_empty() && {
                 let del = &scope.deleted;
-                EXT_CANDIDATES.iter().any(|c| {
-                    bases
-                        .iter()
-                        .any(|b| del.contains(&format!("{b}{c}")))
-                })
+                EXT_CANDIDATES
+                    .iter()
+                    .any(|c| bases.iter().any(|b| del.contains(&format!("{b}{c}"))))
             });
         if !relevant {
             continue;
