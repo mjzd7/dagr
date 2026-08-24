@@ -18,6 +18,14 @@ use dagr_sandbox::CowSandbox;
 use dagr_slicer::{ImportRef, ReverseIndex};
 use std::path::{Path, PathBuf};
 
+/// Canonical internal path form: forward slashes on every platform.
+/// git reports `/` even on Windows while std::path Display is `\` there;
+/// every scope/index comparison in this module is string-based, so paths
+/// are normalized at their creation points.
+pub fn canon(rel: String) -> String {
+    rel.replace('\\', "/")
+}
+
 pub const RECEIPT_SCHEMA_VERSION: u8 = 1;
 pub const VERDICT_SCHEMA_VERSION: u8 = 1;
 
@@ -797,7 +805,7 @@ fn git_changed_files(ws: &Path, base: &str, head: &str) -> Result<Vec<String>> {
     }
     Ok(String::from_utf8_lossy(&output.stdout)
         .lines()
-        .map(|l| l.trim().to_string())
+        .map(|l| canon(l.trim().to_string()))
         .filter(|l| !l.is_empty())
         .collect())
 }
@@ -819,7 +827,7 @@ fn git_deleted_files(ws: &Path, base: &str, head: &str) -> Result<Vec<String>> {
     }
     Ok(String::from_utf8_lossy(&output.stdout)
         .lines()
-        .map(|l| l.trim().to_string())
+        .map(|l| canon(l.trim().to_string()))
         .filter(|l| !l.is_empty())
         .collect())
 }
@@ -868,7 +876,7 @@ fn collect_source_texts(ws: &Path) -> Vec<(String, String)> {
                     p.extension().and_then(|s| s.to_str()),
                     Some("ts") | Some("tsx") | Some("js") | Some("rs")
                 ) {
-                    let rel = p.strip_prefix(root).unwrap_or(&p).display().to_string();
+                    let rel = canon(p.strip_prefix(root).unwrap_or(&p).display().to_string());
                     if let Ok(body) = std::fs::read_to_string(&p) {
                         out.push((rel, body));
                     }

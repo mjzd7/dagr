@@ -202,7 +202,8 @@ fn collect_sources(root: &Path, current: &Path, out: &mut Vec<(String, String)>)
         .strip_prefix(root)
         .unwrap_or(current)
         .display()
-        .to_string();
+        .to_string()
+        .replace('\\', "/");
     if let Ok(src) = std::fs::read_to_string(current) {
         out.push((rel, src));
     }
