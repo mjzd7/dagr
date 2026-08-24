@@ -1554,7 +1554,11 @@ pub fn handle_agent_list(workspace: &Path) -> Result<()> {
             "{:<28} {:<16} {:<10} {}",
             a.id,
             a.owner,
-            if a.role.is_empty() { "-" } else { a.role.as_str() },
+            if a.role.is_empty() {
+                "-"
+            } else {
+                a.role.as_str()
+            },
             a.expires_at_unix
                 .map(|e| e.to_string())
                 .unwrap_or_else(|| "never".into())
