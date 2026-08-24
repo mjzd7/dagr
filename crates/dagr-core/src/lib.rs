@@ -7,6 +7,8 @@ pub mod fuzzy;
 pub mod journal;
 pub mod quarantine;
 pub mod rate_limiter;
+pub mod registry;
+pub use registry::{AgentRecord, AgentRegistry};
 pub mod remote_cache;
 pub mod saga;
 pub mod storage;

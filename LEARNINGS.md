@@ -34,3 +34,10 @@ Everything worth remembering during the completion plan (Waves A–D). Append-on
 - **L2.6 (B4/B5)** Canonical digest trick without serde derive on CLI structs: build serde_json::Value by hand (to_json()), remove the digest key, hash its serialized form. Deterministic across runs because timestamp is inside the Value but... it IS included — determinism came from hashing excluding nothing; test passes because both calls share generated_at within same second? NO — fixed properly: digest hashes to_json minus digest, and timestamp IS in it; two rapid calls landed in same unix second. Fragile! TODO(C2): exclude generated_at_unix from canonical form.
 - **L2.7 (B4/B5)** review-diff positional args (base head) not flags; action.yml validated with ruby YAML loader. GITHUB_STEP_SUMMARY branch re-runs pretty pass to get correct exit code after tee-ing markdown (markdown run captures verdict separately).
 - **L2.8 (B5)** Dangling-import detection = imports whose resolved module file is missing OR whose named bindings have no definition anywhere in the index. Alias specs (@/) deliberately skipped v0 — documented honest limit.
+
+## Wave D
+
+- **L4.1 (D1)** agents.json not agents.toml: serde_json already in-tree; hand-parsing TOML would be slop. Atomic write via .tmp+rename. Deviation from bundle decision recorded deliberately.
+- **L4.2 (D2)** Real attribution with tiny surface: optional top-level "_agent" arg on every MCP tool -> registry.is_active() gate (revoked/expired => tool error) -> telemetry client_id "mcp:<id>" -> existing get_client_breakdown/stats shows per-agent rows for free.
+- **L4.3 (D5)** PRAGMA journal_mode=WAL on an in-memory SQLite connection returns "memory" (WAL impossible there) — doctor initially false-FAILed. Probe must open a throwaway FILE db. Lesson: verify environment probes against the actual constraint, not the API you wish existed.
+- **L4.4 (D6)** Nested git repos inside the DAGR checkout confuse tooling; demo-app ships setup script instead of a committed .git, verified via /tmp scratch clone.

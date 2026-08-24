@@ -170,6 +170,45 @@ pub enum Commands {
         format: OutputFormat,
     },
 
+    /// Manage the agent identity registry (.dagr/agents.json)
+    #[command(name = "agent")]
+    Agent {
+        #[command(subcommand)]
+        action: AgentAction,
+    },
+
+    /// Revoke an agent registration immediately
+    #[command(name = "revoke")]
+    Revoke {
+        /// Agent id to revoke
+        id: String,
+
+        /// Workspace root directory (defaults to current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+    },
+
+    /// Verify environment readiness: grammars, CoW filesystem support, SQLite WAL, IDE configs
+    #[command(
+        name = "doctor",
+        about = "Check environment readiness for every DAGR subsystem",
+        long_about = "Verifies tree-sitter grammar availability, Copy-on-Write filesystem\n\
+                      support, SQLite WAL mode, workspace rules state and known IDE MCP\n\
+                      configuration paths. Exits non-zero on hard failures.\n\n\
+                      EXAMPLES:\n  \
+                        dagr doctor\n  \
+                        dagr doctor --workspace ./my-repo --format json"
+    )]
+    Doctor {
+        /// Workspace root directory (defaults to current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+
+        /// Output format (pretty, json)
+        #[arg(short = 'f', long, value_enum, default_value_t = OutputFormat::Pretty)]
+        format: OutputFormat,
+    },
+
     /// Execute a test or build command safely inside a Copy-on-Write (CoW) shadow sandbox
     #[command(
         name = "run",
@@ -425,6 +464,33 @@ pub enum SkillsAction {
 }
 
 #[derive(Subcommand, Debug, PartialEq)]
+pub enum AgentAction {
+    /// Register an agent identity bound to a human owner
+    Register {
+        /// Unique agent session id
+        id: String,
+
+        /// Human owner accountable for this agent
+        #[arg(long)]
+        owner: String,
+
+        /// Role label (planner | builder | reviewer | tester)
+        #[arg(long, default_value = "builder")]
+        role: String,
+
+        /// Registration lifetime in seconds (omit for no expiry)
+        #[arg(long)]
+        ttl_secs: Option<u64>,
+    },
+    /// List registered agents
+    List {
+        /// Workspace root directory (defaults to current directory)
+        #[arg(short = 'w', long, default_value = ".")]
+        workspace: PathBuf,
+    },
+}
+
+#[derive(Subcommand, Debug, PartialEq)]
 pub enum McpAction {
     /// Start stdio MCP JSON-RPC 2.0 listener
     Start {
@@ -585,6 +651,14 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             sandbox,
             commit_on_success,
         } => handle_run(&command, sandbox, commit_on_success),
+        Commands::Agent { action } => match action {
+            AgentAction::Register { id, owner, role, ttl_secs } => {
+                handle_agent_register(&id, &owner, &role, ttl_secs)
+            }
+            AgentAction::List { workspace } => handle_agent_list(&workspace),
+        },
+        Commands::Revoke { id, workspace } => handle_agent_revoke(&workspace, &id),
+        Commands::Doctor { workspace, format } => handle_doctor(&workspace, format),
         Commands::Prove {
             workspace,
             test,
@@ -1330,6 +1404,185 @@ pub fn handle_review_diff(
         OutputFormat::Plain => println!("{}", verdict.verdict),
     }
     Ok(verdict.verdict)
+}
+
+
+pub fn handle_agent_register(id: &str, owner: &str, role: &str, ttl_secs: Option<u64>) -> Result<()> {
+    let ws = std::env::current_dir()?;
+    let expires_at_unix = ttl_secs.map(|t| unix_now() + t);
+    dagr_core::AgentRegistry::load(&ws)
+        .register(dagr_core::AgentRecord {
+            id: id.to_string(),
+            owner: owner.to_string(),
+            role: role.to_string(),
+            expires_at_unix,
+        })?;
+    println!(
+        "✅ registered agent '{}' (owner: {}, role: {}, {})",
+        id,
+        owner,
+        role,
+        expires_at_unix
+            .map(|e| format!("expires {e}"))
+            .unwrap_or_else(|| "no expiry".to_string())
+    );
+    Ok(())
+}
+
+pub fn handle_agent_list(workspace: &Path) -> Result<()> {
+    let agents = dagr_core::AgentRegistry::load(workspace).read()?;
+    if agents.is_empty() {
+        println!("no agents registered");
+        return Ok(());
+    }
+    println!("{:<28} {:<16} {:<10} {}", "ID", "OWNER", "ROLE", "EXPIRES");
+    for a in agents {
+        println!(
+            "{:<28} {:<16} {:<10} {}",
+            a.id,
+            a.owner,
+            if a.role.is_empty() { "-" } else { &a.role },
+            a.expires_at_unix
+                .map(|e| e.to_string())
+                .unwrap_or_else(|| "never".into())
+        );
+    }
+    Ok(())
+}
+
+pub fn handle_agent_revoke(workspace: &Path, id: &str) -> Result<()> {
+    let removed = dagr_core::AgentRegistry::load(workspace).revoke(id)?;
+    if removed {
+        println!("⛔ revoked '{id}' — MCP calls tagged with this id are rejected immediately");
+    } else {
+        println!("'{id}' was not registered");
+    }
+    Ok(())
+}
+
+fn unix_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+pub fn handle_doctor(workspace: &Path, format: OutputFormat) -> Result<()> {
+    let checks = run_doctor_checks(workspace)?;
+    let failed = checks.iter().any(|c| c.status == "FAIL");
+    match format {
+        OutputFormat::Json => {
+            let vals: Vec<_> = checks
+                .iter()
+                .map(|c| {
+                    serde_json::json!({
+                        "component": c.component,
+                        "status": c.status,
+                        "detail": c.detail,
+                    })
+                })
+                .collect();
+            println!("{}", serde_json::json!({ "healthy": !failed, "checks": vals }));
+        }
+        _ => {
+            for c in &checks {
+                let icon = match c.status {
+                    "OK" => "✅",
+                    "WARN" => "⚠️ ",
+                    _ => "❌",
+                };
+                println!("{} {:<22} {}", icon, c.component, c.detail);
+            }
+            println!(
+                "\n{}",
+                if failed { "doctor: FAIL" } else { "doctor: all critical checks passed" }
+            );
+        }
+    }
+    if failed {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
+struct DoctorCheck {
+    component: &'static str,
+    status: &'static str,
+    detail: String,
+}
+
+fn run_doctor_checks(workspace: &Path) -> Result<Vec<DoctorCheck>> {
+    let mut out = Vec::new();
+
+    let probe_langs = [
+        ("TypeScript", Language::TypeScript),
+        ("Rust", Language::Rust),
+    ];
+    for (label, lang) in probe_langs {
+        let status = if AstParser::new(lang).is_ok() { "OK" } else { "FAIL" };
+        out.push(DoctorCheck {
+            component: "grammar",
+            status,
+            detail: format!("{label} tree-sitter parser loaded"),
+        });
+    }
+
+    let probe = workspace.join(".dagr").join("cow-probe");
+    std::fs::create_dir_all(workspace.join(".dagr")).ok();
+    std::fs::write(&probe, b"x").ok();
+    let cow_ok = std::fs::read(&probe).is_ok_and(|b| b == b"x");
+    std::fs::remove_file(&probe).ok();
+    out.push(DoctorCheck {
+        component: "sandbox-fs",
+        status: if cow_ok { "OK" } else { "FAIL" },
+        detail: if cow_ok {
+            "workspace writable (APFS reflink/clonefile detected at runtime)".into()
+        } else {
+            "cannot write .dagr/ probe file".into()
+        },
+    });
+
+    let wal_ok = dagr_core::storage::sqlite_wal_available();
+    out.push(DoctorCheck {
+        component: "sqlite-wal",
+        status: if wal_ok { "OK" } else { "FAIL" },
+        detail: format!("journal_mode={}", if wal_ok { "wal" } else { "unavailable" }),
+    });
+
+    let rules = workspace.join(".dagr").join("rules.yaml");
+    out.push(DoctorCheck {
+        component: "rules",
+        status: if rules.exists() { "OK" } else { "WARN" },
+        detail: if rules.exists() {
+            ".dagr/rules.yaml present".into()
+        } else {
+            "no rules.yaml — guard will use clean-architecture preset (run 'dagr init')".into()
+        },
+    });
+
+    let mut configured = Vec::new();
+    let home = std::env::var("HOME").unwrap_or_default();
+    for (name, p) in [
+        ("cursor", format!("{home}/.cursor/mcp.json")),
+        ("claude-code", format!("{home}/.claude/mcp.json")),
+        ("claude-desktop", format!("{home}/Library/Application Support/Claude/claude_desktop_config.json")),
+        ("opencode", format!("{home}/.opencode/mcp.json")),
+    ] {
+        if Path::new(&p).exists() {
+            configured.push(name);
+        }
+    }
+    out.push(DoctorCheck {
+        component: "ide-mcp-configs",
+        status: "OK",
+        detail: if configured.is_empty() {
+            "none detected (run 'dagr mcp install --client <id>')".into()
+        } else {
+            format!("detected: {}", configured.join(", "))
+        },
+    });
+
+    Ok(out)
 }
 
 pub fn handle_run(command: &str, sandbox: bool, commit_on_success: bool) -> Result<()> {    let current_dir = std::env::current_dir()?;

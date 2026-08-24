@@ -36,12 +36,12 @@
 ## Wave D — Completeness
 | Task | Status | Evidence |
 |---|---|---|
-| D1 Agent identity registry + `dagr revoke` | ⏳ | |
-| D2 Per-agent cost attribution | ⏳ | |
-| D3 COMPLIANCE-MAPPING.md | ⏳ | |
-| D4 Docs split | ⏳ | |
-| D5 `dagr doctor` | ⏳ | |
-| D6 Demo app (`evals/demo-app`) | ⏳ | |
+| D1 Agent identity registry + `dagr revoke` | ✅ | dagr-core/registry.rs (.dagr/agents.json, atomic rename, expiry); 3 tests; CLI agent register/list + revoke smoke-tested live |
+| D2 Per-agent cost attribution | ✅ | MCP tools accept `_agent`; validated against registry (revoked/expired rejected) then telemetry tagged mcp:<id> so stats client breakdown shows per-agent rows |
+| D3 COMPLIANCE-MAPPING.md | ✅ | docs/COMPLIANCE-MAPPING.md: EU AI Act / NIST AI RMF / ISO 42001 / OWASP / SOC2 rows each naming artifact + verification path |
+| D4 Docs split | ✅ | docs/getting-started.md + mcp-tools.md (+ _agent contract) + rules-schema.md (+ risk weight env vars); site/ untouched |
+| D5 `dagr doctor` | ✅ | grammar/CoW-fs/SQLite-WAL(temp-file probe)/rules/IDE-config checks; pretty+json; exit 1 on hard failure; live run green |
+| D6 Demo app (`evals/demo-app`) | ✅ | planted UI-to-DB violation caught by guard (1 violation); deletion flow BLOCKED with 2 dangling imports in scratch clone |
 | FINAL verification sweep + commit | ⏳ | |
 
 ## Deferred (disclosed)

@@ -267,3 +267,17 @@ mod tests {
         Ok(())
     }
 }
+
+/// True when SQLite WAL journal mode is available in this build/environment.
+pub fn sqlite_wal_available() -> bool {
+    // In-memory databases cannot enable WAL ("memory" is returned), so probe
+    // a throwaway file database instead.
+    let path = std::env::temp_dir().join(format!("dagr-wal-probe-{}", std::process::id()));
+    let _ = std::fs::remove_file(&path);
+    let ok = rusqlite::Connection::open(&path)
+        .and_then(|c| c.query_row("PRAGMA journal_mode=WAL;", [], |r| r.get::<_, String>(0)))
+        .map(|m| m.eq_ignore_ascii_case("wal"))
+        .unwrap_or(false);
+    let _ = std::fs::remove_file(&path);
+    ok
+}

@@ -175,14 +175,39 @@ impl ToolRegistry {
         tools
     }
 
+    fn agent_tag<'a>(&self, arguments: &'a Value) -> Result<Option<&'a str>> {
+        let Some(id) = arguments.get("_agent").and_then(|v| v.as_str()) else {
+            return Ok(None);
+        };
+        let registry = dagr_core::AgentRegistry::load(&self.workspace_root);
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        if !registry.is_active(id, now)? {
+            return Err(DagrError::Config(format!(
+                "agent '{id}' is not active (revoked or expired)"
+            )));
+        }
+        Ok(Some(id))
+    }
+
+    fn client_id_for<'a>(&self, arguments: &'a Value) -> Result<String> {
+        Ok(match self.agent_tag(arguments)? {
+            Some(id) => format!("mcp:{id}"),
+            None => "mcp".to_string(),
+        })
+    }
+
     /// Dispatches a tool call to the appropriate engine
     pub fn dispatch(&self, name: &str, arguments: &Value) -> Result<Value> {
         self.circuit_breaker.before_call()?;
         self.rate_limiter.try_acquire(100)?;
+        let client_id = self.client_id_for(arguments)?;
 
         let result = match name {
-            "dagr_get_context_slice" => self.handle_get_context_slice(arguments),
-            "dagr_verify_architecture" => self.handle_verify_architecture(arguments),
+            "dagr_get_context_slice" => self.handle_get_context_slice(arguments, &client_id),
+            "dagr_verify_architecture" => self.handle_verify_architecture(arguments, &client_id),
             "dagr_execute_sandboxed" => self.handle_execute_sandboxed(arguments),
             "dagr_get_lifetime_stats" => self.handle_get_lifetime_stats(),
             #[cfg(feature = "a2a")]
@@ -202,7 +227,7 @@ impl ToolRegistry {
         result
     }
 
-    fn handle_get_context_slice(&self, args: &Value) -> Result<Value> {
+    fn handle_get_context_slice(&self, args: &Value, client_id: &str) -> Result<Value> {
         let start = Instant::now();
         let file_path = args["file_path"]
             .as_str()
@@ -231,7 +256,7 @@ impl ToolRegistry {
         // Fail-safe telemetry recording
         if let Ok(store) = TelemetryStore::open(&self.workspace_root) {
             let ev = TelemetryEvent::new_slice(
-                "mcp",
+                &client_id,
                 file_path,
                 symbol_name,
                 slice.original_file_tokens,
@@ -253,7 +278,7 @@ impl ToolRegistry {
         }))
     }
 
-    fn handle_verify_architecture(&self, args: &Value) -> Result<Value> {
+    fn handle_verify_architecture(&self, args: &Value, client_id: &str) -> Result<Value> {
         let start = Instant::now();
         let source_file = self.required_str(args, "source_file")?;
         let imports = self.required_str_list(args, "proposed_imports")?;
@@ -263,7 +288,7 @@ impl ToolRegistry {
         let latency_us = start.elapsed().as_micros() as u64;
 
         if let Ok(store) = TelemetryStore::open(&self.workspace_root) {
-            let ev = TelemetryEvent::new_guard_check("mcp", violations.len(), latency_us);
+            let ev = TelemetryEvent::new_guard_check(&client_id, violations.len(), latency_us);
             let _ = store.record_event(&ev);
         }
 
@@ -348,10 +373,10 @@ impl ToolRegistry {
         let file_path = self.required_str(args, "file_path")?;
         let symbol_name = self.required_str(args, "symbol_name")?;
 
-        let slice_value = self.handle_get_context_slice(&json!({
-            "file_path": file_path,
-            "symbol_name": symbol_name
-        }))?;
+        let slice_value = self.handle_get_context_slice(
+            &json!({ "file_path": file_path, "symbol_name": symbol_name }),
+            "mcp",
+        )?;
 
         Ok(json!({
             "transferred_from": from_agent,
