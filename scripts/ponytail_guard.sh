@@ -28,10 +28,50 @@ fail() { echo "❌ [PONYTAIL] $1" >&2; exit 1; }
 echo "🥋 [PONYTAIL] Governance gate ($MODE)..."
 
 # --- Ladder rung 5 / Prohibition on casual crates -------------------
+# Section-aware scan: only lines added INSIDE [dependencies],
+# [dev-dependencies] or [build-dependencies] sections are new-dep
+# candidates. Feature declarations (`foo = []`) and package metadata
+# (`license =`, `description =`) live in other sections and must not
+# trip the gate.
 NEW_DEPS=$("${diff_cmd[@]}" --unified=0 -- 'Cargo.toml' '**/Cargo.toml' 2>/dev/null \
-    | grep -E '^\+[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*=' \
-    | grep -vE '^\+[[:space:]]*(version|features|optional|workspace|default-features|path|branch|tag|rev|package|registry|checksum|source)[[:space:]]*=' \
-    || true)
+    | python3 -c '
+import re, sys
+DEP = re.compile(r"^\[(?:dev-|build-)?dependencies\]\s*$")
+KEY = re.compile(r"^\s*[A-Za-z0-9_.-]+\s*=")
+HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)")
+added, cur_file, pos = {}, None, 0
+for line in sys.stdin.read().splitlines():
+    if line.startswith("diff --git"):
+        m = re.search(r" b/(.*)$", line)
+        cur_file = m.group(1) if m else None
+    elif line.startswith("@@"):
+        m = HUNK.match(line)
+        if m and cur_file:
+            pos = int(m.group(1))
+    elif cur_file and line.startswith("+"):
+        added.setdefault(cur_file, {})[pos] = line[1:]
+        pos += 1
+    elif line.startswith("-") or line.startswith("\\"):
+        continue
+    else:
+        pos += 1
+bad = []
+for f, lines in sorted(added.items()):
+    try:
+        content = open(f).read().splitlines()
+    except OSError:
+        continue
+    sec, secmap = None, {}
+    for i, l in enumerate(content, 1):
+        st = l.strip()
+        if st.startswith("["):
+            sec = st
+        secmap[i] = sec
+    for i, l in sorted(lines.items()):
+        if KEY.match(l) and DEP.match(secmap.get(i) or ""):
+            bad.append(f"{f}: +{l.strip()}")
+print("\n".join(bad))
+' || true)
 
 if [ -n "$NEW_DEPS" ]; then
     {

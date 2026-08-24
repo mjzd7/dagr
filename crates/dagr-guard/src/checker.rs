@@ -252,6 +252,33 @@ impl ArchitectureGuard {
         Ok(violations)
     }
 
+    /// Scans an explicit list of workspace-relative files (`--staged` mode).
+    pub fn scan_files(&self, workspace_root: &Path, files: &[String]) -> Result<Vec<Violation>> {
+        const SCANNED_EXTS: [&str; 7] = ["ts", "tsx", "js", "jsx", "py", "rs", "go"];
+        let mut violations = Vec::new();
+        for rel in files {
+            let abs = workspace_root.join(rel);
+            if !abs.is_file() {
+                continue;
+            }
+            let ext = abs.extension().and_then(|s| s.to_str()).unwrap_or("");
+            if !SCANNED_EXTS.contains(&ext) {
+                continue;
+            }
+            let Ok(content) = std::fs::read_to_string(&abs) else {
+                continue;
+            };
+            for line in content.lines() {
+                if let Some(imported) = Self::extract_imported_module(line.trim()) {
+                    if let Some(v) = self.check_import(rel, &imported) {
+                        violations.push(v);
+                    }
+                }
+            }
+        }
+        Ok(violations)
+    }
+
     fn walk_and_check(
         root: &Path,
         current: &Path,

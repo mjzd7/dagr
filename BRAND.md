@@ -15,9 +15,9 @@ mindmap
       Computer Science: Directed Acyclic Graph (DAG) Slicing & AST Hypervisor
       Physical Precision: Surgical Dagger / Sub-Millisecond Blade
     Core Positioning
-      Laser Focus for AI Coding Agents
-      95% Token Bloat Pruning
-      Zero-Trust Sandboxing & Deterministic Rollbacks
+      Governance for AI-Written Code
+      Policy Enforcement & Sandboxed Execution
+      Signed Audit Receipts for Agent Changes
     Design Language
       Monochrome Titanium & Apple Space Black Palette
       Pure Euclidean Geometry & Graph Topology

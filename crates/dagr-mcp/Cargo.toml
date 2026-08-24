@@ -5,7 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Model Context Protocol (MCP) and Agent-to-Agent (A2A) JSON-RPC server for DAGR"
+description = "MCP JSON-RPC server exposing DAGR governance tools to AI coding agents (experimental A2A swarm bus behind the `a2a` feature)"
 
 [dependencies]
 dagr-core = { workspace = true }
@@ -22,3 +22,9 @@ uuid = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3.8"
+
+[features]
+default = []
+# Experimental peer-to-peer swarm bus (A2A). Off by default; enable with
+# `--features a2a`. See docs/HONEST-LIMITS.md before relying on it.
+a2a = []

@@ -4,15 +4,20 @@ use dagr_guard::ArchitectureGuard;
 use dagr_sandbox::CowSandbox;
 use dagr_slicer::{SlicerConfig, SymbolicSlicer};
 use serde_json::{json, Value};
+#[cfg(feature = "a2a")]
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+#[cfg(feature = "a2a")]
 use std::sync::Mutex;
 use std::time::Instant;
+#[cfg(feature = "a2a")]
 use uuid::Uuid;
 
 pub struct ToolRegistry {
     pub workspace_root: PathBuf,
-    // Active A2A agent locks (agent_id -> locked_files)
+    // Active A2A agent locks (agent_id -> locked_files). Only compiled when
+    // the experimental `a2a` feature is enabled.
+    #[cfg(feature = "a2a")]
     active_agent_locks: Mutex<HashMap<String, Vec<String>>>,
     // Agent-OS: circuit breaker + rate limiter for tool-call protection
     pub(crate) circuit_breaker: crate::circuit_breaker::ToolCircuitBreaker,
@@ -23,6 +28,7 @@ impl ToolRegistry {
     pub fn new(workspace_root: PathBuf) -> Self {
         Self {
             workspace_root,
+            #[cfg(feature = "a2a")]
             active_agent_locks: Mutex::new(HashMap::new()),
             circuit_breaker: crate::circuit_breaker::ToolCircuitBreaker::default_tool_breaker(),
             rate_limiter: dagr_core::TokenBucketRateLimiter::new(100_000),
@@ -64,9 +70,11 @@ impl ToolRegistry {
             .collect()
     }
 
-    /// Returns the complete list of tools exposed to MCP IDEs and A2A swarms
+    /// Returns the complete list of tools exposed to MCP IDEs.
+    /// A2A swarm tools require the opt-in `a2a` cargo feature.
     pub fn list_tools(&self) -> Vec<ToolDefinition> {
-        vec![
+        #[allow(unused_mut)]
+        let mut tools = vec![
             // Tool 1: MCP Context Slicer
             ToolDefinition {
                 name: "dagr_get_context_slice".into(),
@@ -115,6 +123,10 @@ impl ToolRegistry {
                     "properties": {}
                 }),
             },
+        ];
+
+        #[cfg(feature = "a2a")]
+        tools.extend([
             // Tool 5: A2A Swarm Handshake & Lock Arbitrator
             ToolDefinition {
                 name: "dagr_a2a_handshake".into(),
@@ -158,7 +170,9 @@ impl ToolRegistry {
                     "required": ["reviewer_agent", "target_tx_id", "test_command"]
                 }),
             }
-        ]
+        ]);
+
+        tools
     }
 
     /// Dispatches a tool call to the appropriate engine
@@ -171,8 +185,11 @@ impl ToolRegistry {
             "dagr_verify_architecture" => self.handle_verify_architecture(arguments),
             "dagr_execute_sandboxed" => self.handle_execute_sandboxed(arguments),
             "dagr_get_lifetime_stats" => self.handle_get_lifetime_stats(),
+            #[cfg(feature = "a2a")]
             "dagr_a2a_handshake" => self.handle_a2a_handshake(arguments),
+            #[cfg(feature = "a2a")]
             "dagr_a2a_transfer_context" => self.handle_a2a_transfer_context(arguments),
+            #[cfg(feature = "a2a")]
             "dagr_a2a_verify_peer_patch" => self.handle_a2a_verify_peer_patch(arguments),
             _ => Err(DagrError::Config(format!("Unknown tool: {}", name))),
         };
@@ -303,6 +320,7 @@ impl ToolRegistry {
         }))
     }
 
+    #[cfg(feature = "a2a")]
     fn handle_a2a_handshake(&self, args: &Value) -> Result<Value> {
         let agent_id = self.required_str(args, "agent_id")?;
         let role = self.required_str(args, "role")?;
@@ -323,6 +341,7 @@ impl ToolRegistry {
         }))
     }
 
+    #[cfg(feature = "a2a")]
     fn handle_a2a_transfer_context(&self, args: &Value) -> Result<Value> {
         let from_agent = self.required_str(args, "from_agent")?;
         let to_agent = self.required_str(args, "to_agent")?;
@@ -341,6 +360,7 @@ impl ToolRegistry {
         }))
     }
 
+    #[cfg(feature = "a2a")]
     fn handle_a2a_verify_peer_patch(&self, args: &Value) -> Result<Value> {
         let reviewer = self.required_str(args, "reviewer_agent")?;
         let tx_id_str = self.required_str(args, "target_tx_id")?;

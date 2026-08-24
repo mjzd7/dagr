@@ -6,13 +6,12 @@ Thank you for your interest in contributing to **DAGR**! ⚡
 
 ## 📜 Licensing & Contributor Terms
 
-DAGR is licensed under the **Business Source License 1.1 (BSL 1.1)**.
+DAGR is licensed under the **Apache License 2.0**.
 
 By submitting a pull request, code modification, documentation change, or other contribution to this repository, you agree to the following terms:
 
-1. **Licensing of Contributions:** You agree that all contributions you submit are licensed under the terms of the Business Source License 1.1 (and any Change License specified in [`LICENSE`](./LICENSE)).
-2. **Relicensing & Commercial Rights:** You grant the project creator and lead architect (**Mohit Dagar**) a perpetual, worldwide, non-exclusive, sublicensable, and transferable right to relicense, commercialize, and distribute your contributions as part of DAGR products, cloud services, and enterprise editions.
-3. **Originality:** You represent that you are the sole author of the contribution and have the legal right to submit it under these terms.
+1. **Licensing of Contributions:** You agree that all contributions you submit are licensed under the Apache License 2.0, as specified in [`LICENSE`](./LICENSE).
+2. **Originality:** You represent that you are the sole author of the contribution and have the legal right to submit it under these terms.
 
 ---
 

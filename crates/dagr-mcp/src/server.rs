@@ -164,7 +164,12 @@ mod tests {
         assert!(tools_array
             .iter()
             .any(|t| t["name"] == "dagr_get_context_slice"));
+        #[cfg(feature = "a2a")]
         assert!(tools_array
+            .iter()
+            .any(|t| t["name"] == "dagr_a2a_handshake"));
+        #[cfg(not(feature = "a2a"))]
+        assert!(!tools_array
             .iter()
             .any(|t| t["name"] == "dagr_a2a_handshake"));
     }
@@ -246,6 +251,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "a2a")]
     #[test]
     fn handshake_requires_agent_id_instead_of_unknown_agent_default() {
         let server = McpServer::new(PathBuf::from("."));
@@ -360,12 +366,23 @@ mod tests {
             .map(|t| t["name"].as_str().unwrap())
             .collect();
         names.sort_unstable();
+        #[cfg(feature = "a2a")]
         assert_eq!(
             names,
             vec![
                 "dagr_a2a_handshake",
                 "dagr_a2a_transfer_context",
                 "dagr_a2a_verify_peer_patch",
+                "dagr_execute_sandboxed",
+                "dagr_get_context_slice",
+                "dagr_get_lifetime_stats",
+                "dagr_verify_architecture",
+            ]
+        );
+        #[cfg(not(feature = "a2a"))]
+        assert_eq!(
+            names,
+            vec![
                 "dagr_execute_sandboxed",
                 "dagr_get_context_slice",
                 "dagr_get_lifetime_stats",

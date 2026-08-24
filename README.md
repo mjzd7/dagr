@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![License](https://img.shields.io/badge/License-BSL--1.1-blue.svg)](./LICENSE)
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](./LICENSE)
 [![Rust 2021](https://img.shields.io/badge/Rust-2021_Edition-orange.svg)](https://www.rust-lang.org/)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-JSON--RPC_2.0-blue.svg)](https://modelcontextprotocol.io/)
 [![A2A Swarm Protocol](https://img.shields.io/badge/A2A-Swarm_Bus-9cf.svg)](#-dual-protocol-gateway-mcp--a2a)
@@ -11,11 +11,13 @@
 [![Architecture](https://img.shields.io/badge/Architecture-Ponytail_Minimal-success.svg)](./.ponytail.md)
 [![Lead Architect](https://img.shields.io/badge/Creator-Mohit_Dagar-purple.svg)](https://github.com/mjzd7)
 
-**The DAG-Native Symbolic AST Slicing Hypervisor, Safety Sandbox & A2A Swarm Bus for AI Coding Agents.**
+**Governance for AI-written code.**
 
-*Sub-5ms context pruning, 95% token compression, zero-trust Copy-on-Write (CoW) sandboxing, and peer-to-peer Agent-to-Agent (A2A) coordination.*
+*Policy enforcement, sandboxed execution with atomic rollback, and signed audit receipts — so every change a coding agent makes is checked, provable, and reversible.*
 
 [Executive Summary](#-executive-summary-crisp-overview) • [Research Roadmap](./RESEARCH_ROADMAP.md) • [Research Papers](./docs/RESEARCH_PAPERS.md) • [Why Developers Need DAGR](#-why-developers-need-dagr-in-simple-terms) • [Dual Protocol](#-dual-protocol-gateway-mcp--a2a) • [Visual Architecture](#-visual-architecture--mechanics) • [Audited Metrics](#-transparent-metrics--mathematical-formulas) • [Terminal UI](#-terminal-ui--token-gauges) • [Quickstart](#-quickstart--ide-setup) • [Nomenclature](#-nomenclature--etymology)
+
+> ⚠️ **Known limits:** exact-string search still beats AST slicing for literal lookups; cross-file symbol analysis currently supports TypeScript/JavaScript/Rust best. See [`docs/HONEST-LIMITS.md`](docs/HONEST-LIMITS.md).
 
 </div>
 
@@ -702,11 +704,10 @@ All modules are clippy-clean, tested, and wired into the active execution path.
 
 ## 📜 License
 
-Distributed under the **Business Source License 1.1 (BSL 1.1)**. 
+Distributed under the **Apache License 2.0**.
 
-* **100% Free for Individual Developers:** Free for personal use, individual developers, development, evaluation, testing, educational use, and internal developer workstation workflows.
-* **Commercial / Multi-Tenant SaaS Protection:** Providing DAGR as a hosted, multi-tenant cloud service (SaaS) or embedding into competing commercial AI products requires a commercial license from the Licensor.
-* **Open Source Transition:** Automatically converts to **Apache 2.0 / MIT** on August 18, 2030.
+* **Free for everyone:** personal use, commercial use, modification, distribution, and embedding into your own products — including other AI tools — with no restrictions beyond preserving notices.
+* **Enterprise offerings** (priority support, hosted control plane, compliance packs) are sold separately and are not part of this repository. See [`NOTICE.md`](./NOTICE.md).
 
 See [`LICENSE`](./LICENSE) for the full legal text.
 
