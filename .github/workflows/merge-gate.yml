@@ -28,5 +28,4 @@ jobs:
         run: ./target/debug/dagr review-diff --workspace . origin/main HEAD
 
       - name: Proof receipt
-        if: always()
         run: ./target/debug/dagr prove

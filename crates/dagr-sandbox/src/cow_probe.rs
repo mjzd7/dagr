@@ -61,16 +61,20 @@ pub fn probe(dir: &Path) -> CowSupport {
     {
         use std::os::unix::io::AsRawFd;
         const FICLONE: libc::c_ulong = 0x4004_9409;
-        let ok = (|| -> bool {
-            let src_f = std::fs::File::open(&src).ok()?;
+        // FICLONE ioctl: dst becomes a reflink of src. Returns false on
+        // filesystems without reflink support (ext4 pre-6.x, tmpfs).
+        let ok = (|| -> std::io::Result<bool> {
+            let src_f = std::fs::File::open(&src)?;
             let dst_f = std::fs::OpenOptions::new()
                 .create(true)
                 .write(true)
-                .open(&dst)
-                .ok()?;
-            let rc = unsafe { libc::ioctl(dst_f.as_raw_fd(), FICLONE, src_f.as_raw_fd()) };
-            rc == 0
-        })();
+                .truncate(true)
+                .open(&dst)?;
+            let rc =
+                unsafe { libc::ioctl(dst_f.as_raw_fd(), FICLONE, src_f.as_raw_fd()) };
+            Ok(rc == 0)
+        })()
+        .unwrap_or(false);
         if ok && std::fs::read(&dst).is_ok_and(|b| b == b"dagr-cow-probe") {
             cleanup();
             return CowSupport::Native;
