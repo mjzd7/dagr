@@ -47,3 +47,9 @@ Everything worth remembering during the completion plan (Waves A–D). Append-on
 - **L5.1** Verification matrix for this repo, in order: `cargo test --workspace` → `node evals/run.mjs --provider mock` → `scripts/ponytail_guard.sh` → pre-commit's own guard+ponytail. All green at close.
 - **L5.2** What shipped vs original critique: relicensed Apache-2.0 ✓ · single governance wedge story ✓ · pillars parked not deleted ✓ · outcome eval harness exists (live results pending key) ✓ · Tier 0 prove/review-diff/action/secrets ✓ · Tier 1 benchmark-harness/audit-export/explainability/honest-limits ✓ · Tier 2 identity+revoke/cost-attribution/compliance-page/docs-split/doctor/demo ✓ · LSP bridge disclosed as backlog ✓.
 - **L5.3** Remaining honest gaps: no live-model eval numbers yet; reverse-index precision on dynamic JS needs the LSP bridge; license scan is declared-only (no transitive SBOM); A2A still experimental behind feature flag.
+
+## Gap-closure waves
+
+- **L6.1 (G3/G4)** Dogfooding the merge-gate workflow immediately exposed a design flaw unit tests missed: dangling-import detection scanned the whole workspace, so any repo with pre-existing broken imports (incl. our own eval fixtures!) would BLOCK forever. Correct semantics: flag only when importer changed OR target deleted by the diff. Lesson: run your own CI gate locally against your own messy repo before shipping it.
+- **L6.2 (G3)** review-diff verdicts are now three-valued: PASS / BLOCKED / UNKNOWN. Git failure (shallow clone, bad ref) = UNKNOWN + exit 1 — never a silent PASS. actions/checkout needs fetch-depth: 0.
+- **L6.3 (G11)** Directory writability ≠ clone support. Real probe: fclonefileat(2) macOS / FICLONE ioctl Linux; CopyFallback is an honest outcome (rollback still atomic, cost O(tree)), not a failure.

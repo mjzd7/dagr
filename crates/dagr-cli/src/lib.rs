@@ -672,7 +672,7 @@ pub async fn execute_cli(cli: Cli) -> Result<()> {
             format,
         } => {
             let outcome = handle_review_diff(&workspace, &base, &head, format)?;
-            if fail_on_blocked && outcome == "BLOCKED" {
+            if fail_on_blocked && matches!(outcome.as_str(), "BLOCKED" | "UNKNOWN") {
                 std::process::exit(1);
             }
             Ok(())
@@ -1380,6 +1380,12 @@ pub fn handle_review_diff(
                 "🔍 dagr review-diff {}...{} — {} file(s) changed",
                 base, head, verdict.files_changed
             );
+            if verdict.verdict == governance::VERDICT_UNKNOWN {
+                eprintln!(
+                    "❔ UNKNOWN: {}",
+                    verdict.note.as_deref().unwrap_or("diff could not be determined")
+                );
+            }
             for f in &verdict.files {
                 let marker = if f.risk_score > 0 { "⚠️ " } else { "  " };
                 eprintln!(
@@ -1527,18 +1533,20 @@ fn run_doctor_checks(workspace: &Path) -> Result<Vec<DoctorCheck>> {
         });
     }
 
-    let probe = workspace.join(".dagr").join("cow-probe");
-    std::fs::create_dir_all(workspace.join(".dagr")).ok();
-    std::fs::write(&probe, b"x").ok();
-    let cow_ok = std::fs::read(&probe).is_ok_and(|b| b == b"x");
-    std::fs::remove_file(&probe).ok();
+    std::fs::create_dir_all(workspace).ok();
+    let cow = dagr_sandbox::probe_cow(workspace);
     out.push(DoctorCheck {
         component: "sandbox-fs",
-        status: if cow_ok { "OK" } else { "FAIL" },
-        detail: if cow_ok {
-            "workspace writable (APFS reflink/clonefile detected at runtime)".into()
-        } else {
-            "cannot write .dagr/ probe file".into()
+        status: "OK",
+        detail: match cow {
+            dagr_sandbox::CowSupport::Native => {
+                "native CoW clone available (instant snapshots)".into()
+            }
+            dagr_sandbox::CowSupport::CopyFallback => {
+                "no clone syscall on this volume — copy-based snapshots; \
+                 rollback stays atomic but costs O(tree size)"
+                    .into()
+            }
         },
     });
 

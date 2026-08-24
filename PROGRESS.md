@@ -51,5 +51,12 @@
 
 **Status: ALL WAVES COMPLETE.** Wave A b6b92ff · B eac52dd · C c3a7a42 · D 51c2844
 
+## Gap-Closure Plan (honest-gaps roadmap)
+| Task | Status | Evidence |
+|---|---|---|
+| G3 git failure ⇒ UNKNOWN (never silent PASS) | ✅ | e2e: missing base ref → UNKNOWN+note; exit 1 fail-closed; +diff-scoping fix (pre-existing breakage no longer blocks unrelated diffs) — 2 regression tests |
+| G4 dogfood merge-gate workflow | ✅ | .github/workflows/merge-gate.yml; dry-run caught diff-scoping flaw; PASS on clean diff / BLOCKED on planted broken import |
+| G11 real CoW probe | ✅ | fclonefileat(2)/FICLONE probe in dagr-sandbox::cow_probe; doctor reports Native vs CopyFallback honestly; Native confirmed here |
+
 ---
 *Updated after every task. Learnings live in [LEARNINGS.md](LEARNINGS.md).*

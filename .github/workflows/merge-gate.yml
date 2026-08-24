@@ -1,0 +1,32 @@
+# Dogfood: DAGR's own repo is gated by DAGR's own merge gate.
+name: DAGR Merge Gate (dogfood)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # review-diff fails closed with verdict UNKNOWN on shallow history
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build dagr
+        run: cargo build -p dagr
+
+      - name: Architecture guard (full workspace)
+        run: ./target/debug/dagr guard --workspace . --ci --base origin/main
+
+      - name: Merge gate (review-diff vs origin/main)
+        run: ./target/debug/dagr review-diff --workspace . origin/main HEAD
+
+      - name: Proof receipt
+        if: always()
+        run: ./target/debug/dagr prove

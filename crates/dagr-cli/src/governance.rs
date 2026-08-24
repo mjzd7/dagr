@@ -9,7 +9,7 @@
 //! instead of rules.yaml keys (strict fail-closed schema stays untouched);
 //! upgrade when calibration data from evals/ justifies per-project weights.
 
-use dagr_core::Result;
+use dagr_core::{DagrError, Result};
 use dagr_guard::{
     check_declared_licenses, ArchitectureGuard, LicenseViolation, SecretFinding, SecretScanner,
 };
@@ -227,11 +227,17 @@ pub struct FileRisk {
     pub test_coverage_hint: bool,
 }
 
-#[derive(Debug, Clone)]
-#[derive(Default)]
+pub const VERDICT_PASS: &str = "PASS";
+pub const VERDICT_BLOCKED: &str = "BLOCKED";
+/// Git diff could not be determined (shallow clone, missing ref). Fail-closed.
+pub const VERDICT_UNKNOWN: &str = "UNKNOWN";
+
+#[derive(Debug, Clone, Default)]
 pub struct ReviewVerdict {
     pub schema_version: u8,
     pub verdict: String,
+    /// Human-readable explanation when verdict is UNKNOWN.
+    pub note: Option<String>,
     pub base: String,
     pub head: String,
     pub files_changed: usize,
@@ -254,7 +260,23 @@ impl ReviewVerdict {
         head: &str,
     ) -> Result<Self> {
         let guard = ArchitectureGuard::load(workspace_root)?;
-        let changed = git_changed_files(workspace_root, base, head);
+        let changed = match git_changed_files(workspace_root, base, head) {
+            Ok(c) => c,
+            Err(e) => {
+                return Ok(ReviewVerdict {
+                    schema_version: VERDICT_SCHEMA_VERSION,
+                    verdict: VERDICT_UNKNOWN.to_string(),
+                    note: Some(format!(
+                        "could not determine diff {base}...{head}: {e}. \
+                         A shallow clone or missing ref blocks review — fetch \
+                         full history (actions/checkout fetch-depth: 0)."
+                    )),
+                    base: base.to_string(),
+                    head: head.to_string(),
+                    ..Default::default()
+                });
+            }
+        };
 
         let mut guard_violation_count = 0usize;
         let mut violations_per_file: std::collections::HashMap<String, usize> =
@@ -295,7 +317,8 @@ impl ReviewVerdict {
         }
 
         let index = ReverseIndex::build(workspace_root)?;
-        let dangling = detect_dangling_imports(&index, workspace_root);
+        let scope = DiffScope::load(workspace_root, base, head)?;
+        let dangling = detect_dangling_imports(&index, workspace_root, &scope);
 
         let w_dangling = weight("DANGLING_IMPORT", W_DANGLING_IMPORT);
         let w_guard = weight("GUARD_VIOLATION", W_GUARD_VIOLATION);
@@ -335,7 +358,12 @@ impl ReviewVerdict {
         let blocked = secret_count > 0 || guard_violation_count > 0 || !dangling.is_empty();
         Ok(ReviewVerdict {
             schema_version: VERDICT_SCHEMA_VERSION,
-            verdict: if blocked { "BLOCKED" } else { "PASS" }.to_string(),
+            verdict: if blocked {
+                VERDICT_BLOCKED.to_string()
+            } else {
+                VERDICT_PASS.to_string()
+            },
+            note: None,
             base: base.to_string(),
             head: head.to_string(),
             files_changed: changed.len(),
@@ -350,6 +378,7 @@ impl ReviewVerdict {
         serde_json::json!({
             "schema_version": self.schema_version,
             "verdict": self.verdict,
+            "note": self.note,
             "base": self.base,
             "head": self.head,
             "files_changed": self.files_changed,
@@ -371,11 +400,18 @@ impl ReviewVerdict {
     }
 
     pub fn to_markdown(&self) -> String {
-        let icon = if self.verdict == "PASS" { "✅" } else { "⛔" };
+        let icon = match self.verdict.as_str() {
+            VERDICT_PASS => "✅",
+            VERDICT_BLOCKED => "⛔",
+            _ => "❔",
+        };
         let mut md = format!(
             "{} **verdict: {}** — {} file(s) changed vs {}...{}\n\n",
             icon, self.verdict, self.files_changed, self.base, self.head
         );
+        if let Some(note) = &self.note {
+            md.push_str(&format!("> ⚠️ {note}\n\n"));
+        }
         if !self.dangling_imports.is_empty() {
             md.push_str("### Dangling imports\n");
             for d in &self.dangling_imports {
@@ -408,9 +444,49 @@ impl ReviewVerdict {
     }
 }
 
+#[derive(Default)]
+struct DiffScope {
+    /// Files added/modified in this diff.
+    changed: std::collections::HashSet<String>,
+    /// Files deleted by this diff.
+    deleted: std::collections::HashSet<String>,
+}
+
+impl DiffScope {
+    fn load(ws: &Path, base: &str, head: &str) -> Result<Self> {
+        Ok(Self {
+            changed: git_changed_files(ws, base, head)?.into_iter().collect(),
+            deleted: git_deleted_files(ws, base, head)?.into_iter().collect(),
+        })
+    }
+
+    fn touches(&self, imp_file: &str) -> bool {
+        self.changed.contains(imp_file) || self.deleted.contains(imp_file)
+    }
+
+    fn deletes_module(&self, importer_dir: &Path, spec: &str) -> bool {
+        use std::path::Component;
+        let joined: PathBuf = importer_dir
+            .join(spec)
+            .components()
+            .filter(|c| !matches!(c, Component::CurDir))
+            .collect();
+        const CANDIDATES: [&str; 4] = [".ts", ".tsx", "/index.ts", "/index.tsx"];
+        CANDIDATES.iter().any(|c| {
+            self.deleted.contains(&format!("{}{}", joined.display(), c))
+        })
+    }
+}
+
 /// Detects imports whose target module file no longer exists, plus TS named
-/// bindings that no longer resolve anywhere in the index.
-fn detect_dangling_imports(index: &ReverseIndex, ws: &Path) -> Vec<DanglingImport> {
+/// bindings that no longer resolve anywhere in the index. Scoped to the diff:
+/// only imports whose importer changed or whose target was deleted are
+/// verdict-relevant — pre-existing breakage elsewhere is not this PR's fault.
+fn detect_dangling_imports(
+    index: &ReverseIndex,
+    ws: &Path,
+    scope: &DiffScope,
+) -> Vec<DanglingImport> {
     let mut out = Vec::new();
     for imp in index_imports(index) {
         if imp.module.starts_with('@') || !imp.module.starts_with('.') {
@@ -420,6 +496,14 @@ fn detect_dangling_imports(index: &ReverseIndex, ws: &Path) -> Vec<DanglingImpor
             .parent()
             .map(|p| p.to_path_buf())
             .unwrap_or_default();
+
+        // Cheap scope pre-check on the raw spec before resolution.
+        let possibly_relevant =
+            scope.touches(&imp.file) || scope.deletes_module(&importer_dir, &imp.module);
+        if !possibly_relevant {
+            continue;
+        }
+
         let resolved = resolve_ts_module(ws, &importer_dir, &imp.module);
         match resolved {
             ModuleResolution::Missing => out.push(DanglingImport {
@@ -492,22 +576,48 @@ fn has_test_sibling(ws: &Path, rel: &str) -> bool {
         || ws.join("tests").join(stem).exists()
 }
 
-fn git_changed_files(ws: &Path, base: &str, head: &str) -> Vec<String> {
+fn git_changed_files(ws: &Path, base: &str, head: &str) -> Result<Vec<String>> {
+    use std::process::Command;
     let range = format!("{base}...{head}");
-    let output = std::process::Command::new("git")
+    let output = Command::new("git")
         .current_dir(ws)
         .args(["diff", "--name-only", &range])
-        .output();
-    if let Ok(o) = output {
-        if o.status.success() {
-            return String::from_utf8_lossy(&o.stdout)
-                .lines()
-                .map(|l| l.trim().to_string())
-                .filter(|l| !l.is_empty())
-                .collect();
-        }
+        .output()
+        .map_err(|e| DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+    if !output.status.success() {
+        return Err(DagrError::Config(format!(
+            "git exited {}: {}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
     }
-    Vec::new()
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(|l| l.trim().to_string())
+        .filter(|l| !l.is_empty())
+        .collect())
+}
+
+fn git_deleted_files(ws: &Path, base: &str, head: &str) -> Result<Vec<String>> {
+    use std::process::Command;
+    let range = format!("{base}...{head}");
+    let output = Command::new("git")
+        .current_dir(ws)
+        .args(["diff", "--name-only", "--diff-filter=D", &range])
+        .output()
+        .map_err(|e| DagrError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+    if !output.status.success() {
+        return Err(DagrError::Config(format!(
+            "git exited {}: {}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr).trim()
+        )));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(|l| l.trim().to_string())
+        .filter(|l| !l.is_empty())
+        .collect())
 }
 
 fn collect_source_texts(ws: &Path) -> Vec<(String, String)> {
@@ -683,6 +793,124 @@ mod tests {
 
         let verdict = ReviewVerdict::generate(&dir, "HEAD~1", "HEAD").unwrap();
         assert_eq!(verdict.verdict, "PASS", "{:#?}", verdict);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+#[cfg(test)]
+mod unknown_verdict_tests {
+    use super::*;
+
+    #[test]
+    fn missing_base_ref_yields_unknown_never_pass() {
+        let dir = std::env::temp_dir().join(format!("dagr-unk-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src")).unwrap();
+
+        let git = |args: &[&str]| {
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(&dir)
+                .env("GIT_AUTHOR_NAME", "t")
+                .env("GIT_AUTHOR_EMAIL", "t@t")
+                .env("GIT_COMMITTER_NAME", "t")
+                .env("GIT_COMMITTER_EMAIL", "t@t")
+                .output()
+                .expect("git")
+        };
+        assert!(git(&["init", "-q"]).status.success());
+        std::fs::write(dir.join("src/ok.ts"), "export const a = 1;\n").unwrap();
+        assert!(git(&["add", "."]).status.success());
+        assert!(git(&["commit", "-q", "-m", "base"]).status.success());
+
+        let verdict = ReviewVerdict::generate(&dir, "origin/main", "HEAD").unwrap();
+        assert_eq!(verdict.verdict, VERDICT_UNKNOWN);
+        assert!(verdict.note.as_deref().unwrap().contains("fetch"));
+        assert_eq!(verdict.files_changed, 0);
+
+        let md = verdict.to_markdown();
+        assert!(md.contains("❔"));
+        assert!(md.contains("⚠️"));
+
+        let json = verdict.to_json();
+        assert_eq!(json["verdict"], "UNKNOWN");
+        assert!(json["note"].is_string());
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+#[cfg(test)]
+mod scoping_tests {
+    use super::*;
+
+    /// Regression for the dogfooding finding: pre-existing dangling imports
+    /// in untouched files must not fail an unrelated diff.
+    #[test]
+    fn pre_existing_dangling_import_does_not_block_unrelated_diff() {
+        let dir = std::env::temp_dir().join(format!("dagr-scope-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src")).unwrap();
+
+        let git = |args: &[&str]| {
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(&dir)
+                .env("GIT_AUTHOR_NAME", "t")
+                .env("GIT_AUTHOR_EMAIL", "t@t")
+                .env("GIT_COMMITTER_NAME", "t")
+                .env("GIT_COMMITTER_EMAIL", "t@t")
+                .output()
+                .expect("git")
+        };
+        assert!(git(&["init", "-q"]).status.success());
+        // broken.ts imports a module that never exists — committed as-is.
+        std::fs::write(dir.join("src/broken.ts"), "import { x } from \"./missing\";\nexport const y = x;\n").unwrap();
+        std::fs::write(dir.join("src/clean.ts"), "export const clean = 1;\n").unwrap();
+        assert!(git(&["add", "."]).status.success());
+        assert!(git(&["commit", "-q", "-m", "base (with pre-existing breakage)"]).status.success());
+
+        // The diff only touches clean.ts — unrelated to the broken import.
+        std::fs::write(dir.join("src/clean.ts"), "export const clean = 2;\n").unwrap();
+        assert!(git(&["add", "."]).status.success());
+        assert!(git(&["commit", "-q", "-m", "touch clean only"]).status.success());
+
+        let v = ReviewVerdict::generate(&dir, "HEAD~1", "HEAD").unwrap();
+        assert_eq!(v.verdict, VERDICT_PASS, "{:#?}", v.dangling_imports);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// Deletion side-effects still block even when importers are untouched:
+    /// deleting a module that a surviving file imports stays BLOCKED.
+    #[test]
+    fn deleted_module_still_blocks_untouched_importer() {
+        let dir = std::env::temp_dir().join(format!("dagr-scope2-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src")).unwrap();
+
+        let git = |args: &[&str]| {
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(&dir)
+                .env("GIT_AUTHOR_NAME", "t")
+                .env("GIT_AUTHOR_EMAIL", "t@t")
+                .env("GIT_COMMITTER_NAME", "t")
+                .env("GIT_COMMITTER_EMAIL", "t@t")
+                .output()
+                .expect("git")
+        };
+        assert!(git(&["init", "-q"]).status.success());
+        std::fs::write(dir.join("src/a.ts"), "export function charge(): number {\n  return 1;\n}\n").unwrap();
+        std::fs::write(dir.join("src/b.ts"), "import { charge } from \"./a\";\nexport const total = charge();\n").unwrap();
+        assert!(git(&["add", "."]).status.success());
+        assert!(git(&["commit", "-q", "-m", "base"]).status.success());
+
+        std::fs::remove_file(dir.join("src/a.ts")).unwrap();
+        assert!(git(&["add", "-A"]).status.success());
+        assert!(git(&["commit", "-q", "-m", "delete a"]).status.success());
+
+        let v = ReviewVerdict::generate(&dir, "HEAD~1", "HEAD").unwrap();
+        assert_eq!(v.verdict, VERDICT_BLOCKED, "{:#?}", v.dangling_imports);
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
