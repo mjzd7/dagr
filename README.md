@@ -334,6 +334,8 @@ $$\text{Token Savings \%} = \left( 1 - \frac{\text{Tokens}_{\text{sliced}}}{\tex
 | **Shadow Sandbox Rollback** | `< 10ms` | `< 10ms` | Atomic Directory Purge |
 
 ### 3. Developer FinOps Cost Savings Matrix (Claude 3.5 Sonnet / GPT-4o)
+
+> ✅ **Field-verified** on vercel/next.js (99.7% on 2564-line file), vitejs/vite, denoland/deno, rust-analyzer, and tokio-rs/tokio. See `docs/findings/` for per-repo data.
 | File Size (Lines) | Baseline Tokens (Raw File) | DAGR Sliced Tokens | Token Reduction | Savings per 1,000 Prompts (Claude 3.5 @ $3.00/M) |
 | :---: | :---: | :---: | :---: | :---: |
 | **300 lines** | ~3,200 tokens | ~180 tokens | **94.4%** | **$9.06 saved** |
