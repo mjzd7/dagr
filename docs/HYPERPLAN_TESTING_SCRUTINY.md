@@ -181,3 +181,31 @@ Score: PASS=3 FAIL=0 (after probe fix). WAL mode handles concurrent readers; sin
 
 Barrel cache, alias map, and all F2.x/F3.2 infrastructure fit comfortably.
 Ponytail measure-first policy confirms: no memory caps needed at current scale.
+
+---
+
+## APPENDIX: Batch Runner Results + Tier B Finding (2026-08-24)
+
+### Batch runner validated across 6 repos
+
+| Repo | T0 | Guard Scan | Slice % | Tier B |
+|---|---|---|---|---|
+| vite | ✅ | 109ms · passed | 85.7% | ❌ P1 fail |
+| next.js | ✅ | 1823ms · passed | skipped | skipped |
+| deno | ✅ | 863ms · passed | skipped | skipped |
+| rust-analyzer | ✅ | 213ms · passed | skipped | skipped |
+| tokio | ✅ | 58ms · passed | 70.5% | skipped |
+| vscode | ✅ | 1579ms · passed | 85.7% | skipped |
+
+### NEW FINDING: `dagr guard --staged` does NOT catch planted violations
+
+**F-ticket candidate**: When a violating file is staged via `git add` and
+`dagr guard --staged --format json` is run, violations_count=0 despite the
+file containing clear forbidden imports against the active preset rules.
+
+Possible root causes:
+1. --staged flag not implemented for the preset fallback path
+2. Preset rules don't include patterns matching the test fixture path
+3. Staged-file diffing logic has a gap
+
+Priority: S1 — core selling point is "catches AI mistakes before commit."

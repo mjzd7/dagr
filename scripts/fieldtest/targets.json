@@ -1,0 +1,46 @@
+{
+  "targets": [
+    {
+      "name": "vite",
+      "url": "https://github.com/vitejs/vite.git",
+      "language": "TypeScript",
+      "tiers": ["A", "B"],
+      "probe_symbol": "packages/vite/src/node/assetSource.ts:getNodeAssetAttributes"
+    },
+    {
+      "name": "nextjs",
+      "url": "https://github.com/vercel/next.js.git",
+      "language": "TypeScript",
+      "tiers": ["A"],
+      "probe_symbol": ""
+    },
+    {
+      "name": "deno",
+      "url": "https://github.com/denoland/deno.git",
+      "language": "Rust+TS",
+      "tiers": ["A"],
+      "probe_symbol": "core/error.rs:err_out_of_memory"
+    },
+    {
+      "name": "rust-analyzer",
+      "url": "https://github.com/rust-lang/rust-analyzer.git",
+      "language": "Rust",
+      "tiers": ["A"],
+      "probe_symbol": ""
+    },
+    {
+      "name": "tokio",
+      "url": "https://github.com/tokio-rs/tokio.git",
+      "language": "Rust",
+      "tiers": ["A"],
+      "probe_symbol": "tokio/src/runtime/runtime.rs:Runtime"
+    },
+    {
+      "name": "vscode",
+      "url": "https://github.com/microsoft/vscode.git",
+      "language": "TypeScript",
+      "tiers": ["A"],
+      "probe_symbol": "src/vs/platform/registry/common/platform.ts:Registry"
+    }
+  ]
+}
